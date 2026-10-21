@@ -27,9 +27,10 @@ lib/fx.js          grain, aberration chromatique, vignette, profondeur de champ
 lib/textures.js    matières procédurales sans image : bois, marbre, béton, papier
 lib/story.js       scène en plusieurs actes : acts(), steps() à paliers, captionSync() (légendes sans superposition)
 lib/react.js       hook usePremium3D pour React / Next.js (montage, préchauffage, nettoyage)
-icons/             78 icônes Lucide (licence ISC) couvrant la plupart des métiers
+icons/             78 icônes Lucide (licence ISC, dessinées en traits) couvrant la plupart des métiers
 demos/             démos TECHNIQUES (comment appeler le code, pas des modèles de design)
-references/        concepts.md, art-direction.md, performance.md, integration.md
+references/        api.md (toutes les fonctions en une ligne), concepts.md, art-direction.md,
+                   performance.md, integration.md
 tools/check.mjs    captures desktop + mobile, erreurs, rapport visuel report.html (avec le jury)
 tools/record.mjs   vidéo fluide de la page (écran d'ordinateur 1920×1080) pour présenter le travail
 tools/serve.py     serveur local
@@ -101,6 +102,18 @@ Les fichiers de ce skill (`lib/`, `icons/`, `references/`, `tools/`) sont dans l
 dont le chemin est donné au chargement. Copie dans le projet **uniquement** les modules de `lib/`
 et les icônes utilisés (ils s'importent entre eux : garde-les dans le même dossier).
 
+**Lis `references/api.md`** : toutes les fonctions et leurs options, en une ligne. C'est plus
+rapide et plus sûr que de parcourir les sources de `lib/`.
+
+La scène peut (et souvent doit) contenir des objets construits pour le projet avec `THREE`
+(une jante, un flacon, un comptoir à partir de cylindres, de `Shape` extrudées, de `LatheGeometry`) :
+`lib/` fournit le rendu, les matières, le scroll et les effets, pas les objets du métier.
+Pour des particules qui dessinent une forme qui n'est ni une image, ni un SVG, ni un texte (une
+mèche, une vague, un plan), écris-la avec `shape()`.
+
+Les icônes de `icons/` sont dessinées en **traits** : elles marchent avec `icon3d` et `sampleSVG`,
+pas avec `logoPieces` (qui extrude des aplats).
+
 Pour un **logo** : chaque `<path>` du SVG devient une pièce (avec son propre matériau si besoin).
 Trop de paths (texte inclus) : garde le symbole ou regroupe avec `pieces`. Logo en PNG/JPG :
 redessine le symbole en SVG propre (polygones aux coins arrondis), ne vectorise pas au pixel.
@@ -124,7 +137,9 @@ if (stage) {
 - Lenis (scroll fluide) est optionnel : charge-le et appelle `smoothScroll()`.
 - Pour une scène en plusieurs temps : `acts()` pour nommer les actes, `steps()` pour des paliers
   lisibles, `captionSync()` pour les légendes HTML, `cameraPath()` pour la caméra.
-- `fitDistance(camera, largeur, hauteur)` pour que l'objet tienne à l'écran sur mobile comme sur ordinateur.
+- `fitDistance(camera, largeur, hauteur)` pour que l'objet tienne à l'écran sur mobile comme sur
+  ordinateur. Objet décalé à côté du texte : `fitDistance(camera, l, h, { x: décalage, y: … })`,
+  sinon le côté décalé sort de l'écran.
 - Dose ce qui coûte cher selon `stage.tier` ("low" / "mid" / "high") : nombre de particules,
   subdivisions, ombres, profondeur de champ. Ex. `{ low: 6000, mid: 12000, high: 20000 }[stage.tier]`.
 - Textes : en HTML (accessibles, indexables), jamais uniquement dans la 3D.
@@ -152,14 +167,19 @@ node tools/check.mjs http://127.0.0.1:5180/index.html ./captures --section "#ma-
 node tools/check.mjs http://127.0.0.1:5180/index.html ./captures-full --section "#ma-scene" --full
 ```
 Sans `--full`, les captures sont faites sans post-traitement (rapide) ; avec, on voit le rendu final
-(bloom, grain…), à utiliser pour le jury. Sans carte graphique, chaque capture peut prendre du temps.
+(bloom, grain…), à utiliser pour le jury. Les halos de bloom (chrome qui bave, surtout sur mobile)
+**n'apparaissent qu'avec `--full`** : passe-le au moins une fois avant de conclure. Sans carte graphique, chaque capture peut prendre du temps.
 Expose `window.__demo = { get ready() { return stage.ready; } }` pour que le script attende la 3D.
 Regarde **chaque** capture (desktop et 390×844) :
 - le **premier écran, avant tout scroll**, est déjà beau et plein : la scène ne commence pas
   par un objet minuscule ou un vide (c'est ce que tout visiteur voit, même s'il ne scrolle pas) ;
 - les arêtes et reflets fins sont nets, sans scintillement ni crénelage (sinon : vérifier
   `stage.pixelRatio`, qui doit valoir 1 ou plus sur un ordinateur correct) ;
-- la 3D est entière et cadrée à chaque point du scroll, rien n'est coupé ;
+- la 3D est entière et cadrée à chaque point du scroll, rien n'est coupé (y compris les pièces qui
+  arrivent ou s'écartent) ;
+- le métal et le chrome ont des reflets lisibles : ni faces noires, ni taches blanches qui bavent
+  (réglages dans `references/art-direction.md`) ;
+- sur fond clair, les particules sont denses et bien lisibles, pas un voile pâle ;
 - aucun texte n'est recouvert ; contraste suffisant ;
 - pas de face noire (normales inversées) ni de pièce qui traverse une autre ;
 - la console est propre ; pas de débordement horizontal.

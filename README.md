@@ -52,7 +52,7 @@ Or copy `plugins/premium-3d/skills/premium-3d` into `~/.claude/skills/` and use 
 |---|---|
 | `core.js` | Stage, device tier (low/mid/high), studio reflections, materials (glass, frosted, metal, enamel, soft), bloom, scroll tracking, camera paths, warm-up, adaptive quality, `dispose()` |
 | `shaders.js` | `liquify` (molten metal, jelly, water surfaces), `dissolve` (burn-in reveal with a glowing edge) |
-| `particles.js` | Particles shaped from a photo, an SVG logo, text or a 3D mesh, morphing between shapes |
+| `particles.js` | Particles shaped from a photo, an SVG logo, text, a 3D mesh or your own function (`shape()`), morphing between shapes |
 | `text3d.js` | 3D text in any `.ttf/.otf/.woff` font, letter by letter |
 | `logo3d.js` | SVG logo to extruded 3D pieces, exploded view and assembly |
 | `textures.js` | Procedural wood, marble, concrete, paper (no image files) |
@@ -64,7 +64,7 @@ Or copy `plugins/premium-3d/skills/premium-3d` into `~/.claude/skills/` and use 
 | `story.js` | Multi-act scroll stories: named acts, stepped progress, captions that never overlap |
 | `react.js` | `usePremium3D` hook for React and Next.js (mount, warm-up, cleanup) |
 
-Plus `references/` (concepts, art direction, performance, integration for HTML, Symfony,
+Plus `references/` (one-line API reference, concepts, art direction, performance, integration for HTML, Symfony,
 WordPress, React/Next/Vue) `tools/check.mjs` (Playwright screenshots, console errors,
 overflow, visual report with the jury scores) and `tools/record.mjs` (smooth 1920×1080 screen video
 of any page, for social media).

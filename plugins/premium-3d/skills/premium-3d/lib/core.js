@@ -112,15 +112,28 @@ export function whenNear(el, fn, margin = "100% 0px") {
   });
 }
 
-/** Distance de caméra pour qu'un objet de taille (w, h) tienne dans l'image, avec une marge. */
-export function fitDistance(camera, w, h, margin = 1.25) {
+/**
+ * Distance de caméra pour qu'un objet de taille (w, h) tienne dans l'image, avec une marge.
+ * L'objet est décalé du centre (texte à côté) ? Passer son décalage : il reste entier à l'écran.
+ *   fitDistance(camera, 4, 3)                          // objet centré, marge 1.25
+ *   fitDistance(camera, 4, 3, 1.1)                     // marge 1.1
+ *   fitDistance(camera, 4, 3, { x: 1.6, margin: 1.1 }) // objet posé à x = 1.6 (caméra visant x = 0)
+ */
+export function fitDistance(camera, w, h, opts = 1.25) {
+  const { margin = 1.25, x = 0, y = 0 } = typeof opts === "number" ? { margin: opts } : opts;
   const vf = THREE.MathUtils.degToRad(camera.fov) / 2;
-  const dh = (h / 2) / Math.tan(vf), dw = (w / 2) / (Math.tan(vf) * camera.aspect);
+  const dh = (h / 2 + Math.abs(y)) / Math.tan(vf), dw = (w / 2 + Math.abs(x)) / (Math.tan(vf) * camera.aspect);
   return Math.max(dh, dw) * margin;
 }
 
 /* ---------- studio de reflets : sans lui, le verre et le métal paraissent ternes ---------- */
-export function studioEnvironment(renderer, { accent = "#ffffff", accent2 = "#88aaff", intensity = 1 } = {}) {
+/*
+ * front : lumière douce placée côté caméra (0 = studio pur, par défaut). À activer (front: 1) quand
+ * une face PLATE de métal ou de chrome est tournée vers le visiteur (roue, écrou, médaille, logo de
+ * face) : sans elle, cette face reflète le vide et devient noire. À laisser à 0 pour un métal poli
+ * courbe (goutte, sphère) : la lumière s'y refléterait en un rectangle gris.
+ */
+export function studioEnvironment(renderer, { accent = "#ffffff", accent2 = "#88aaff", intensity = 1, front = 0 } = {}) {
   const env = new THREE.Scene();
   env.background = new THREE.Color(0x020303);
   const panel = (w, h, c, x, y, z, ry = 0, rx = 0) => {
@@ -133,6 +146,12 @@ export function studioEnvironment(renderer, { accent = "#ffffff", accent2 = "#88
   panel(0.8, 10, new THREE.Color(5 * k, 5 * k, 5 * k), 7, 0, -1, -Math.PI / 2);
   panel(14, 1, hdr(accent, 4 * k), 0, -2, -8);
   panel(1, 6, hdr(accent2, 3 * k), 5, 3, 6, -2.4);
+  if (front > 0) {
+    const f = front * k;
+    /* sous 0.9 : le reflet ne déclenche pas le bloom (sinon halos blancs sur le chrome) */
+    panel(9, 1.6, new THREE.Color(0.8 * f, 0.8 * f, 0.8 * f), -1, 3.2, 8, 0, -0.45); // boîte à lumière haute, côté caméra
+    panel(16, 9, new THREE.Color(0.2 * f, 0.2 * f, 0.22 * f), 0, 0, 11);           // fond doux derrière la caméra
+  }
   const pm = new THREE.PMREMGenerator(renderer);
   const tex = pm.fromScene(env, 0.02).texture; pm.dispose();
   return tex;
@@ -172,7 +191,7 @@ export const materials = {
  * pause hors écran. Renvoie null (et ajoute .no-gl sur <html>) si WebGL 2 manque.
  */
 export function createStage(canvas, {
-  background = null, accent = "#ffffff", accent2 = "#88aaff", fov = 32, env = "studio",
+  background = null, accent = "#ffffff", accent2 = "#88aaff", fov = 32, env = "studio", front = 0,
   bloom = { strength: 0.55, radius: 0.5, threshold: 0.9 }, exposure = 1, maxPixelRatio = 1.25, poster = null,
 } = {}) {
   /* image de secours : visible pendant le chargement, et à la place de la 3D si WebGL manque */
@@ -186,13 +205,15 @@ export function createStage(canvas, {
   if (background === null) renderer.setClearColor(0x000000, 0);
   const scene = new THREE.Scene();
   if (background !== null) scene.background = new THREE.Color(background);
-  scene.environment = env === "room" ? roomEnvironment(renderer) : studioEnvironment(renderer, { accent, accent2 });
+  scene.environment = env === "room" ? roomEnvironment(renderer) : studioEnvironment(renderer, { accent, accent2, front });
   const camera = new THREE.PerspectiveCamera(fov, 1, 0.1, 200);
   let composer = null, bloomPass = null, outputPass = null;
   if (bloom && !LITE) {
     composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(scene, camera));
-    bloomPass = new UnrealBloomPass(new THREE.Vector2(1, 1), bloom.strength, bloom.radius, bloom.threshold); composer.addPass(bloomPass);
+    /* sur petit écran, le halo couvre une plus grande part de l'image : on l'adoucit */
+    const bs = (bloom.strength ?? 0.55) * (innerWidth < 860 ? 0.65 : 1);
+    bloomPass = new UnrealBloomPass(new THREE.Vector2(1, 1), bs, bloom.radius ?? 0.5, bloom.threshold ?? 0.9); composer.addPass(bloomPass);
     outputPass = new OutputPass(); composer.addPass(outputPass);
   }
   const box = canvas.parentElement;

@@ -31,11 +31,26 @@ Si la marque a déjà ses polices, utilise-les.
 ## Matériaux par ton
 - Verre optique (`glass`) : tech, beauté, premium moderne.
 - Verre dépoli (`frosted`) : santé, bien-être, calme.
-- Métal (`metal`) : luxe, sport, trophées. Chrome et argent : garder le studio sombre de la scène
-  (reflets contrastés). Or clair : `envMap: roomEnvironment(renderer)`. Surveiller le bloom sur le
-  métal très clair (monter le seuil `threshold` si l'objet devient une tache blanche).
+- Métal (`metal`) : luxe, sport, auto, trophées. Chrome et argent : garder le studio sombre de la scène
+  (reflets contrastés). Or clair : `envMap: roomEnvironment(renderer)`.
+  **Réglages testés pour le chrome et le métal clair sur fond sombre** :
+  - `rough` entre 0,25 et 0,35. À 0,1, c'est un miroir parfait : les facettes plates d'un écrou,
+    d'une bague ou d'un logo reflètent soit le vide (noir), soit un panneau du studio (blanc qui bave) ;
+  - bloom : `threshold: 1.5` environ, et les éléments qui doivent briller en `hdr(couleur, 3)` ou
+    plus : ils gardent leur halo, le métal n'en a plus ;
+  - une face **plate** tournée vers le visiteur (roue, écrou, médaille, logo vu de face) devient
+    noire dans le studio : `createStage(canvas, { front: 1 })` ajoute une lumière douce côté caméra.
+    Ne pas l'activer sur un métal poli courbe (goutte, sphère) : elle s'y reflète en rectangle gris.
 - Émail (`enamel`) : marques franches, objets « céramique ».
 - Doux (`soft`) : enfance, objets du quotidien, marques accessibles.
+
+## Particules sur fond clair
+- `particleMorph(…, { additive: false })` : les points deviennent pleins et nets automatiquement.
+- Couleurs **foncées et saturées** (encre, brun, couleur de marque profonde) : les tons clairs
+  disparaissent dans le fond.
+- Plus de points et plus gros qu'en sombre : `size` 2 à 2,5, et 30 % de particules en plus.
+- Une forme fine (mèche, trait, vague) : ajoute de l'épaisseur (plusieurs fils, léger relief en z),
+  sinon elle se lit comme un voile.
 
 ## Où vit la 3D dans la page (varier !)
 - hero plein écran avec l'objet au centre ;
@@ -51,7 +66,16 @@ Choisis selon la demande. Ne mets pas systématiquement une grande section sombr
   à gauche, objet en haut à droite ; mobile : objet en haut, texte en bas). Les deux ne doivent
   jamais se chevaucher, à aucun moment du scroll.
 - Recadre la caméra par taille d'écran dans `stage.onResize((w, h) => …)` : `fitDistance` avec une
-  largeur différente sur mobile, et un décalage de l'objet sur ordinateur.
+  largeur différente sur mobile, et un décalage de l'objet sur ordinateur. Donne ce décalage à
+  `fitDistance` (`{ x, y }`) : la caméra recule assez pour que le côté décalé reste à l'écran.
+  ```js
+  stage.onResize((w) => {
+    const mobile = w < 860, x = mobile ? 0 : 1.6, y = mobile ? 1 : 0;   // à droite / en haut
+    stage.camera.position.set(0, 0, fitDistance(stage.camera, 4, 3.5, { x, y, margin: 1.1 }));
+    stage.camera.lookAt(0, 0, 0);
+    objet.position.set(x, y, 0);
+  });
+  ```
 - Donne une largeur fixe aux blocs de texte positionnés en absolu (sinon ils se resserrent).
 - Cadre pour l'état **le plus étalé** de la scène (pièces écartées, particules dispersées), pas
   seulement pour l'état final : sinon des éléments sortent de l'écran au début ou à la fin.

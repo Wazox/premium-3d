@@ -4,7 +4,7 @@
  * et passent d'une forme à l'autre (morphing). Tout est calculé dans le shader : des dizaines de
  * milliers de points restent fluides.
  *
- *   import { sampleImage, sampleSVG, sampleText, sampleMesh, scatter, particleMorph } from "./lib/particles.js";
+ *   import { sampleImage, sampleSVG, sampleText, sampleMesh, scatter, shape, particleMorph } from "./lib/particles.js";
  *   const A = await sampleImage("photo.jpg", { count: 20000, width: 6 });
  *   const B = await sampleSVG(logoSvg, { count: 20000, width: 4 });
  *   const pm = particleMorph([scatter(20000, 8), A, B], { size: 3.5 });
@@ -71,6 +71,27 @@ export async function sampleMesh(mesh, { count = 20000, color = "#ffffff" } = {}
   for (let k = 0; k < count; k++) { s.sample(p); p.applyMatrix4(mesh.matrixWorld); p.toArray(positions, k * 3); c.toArray(colors, k * 3); }
   return { positions, colors };
 }
+/**
+ * Forme sur mesure : ta propre fonction place chaque particule (une mèche, une vague, un plan, une
+ * spirale…). fn(i, u, out) reçoit l'index, un nombre u entre 0 et 1 (i / count) et un objet out
+ * à remplir : out.x, out.y, out.z, et out.color (hex ou THREE.Color, optionnel, sinon `color`).
+ *   const vague = shape(N, (i, u, o) => { o.x = u * 6 - 3; o.y = Math.sin(u * 12) * 0.4; o.z = 0; });
+ * Le résultat s'utilise comme les autres formes dans particleMorph. Garder le même ordre
+ * d'indices entre deux formes proches (ex. une forme et sa version « coupée ») donne une
+ * transition lisible : chaque particule va à l'endroit correspondant.
+ */
+export function shape(count, fn, { color = "#ffffff" } = {}) {
+  const positions = new Float32Array(count * 3), colors = new Float32Array(count * 3);
+  const base = new THREE.Color(color), c = new THREE.Color(), o = { x: 0, y: 0, z: 0, color: null };
+  for (let i = 0; i < count; i++) {
+    o.x = o.y = o.z = 0; o.color = null;
+    fn(i, i / count, o);
+    positions[i * 3] = o.x; positions[i * 3 + 1] = o.y; positions[i * 3 + 2] = o.z;
+    (o.color == null ? base : o.color.isColor ? o.color : c.set(o.color)).toArray(colors, i * 3);
+  }
+  return { positions, colors };
+}
+
 /** Nuage aléatoire (sphère ou boîte) : état « dispersé ». */
 export function scatter(count, radius = 8, { color = "#ffffff", shape = "sphere" } = {}) {
   const positions = new Float32Array(count * 3), colors = new Float32Array(count * 3), c = new THREE.Color(color), v = new THREE.Vector3();
@@ -87,8 +108,11 @@ export function scatter(count, radius = 8, { color = "#ffffff", shape = "sphere"
  * @param size    taille des points en pixels, vus à 10 unités de la caméra
  * @param additive  mélange additif (lumineux sur fond sombre) ; false sur fond clair
  * @param turbulence  amplitude du flottement pendant la transition
+ * @param solid     points pleins et nets, sans scintillement (par défaut : oui sur fond clair,
+ *                  c'est-à-dire quand additive est false). Sur fond clair, des points flous et
+ *                  semi-transparents paraissent pâles et clairsemés.
  */
-export function particleMorph(states, { size = 3, additive = true, turbulence = 0.6, opacity = 1 } = {}) {
+export function particleMorph(states, { size = 3, additive = true, turbulence = 0.6, opacity = 1, solid = !additive } = {}) {
   const count = states[0].positions.length / 3;
   const geo = new THREE.BufferGeometry();
   const seeds = new Float32Array(count); for (let i = 0; i < count; i++) seeds[i] = Math.random();
@@ -114,7 +138,8 @@ export function particleMorph(states, { size = 3, additive = true, turbulence = 
         gl_PointSize=uSize*uPR*(.6+aSeed*.8)*10./max(.1,-mv.z);
       }`,
     fragmentShader: `uniform float uOpacity;varying vec3 vC;varying float vA;
-      void main(){vec2 c=gl_PointCoord-.5;float r=length(c);if(r>.5)discard;float a=smoothstep(.5,.0,r);gl_FragColor=vec4(vC,a*vA*uOpacity);
+      void main(){vec2 c=gl_PointCoord-.5;float r=length(c);if(r>.5)discard;
+        ${solid ? "float a=smoothstep(.5,.38,r);gl_FragColor=vec4(vC,a*uOpacity);" : "float a=smoothstep(.5,.0,r);gl_FragColor=vec4(vC,a*vA*uOpacity);"}
       #include <colorspace_fragment>
       }`,
   });
