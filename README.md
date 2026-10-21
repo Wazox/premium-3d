@@ -7,7 +7,7 @@ Liquid metal, morphing particles, 3D type in the brand's own font, procedural wo
 product models with studio light, neon glass icons, scroll-driven scenes. No templates: every
 scene starts from the brand, and two sites made with it should never look alike.
 
-[Live examples](https://wazox.github.io/premium-3d/) · [Version française](#version-française)
+[Version française](#version-française)
 
 ![Particles that turn green coffee beans into a cup, then into the brand name](docs/gallery/cafe.gif)
 
