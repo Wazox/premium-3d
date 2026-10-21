@@ -3,6 +3,7 @@
 // Prérequis : npm i playwright
 // Usage :
 //   node tools/check.mjs <url> [dossier] [--section "#ma-section"] [--points 0,0.25,0.5,0.75,1] [--full]
+//                        [--poster img/poster.jpg]
 // --full : avec le post-traitement (bloom, effets) ; plus lent sans carte graphique.
 // Sans --section, les points sont pris sur toute la hauteur de la page.
 // Si la page expose window.__demo.ready (ou window.__scene.ready), on attend que la 3D soit prête.
@@ -15,6 +16,7 @@ const args = process.argv.slice(2);
 const opt = (k, d) => { const i = args.indexOf(k); return i >= 0 ? args.splice(i, 2)[1] : d; };
 const full = args.includes("--full"); if (full) args.splice(args.indexOf("--full"), 1);
 const reportOnly = args.includes("--report-only"); if (reportOnly) args.splice(args.indexOf("--report-only"), 1);
+const posterPath = opt("--poster", null); // ex. --poster img/poster.jpg : image de la zone 3D (1er canvas), 1re capture ordinateur
 const section = opt("--section", null);
 const points = opt("--points", "0,0.15,0.3,0.45,0.6,0.75,0.9").split(",").map(Number);
 const url = args[0] || "http://127.0.0.1:5180";
@@ -42,6 +44,11 @@ for (const v of [{ name: "desktop", width: 1280, height: 720 }, { name: "mobile"
     const file = `${v.name}-${String(Math.round(p * 100)).padStart(3, "0")}.png`;
     await page.screenshot({ path: `${out}/${file}`, timeout: 180000 });
     shots.push({ view: v.name, p, file });
+    if (posterPath && v.name === "desktop" && p === points[0]) { // seulement la zone 3D, sans les textes posés dessus
+      await page.evaluate(() => { document.body.style.visibility = "hidden"; document.querySelector("canvas").style.visibility = "visible"; });
+      await page.locator("canvas").first().screenshot({ path: posterPath, type: "jpeg", quality: 82, timeout: 180000 });
+      await page.evaluate(() => { document.body.style.visibility = ""; document.querySelector("canvas").style.visibility = ""; });
+    }
   }
   if (await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)) errors.push(`[${v.name}] débordement horizontal`);
   await page.close();

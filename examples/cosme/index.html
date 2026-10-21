@@ -5,6 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Maison Olea · Huiles de soin naturelles</title>
+<meta property="og:image" content="poster.jpg">
 <meta name="description" content="Maison Olea : huiles de soin naturelles pressées à froid, flacons rechargeables.">
 <style>
 @font-face{font-family:"Fraunces";src:url(fonts/fraunces-latin-700-normal.woff) format("woff");font-weight:700;font-display:swap}
@@ -56,7 +57,7 @@ import { dragRotate } from "../../plugins/premium-3d/skills/premium-3d/lib/inter
 
 /* Signature : la goutte d'huile posée sur l'étiquette. Le nom de la maison est derrière la goutte,
    et la goutte le déforme comme une vraie goutte d'huile sur un papier. */
-const stage = createStage(document.getElementById("gl"), { background: "#f6efe6", accent: "#c98a2b", accent2: "#8a9a7b", env: "room", bloom: false });
+const stage = createStage(document.getElementById("gl"), { background: "#f6efe6", accent: "#c98a2b", accent2: "#8a9a7b", env: "room", bloom: false, poster: "poster.jpg" });
 if (stage) {
   const { scene, camera, renderer } = stage;
   /* profil de goutte (tour) : pointe en haut, ventre rond en bas */

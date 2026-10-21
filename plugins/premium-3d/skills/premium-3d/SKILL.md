@@ -130,7 +130,8 @@ if (stage) {
 - Textes : en HTML (accessibles, indexables), jamais uniquement dans la 3D.
 - Animation qui tourne en continu plus de 5 secondes : bouton pause (`motionToggle`), c'est une
   règle d'accessibilité. Scène plus bas dans la page : `whenNear()`. Fondu d'apparition : classe
-  `p3d-ready` (voir `references/performance.md`).
+  `p3d-ready` (voir `references/performance.md`). Image de secours : option `poster` de `createStage`,
+  générée à la fin avec `check.mjs --poster`.
 
 ## Étape 5 : performances (obligatoire)
 

@@ -24,6 +24,11 @@ déjà l'essentiel ; ce fichier dit ce qu'il fait et ce qu'il ne faut pas casser
    Prévoir `canvas { opacity: 0; transition: opacity .8s } .p3d-ready canvas { opacity: 1 }` :
    la scène apparaît d'un coup propre, jamais à moitié chargée.
 
+10. **Image de secours** : `createStage(canvas, { poster: "img/poster.jpg" })` affiche l'image derrière
+   le canvas pendant le chargement, et à sa place si WebGL manque. Générer l'image avec
+   `node tools/check.mjs <url> ./captures-full --full --poster img/poster.jpg` (1re capture ordinateur,
+   la page doit donc être finie). Utile aussi comme image de partage (og:image).
+
 ## Règles à respecter dans ton code
 - Ne crée **aucun** matériau, géométrie ou texture pendant l'animation : tout au chargement.
 - Pour cacher un objet en cours de scroll : `scale.setScalar(0.001)` plutôt que `visible = false`

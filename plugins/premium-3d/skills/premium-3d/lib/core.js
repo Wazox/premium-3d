@@ -173,8 +173,10 @@ export const materials = {
  */
 export function createStage(canvas, {
   background = null, accent = "#ffffff", accent2 = "#88aaff", fov = 32, env = "studio",
-  bloom = { strength: 0.55, radius: 0.5, threshold: 0.9 }, exposure = 1, maxPixelRatio = 1.25,
+  bloom = { strength: 0.55, radius: 0.5, threshold: 0.9 }, exposure = 1, maxPixelRatio = 1.25, poster = null,
 } = {}) {
+  /* image de secours : visible pendant le chargement, et à la place de la 3D si WebGL manque */
+  if (poster) Object.assign(canvas.parentElement.style, { backgroundImage: `url("${poster}")`, backgroundSize: "cover", backgroundPosition: "center" });
   let renderer;
   try {
     renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: background === null, powerPreference: "high-performance" });

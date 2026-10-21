@@ -113,6 +113,8 @@ claude plugin install premium-3d@premium-3d
 Puis dans Claude Code : `/premium-3d:premium-3d une landing pour mon salon de coiffure avec mon logo en 3D`.
 Ou copiez `plugins/premium-3d/skills/premium-3d` dans `~/.claude/skills/` et utilisez `/premium-3d`.
 
+Guide complet en français : [docs/GUIDE-FR.md](docs/GUIDE-FR.md).
+
 **Besoin qu'on le fasse pour vous ?** premium-3d est créé par [NexaHouse](https://www.nexahouse.fr), studio web à
 Montpellier (sites, applications, SaaS sur mesure). Site 3D clé en main ou intégration dans votre site existant :
 [contact@nexahouse.fr](mailto:contact@nexahouse.fr) ou [réserver un appel](https://calendly.com/yayou3412/appel-decouverte).
