@@ -16,7 +16,7 @@ header{position:fixed;inset:0 0 auto;z-index:3;display:flex;justify-content:spac
 .brand{font:800 20px/1 "Bricolage",sans-serif;letter-spacing:-.01em}
 #build{height:320vh;position:relative}
 .pin{position:sticky;top:0;height:100svh;overflow:hidden}
-#gl{position:absolute;inset:0;width:100%;height:100%}
+#gl{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity 1s}
 .txt{position:absolute;left:clamp(20px,5vw,60px);top:50%;transform:translateY(-50%);width:min(440px,84vw)}
 .txt h1{font:800 clamp(38px,5.4vw,76px)/.98 "Bricolage",sans-serif;letter-spacing:-.03em;margin:0 0 18px}
 .txt p{margin:0;color:var(--ink2);max-width:36ch}
@@ -27,6 +27,7 @@ section.work{max-width:1100px;margin:0 auto;padding:100px clamp(20px,5vw,60px)}
 .grid div{background:#f6f1e8;border-radius:16px;padding:22px;border:1px solid #ddd2c0}
 .grid b{display:block;font:800 20px/1.1 "Bricolage",sans-serif;margin-bottom:6px}
 @media (max-width:860px){.tag{display:none}.txt{top:auto;bottom:40px;transform:none}.grid{grid-template-columns:1fr}}
+.p3d-ready #gl{opacity:1}
 </style>
 </head>
 <body>

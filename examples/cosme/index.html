@@ -21,12 +21,13 @@ header a.cta{font-size:14px;text-decoration:none;border-bottom:1px solid current
 .hero p{color:var(--ink2);max-width:40ch;margin:0 0 28px}
 .btn{display:inline-block;background:var(--ink);color:var(--bg);padding:14px 24px;border-radius:999px;text-decoration:none;font-weight:600}
 .drop{position:relative;height:min(78svh,680px)}
-#gl{position:absolute;inset:0;width:100%;height:100%;touch-action:pan-y}
+#gl{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity 1s;touch-action:pan-y}
 .hint{position:absolute;right:8%;bottom:6%;font:12px/1 ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--ink2)}
 section.more{max-width:1100px;margin:0 auto;padding:90px clamp(20px,5vw,64px);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px;border-top:1px solid #e6d9c8}
 .more h3{font:700 24px/1.1 "Fraunces",serif;margin:0 0 8px}.more p{margin:0;color:var(--ink2)}
 @media (max-width:860px){.hero{grid-template-columns:1fr;padding-top:10px}.drop{height:52svh;order:-1}section.more{grid-template-columns:1fr}}
 .no-gl .drop{background:radial-gradient(circle at 50% 50%,#f0c98a 0,#f6efe6 40%)}
+.p3d-ready #gl{opacity:1}
 </style>
 </head>
 <body>

@@ -28,7 +28,9 @@ lib/textures.js    matières procédurales sans image : bois, marbre, béton, pa
 icons/             78 icônes Lucide (licence ISC) couvrant la plupart des métiers
 demos/             démos TECHNIQUES (comment appeler le code, pas des modèles de design)
 references/        concepts.md, art-direction.md, performance.md, integration.md
-tools/check.mjs    captures de contrôle desktop + mobile ; tools/serve.py serveur local
+tools/check.mjs    captures desktop + mobile, erreurs, rapport visuel report.html (avec le jury)
+tools/record.mjs   vidéo fluide de la page (écran d'ordinateur 1920×1080) pour présenter le travail
+tools/serve.py     serveur local
 licenses/          licences tierces à livrer avec le projet
 ```
 
@@ -121,6 +123,9 @@ if (stage) {
 - Pour une scène en plusieurs temps : `cameraPath()` + `ss(a, b, P)` pour chaque temps.
 - `fitDistance(camera, largeur, hauteur)` pour que l'objet tienne à l'écran sur mobile comme sur ordinateur.
 - Textes : en HTML (accessibles, indexables), jamais uniquement dans la 3D.
+- Animation qui tourne en continu plus de 5 secondes : bouton pause (`motionToggle`), c'est une
+  règle d'accessibilité. Scène plus bas dans la page : `whenNear()`. Fondu d'apparition : classe
+  `p3d-ready` (voir `references/performance.md`).
 
 ## Étape 5 : performances (obligatoire)
 
@@ -132,7 +137,7 @@ au-dessus du canvas.
 
 ## Étape 6 : vérifier
 
-Copie `tools/check.mjs` et `tools/serve.py` du dossier du skill dans un dossier `tools/` du projet
+Copie `tools/check.mjs`, `tools/record.mjs` et `tools/serve.py` du dossier du skill dans un dossier `tools/` du projet
 (Node cherche `playwright` à côté du script), puis, depuis la racine du projet :
 ```bash
 python3 tools/serve.py 5180 &           # sert le dossier courant
@@ -144,6 +149,10 @@ Sans `--full`, les captures sont faites sans post-traitement (rapide) ; avec, on
 (bloom, grain…), à utiliser pour le jury. Sans carte graphique, chaque capture peut prendre du temps.
 Expose `window.__demo = { get ready() { return stage.ready; } }` pour que le script attende la 3D.
 Regarde **chaque** capture (desktop et 390×844) :
+- le **premier écran, avant tout scroll**, est déjà beau et plein : la scène ne commence pas
+  par un objet minuscule ou un vide (c'est ce que tout visiteur voit, même s'il ne scrolle pas) ;
+- les arêtes et reflets fins sont nets, sans scintillement ni crénelage (sinon : vérifier
+  `stage.pixelRatio`, qui doit valoir 1 ou plus sur un ordinateur correct) ;
 - la 3D est entière et cadrée à chaque point du scroll, rien n'est coupé ;
 - aucun texte n'est recouvert ; contraste suffisant ;
 - pas de face noire (normales inversées) ni de pièce qui traverse une autre ;
@@ -162,6 +171,13 @@ code) :
 | Lisibilité | Les textes se lisent, l'appel à l'action est évident, la 3D ne gêne pas ? |
 | Fluidité | Aucun à-coup en arrivant sur la scène ni en la traversant (`references/performance.md`) ? |
 | Mobile | Aussi beau et lisible en 390×844 qu'en ordinateur ? |
+Écris les notes dans `captures-full/jury.json` :
+```json
+{ "originalite": 8, "pertinence": 9, "finition": 8, "lisibilite": 9, "fluidite": 8, "mobile": 8,
+  "notes": "Ce qui marche, ce qui reste à améliorer, en deux phrases." }
+```
+puis `node tools/check.mjs <url> ./captures-full --report-only` : le rapport `report.html` réunit
+captures, erreurs et notes. Montre-le à la personne à la livraison.
 **Moins de 8 sur un critère : améliore et repasse le jury.** Note honnêtement : un 10 partout au
 premier essai veut dire que tu n'as pas assez regardé.
 
@@ -170,6 +186,13 @@ les captures par un agent qui n'a pas vu le travail (donne-lui seulement les cap
 et ce tableau), et corrige ce qu'il relève.
 
 ## Étape 8 : livrer
+
+Si la personne veut présenter son site (réseaux sociaux, client, portfolio), propose la vidéo :
+```bash
+node tools/record.mjs http://127.0.0.1:5180/index.html video.mp4 --section "#ma-scene" --duration 12
+```
+Une vraie fenêtre Chrome s'ouvre (carte graphique utilisée, vidéo fluide), défile doucement et
+produit un .mp4 1920×1080. `--pause 0.35,0.7` marque une pause sur les moments forts.
 
 Donne les fichiers, explique en deux lignes ce que fait la 3D, liste les éléments à remplacer
 (photos, chiffres, textes provisoires marqués `[À REMPLACER]`) et la façon d'intégrer

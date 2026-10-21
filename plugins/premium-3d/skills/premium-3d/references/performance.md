@@ -18,6 +18,12 @@ déjà l'essentiel ; ce fichier dit ce qu'il fait et ce qu'il ne faut pas casser
    jamais pendant le scroll.
 7. `?lite` dans l'URL : pas de bloom (captures, vieux GPU).
 
+8. **Chargement différé** : si la scène est plus bas dans la page, créer la scène avec
+   `whenNear(section, () => …)` pour ne pas ralentir le premier affichage (LCP).
+9. **Fondu d'apparition** : le conteneur reçoit la classe `p3d-ready` quand tout est compilé.
+   Prévoir `canvas { opacity: 0; transition: opacity .8s } .p3d-ready canvas { opacity: 1 }` :
+   la scène apparaît d'un coup propre, jamais à moitié chargée.
+
 ## Règles à respecter dans ton code
 - Ne crée **aucun** matériau, géométrie ou texture pendant l'animation : tout au chargement.
 - Pour cacher un objet en cours de scroll : `scale.setScalar(0.001)` plutôt que `visible = false`

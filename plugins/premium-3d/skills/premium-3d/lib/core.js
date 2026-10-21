@@ -77,6 +77,17 @@ export function cameraPath(keys) {
   };
 }
 
+/**
+ * Lance fn() seulement quand l'élément approche de l'écran (marge d'un écran) : la 3D ne ralentit
+ * pas le premier affichage de la page quand elle est plus bas. Renvoie une promesse.
+ */
+export function whenNear(el, fn, margin = "100% 0px") {
+  return new Promise((res) => {
+    const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { io.disconnect(); res(fn()); } }, { rootMargin: margin });
+    io.observe(el);
+  });
+}
+
 /** Distance de caméra pour qu'un objet de taille (w, h) tienne dans l'image, avec une marge. */
 export function fitDistance(camera, w, h, margin = 1.25) {
   const vf = THREE.MathUtils.degToRad(camera.fov) / 2;
@@ -174,18 +185,32 @@ export function createStage(canvas, {
   const io = new IntersectionObserver((es) => { visible = es[0].isIntersecting; }, { rootMargin: "100% 0px" }); io.observe(box);
   let stopFrame = null;
   const render = () => (composer ? composer.render() : renderer.render(scene, camera));
-  /* pixel ratio adaptatif : on baisse si les images mettent > 22 ms, on remonte si < 12 ms */
-  let acc = 0, n = 0, last = 0;
+  /*
+   * Pixel ratio adaptatif, calé sur la fréquence réelle de l'écran (60, 75, 120, 144 Hz…) :
+   * - on mesure l'intervalle le plus court observé (≈ une image de l'écran) ;
+   * - on baisse seulement après 2 fenêtres de 30 images nettement plus lentes que l'écran ;
+   * - on remonte dès que l'on retombe au rythme de l'écran (sinon une baisse passagère, au
+   *   chargement par exemple, laisserait la scène floue et crénelée pour toujours) ;
+   * - plancher à 1 (sauf machine vraiment lente) : en dessous, les arêtes fines scintillent.
+   */
+  let acc = 0, n = 0, last = 0, vsync = 1000, slow = 0, fast = 0, warmup = 0;
+  const FLOOR = Math.min(1, PR_MAX);
   function adapt(now) {
     const d = now - last; last = now; if (d > 200 || reduceMotion) return;
+    if (warmup < 90) { warmup++; vsync = Math.min(vsync, d); return; } // ignorer les premières images
+    if (d >= 4) vsync = d < vsync ? d : Math.min(d, vsync + 0.02); // suit l'écran, même s'il change de fréquence
     acc += d; n++; if (n < 30) return;
     const avg = acc / n; acc = 0; n = 0; let next = pr;
-    if (avg > 22) next = Math.max(0.75, pr - 0.25); else if (avg < 12) next = Math.min(PR_MAX, pr + 0.125);
+    if (avg > Math.max(22, vsync * 1.6)) { fast = 0; if (++slow >= 2) { slow = 0; next = Math.max(avg > 40 ? 0.75 : FLOOR, pr - 0.25); } }
+    else if (avg < vsync * 1.25) { slow = 0; if (++fast >= 2) { fast = 0; next = Math.min(PR_MAX, pr + 0.25); } }
+    else { slow = 0; fast = 0; }
     if (next !== pr) { pr = next; layout(); }
   }
   const stage = {
-    THREE, renderer, scene, camera, composer, bloom: bloomPass, outputPass, render, LOW, LITE, reduce: reduceMotion, ready: false,
+    THREE, renderer, scene, camera, composer, bloom: bloomPass, outputPass, render, LOW, LITE, reduce: reduceMotion, ready: false, paused: false,
     onResize(fn) { resizeFns.push(fn); fn(box.clientWidth, box.clientHeight, pr); },
+    /** pixel ratio de rendu actuel (diagnostic : il doit revenir au maximum sur une machine correcte) */
+    get pixelRatio() { return pr; },
     /**
      * Préchauffage : compile tous les shaders et alloue les buffers AVANT que la section soit visible.
      * prepare() doit rendre visibles tous les objets qui apparaîtront plus tard ; restore() remet l'état initial.
@@ -199,6 +224,7 @@ export function createStage(canvas, {
       render();
       if (restore) restore();
       stage.ready = true;
+      box.classList.add("p3d-ready"); // CSS : .p3d-ready canvas { opacity: 1 } pour un fondu d'apparition
     },
     /** Lance la boucle : update(dt, t) n'est appelé que si la section est proche de l'écran. */
     start(update) {
@@ -206,7 +232,7 @@ export function createStage(canvas, {
       if (stopFrame) stopFrame();
       stopFrame = onFrame((now) => {
         const dt = Math.min(clock.getDelta(), 0.05), t = clock.elapsedTime;
-        if (!visible || !stage.ready || document.hidden) return;
+        if (!visible || !stage.ready || stage.paused || document.hidden) return;
         update(dt, t); render(); adapt(now);
       });
     },

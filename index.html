@@ -8,6 +8,7 @@
 <meta property="og:title" content="premium-3d · 3D web sur mesure avec Claude Code">
 <meta property="og:description" content="Un skill open source qui invente une scène 3D unique pour chaque marque.">
 <meta property="og:image" content="docs/gallery/matter.png">
+<meta name="author" content="NexaHouse">
 <style>
 :root{--bg:#0b0b0c;--ink:#f2f0ec;--ink2:#9b9790;--line:rgba(255,255,255,.1);--accent:#ff8a3d}
 *{box-sizing:border-box}
@@ -15,7 +16,10 @@ html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
 a{color:inherit}
 .hero{position:relative;min-height:100svh;display:grid;align-items:end;padding:0 clamp(20px,5vw,64px) clamp(36px,8vh,80px);overflow:hidden}
-#gl{position:absolute;inset:0;width:100%;height:100%}
+#gl{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity 1s}
+.p3d-ready #gl{opacity:1}
+.pause{position:absolute;right:clamp(20px,5vw,64px);top:22px;z-index:2;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--ink);cursor:pointer;font:600 13px/1 system-ui}
+.pause[data-state="paused"]::before{content:"▶"}.pause[data-state="playing"]::before{content:"❚❚"}
 .hero-txt{position:relative;max-width:680px;pointer-events:none}
 .hero-txt *{pointer-events:auto}
 .kicker{font:600 12px/1 ui-monospace,monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--accent)}
@@ -44,12 +48,17 @@ pre{background:#121214;border:1px solid var(--line);border-radius:14px;padding:1
 footer{border-top:1px solid var(--line);padding:26px clamp(20px,5vw,64px);color:var(--ink2);font-size:14px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px}
 @media (max-width:900px){.grid{grid-template-columns:1fr 1fr}.steps{grid-template-columns:1fr 1fr}.hint{display:none}}
 @media (max-width:560px){.grid,.steps{grid-template-columns:1fr}}
+.nh-box{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:start;border:1px solid rgba(34,197,94,.35);border-radius:22px;padding:clamp(24px,4vw,44px);background:radial-gradient(circle at 90% 0%,rgba(34,197,94,.14),transparent 50%),#0f1110}
+.nh-box img{border-radius:12px}
+.btn.nh-main{background:#22C55E;color:#06120B;border-color:#22C55E}
+@media (max-width:640px){.nh-box{grid-template-columns:1fr}}
 .no-gl .hero{background:radial-gradient(circle at 70% 35%,#3a2a20,#0b0b0c 60%)}
 </style>
 </head>
 <body>
 <header class="hero">
   <canvas id="gl" aria-hidden="true"></canvas>
+  <button class="pause" id="pause" type="button"></button>
   <div class="hero-txt">
     <div class="kicker">Skill Claude Code · open source</div>
     <h1>De la 3D web qui n'existe nulle part ailleurs.</h1>
@@ -101,13 +110,25 @@ claude plugin install premium-3d@premium-3d</pre>
   <p class="sub" style="margin-top:20px">Puis : « /premium-3d:premium-3d une landing pour mon salon de coiffure, avec mon logo en 3D ».</p>
 </section>
 
-<footer><span>MIT · three.js, Lenis, Lucide, Google Fonts (licences jointes)</span><span>Créé par Yannis El Hajaoui</span></footer>
+<section class="nh">
+  <div class="nh-box">
+    <img src="docs/nexahouse-logo.png" alt="NexaHouse" width="56" height="56">
+    <div>
+      <div class="kicker" style="color:#22C55E">Fait par NexaHouse · studio web à Montpellier</div>
+      <h2>Vous voulez ça sur votre site, sans toucher au code ?</h2>
+      <p class="sub" style="margin:0 0 24px">NexaHouse conçoit des sites, des applications et des SaaS sur mesure. On crée votre scène 3D ou on l'intègre à votre site existant (Symfony, WordPress, React…).</p>
+      <div class="cta"><a class="btn nh-main" href="https://www.nexahouse.fr">Découvrir NexaHouse</a><a class="btn" href="https://calendly.com/yayou3412/appel-decouverte">Réserver un appel</a></div>
+    </div>
+  </div>
+</section>
+
+<footer><span>MIT · three.js, Lenis, Lucide, Google Fonts (licences jointes)</span><span>Créé par <a href="https://www.nexahouse.fr">NexaHouse</a> · Yannis El Hajaoui</span></footer>
 
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}</script>
 <script type="module">
 import { createStage, materials, fitDistance, THREE } from "./plugins/premium-3d/skills/premium-3d/lib/core.js";
 import { liquify, blobGeometry } from "./plugins/premium-3d/skills/premium-3d/lib/shaders.js";
-import { dragRotate, pointerLight } from "./plugins/premium-3d/skills/premium-3d/lib/interact.js";
+import { dragRotate, pointerLight, motionToggle } from "./plugins/premium-3d/skills/premium-3d/lib/interact.js";
 const stage = createStage(document.getElementById("gl"), { background: "#0b0b0c", accent: "#ff8a3d", accent2: "#7aa2ff", bloom: { strength: 0.45, radius: 0.6, threshold: 0.8 } });
 if (stage) {
   const { scene, camera, renderer } = stage;
@@ -117,6 +138,7 @@ if (stage) {
   const spin = dragRotate(renderer.domElement, blob);
   const pl = pointerLight(stage, { color: new THREE.Color(1, 0.55, 0.25).multiplyScalar(2), intensity: 10, z: 3 });
   stage.onResize((w) => { const wide = w > 900; camera.position.set(0, 0, fitDistance(camera, wide ? 7.5 : 3.4, 3.4)); camera.lookAt(0, 0, 0); blob.position.set(wide ? 2.7 : 0, wide ? 0.2 : 2.6, 0); blob.scale.setScalar(wide ? 1 : 0.72); });
+  motionToggle(stage, document.getElementById("pause"));
   await stage.warm();
   stage.start((dt, t) => { waves.uTime.value = stage.reduce ? 0 : t; spin.update(dt); if (!spin.dragging && !stage.reduce) blob.rotation.y += dt * 0.12; pl.update(dt); });
   window.__demo = { get ready() { return stage.ready; } };

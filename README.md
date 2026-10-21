@@ -1,5 +1,7 @@
 # premium-3d
 
+<a href="https://www.nexahouse.fr"><img src="docs/nexahouse-logo.png" width="28" align="left" alt="NexaHouse"></a> &nbsp;by **[NexaHouse](https://www.nexahouse.fr)**, web studio in Montpellier, France.
+
 **A Claude Code skill that invents a premium real-time 3D scene for each brand.**
 Liquid metal, morphing particles, 3D type in the brand's own font, procedural wood and marble,
 product models with studio light, neon glass icons, scroll-driven scenes. No templates: every
@@ -69,6 +71,15 @@ overflow).
 A browser with WebGL 2. three.js `0.169.0` from a CDN import map or npm. For the screenshot checks:
 Node.js and `npm i playwright`.
 
+## Need it done for you?
+
+premium-3d is made by **[NexaHouse](https://www.nexahouse.fr)**, a web studio in Montpellier that builds
+custom websites, apps and SaaS. If you want a 3D website without touching code, or want this
+integrated into your existing site (Symfony, WordPress, React…): [contact@nexahouse.fr](mailto:contact@nexahouse.fr)
+or [book a call](https://calendly.com/yayou3412/appel-decouverte).
+
+If the skill helped you, a star or a link back to this repo is always appreciated.
+
 ## License
 
 MIT for this project. three.js and Lenis (MIT), Lucide icons (ISC) and fonts (SIL OFL 1.1) keep
@@ -99,4 +110,8 @@ claude plugin install premium-3d@premium-3d
 Puis dans Claude Code : `/premium-3d:premium-3d une landing pour mon salon de coiffure avec mon logo en 3D`.
 Ou copiez `plugins/premium-3d/skills/premium-3d` dans `~/.claude/skills/` et utilisez `/premium-3d`.
 
-Créé par [Yannis El Hajaoui](https://www.linkedin.com/in/yannis-el-hajaoui-a70a56417). Contributions bienvenues.
+**Besoin qu'on le fasse pour vous ?** premium-3d est créé par [NexaHouse](https://www.nexahouse.fr), studio web à
+Montpellier (sites, applications, SaaS sur mesure). Site 3D clé en main ou intégration dans votre site existant :
+[contact@nexahouse.fr](mailto:contact@nexahouse.fr) ou [réserver un appel](https://calendly.com/yayou3412/appel-decouverte).
+
+Créé par [Yannis El Hajaoui](https://www.linkedin.com/in/yannis-el-hajaoui-a70a56417) · NexaHouse. Contributions bienvenues.

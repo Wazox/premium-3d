@@ -1,7 +1,10 @@
 {
   "name": "premium-3d",
   "description": "Premium real-time 3D for any website, designed from each brand.",
-  "owner": { "name": "Yannis El Hajaoui" },
+  "owner": {
+    "name": "NexaHouse",
+    "url": "https://www.nexahouse.fr"
+  },
   "plugins": [
     {
       "name": "premium-3d",
