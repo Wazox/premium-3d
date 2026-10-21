@@ -21,6 +21,30 @@ export const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").match
 export const LITE = /[?&]lite\b/.test(location.search);
 export const LOW = innerWidth < 860 || (navigator.hardwareConcurrency || 8) <= 4;
 
+/**
+ * Niveau de l'appareil : "low" | "mid" | "high". Sert à doser ce qui coûte cher
+ * (nombre de particules, subdivisions, ombres, profondeur de champ) :
+ *   const N = { low: 6000, mid: 12000, high: 20000 }[tier()];
+ * Basé sur la taille d'écran, les cœurs, la mémoire et le nom de la carte graphique.
+ */
+let _tier = null;
+export function tier() {
+  if (_tier) return _tier;
+  const cores = navigator.hardwareConcurrency || 4, mem = navigator.deviceMemory || 4, small = innerWidth < 860;
+  let gpu = "";
+  try {
+    const gl = document.createElement("canvas").getContext("webgl2");
+    const ext = gl && gl.getExtension("WEBGL_debug_renderer_info");
+    gpu = ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : "";
+  } catch (e) {}
+  const weakGpu = /swiftshader|llvmpipe|software|mali-4|adreno \(tm\) [3-5]\d\d|intel.*hd graphics [2-5]\d\d\d/i.test(gpu);
+  const strongGpu = /rtx|radeon rx|apple m\d|geforce gtx 1[0-9]|arc a\d/i.test(gpu);
+  if (weakGpu || cores <= 2 || mem <= 2) _tier = "low";
+  else if (small || cores <= 4 || mem <= 4) _tier = strongGpu && !small ? "high" : "mid";
+  else _tier = "high";
+  return _tier;
+}
+
 /* ---------- maths utiles ---------- */
 export const clamp01 = (x) => Math.min(1, Math.max(0, x));
 export const ss = (a, b, x) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
@@ -207,7 +231,7 @@ export function createStage(canvas, {
     if (next !== pr) { pr = next; layout(); }
   }
   const stage = {
-    THREE, renderer, scene, camera, composer, bloom: bloomPass, outputPass, render, LOW, LITE, reduce: reduceMotion, ready: false, paused: false,
+    THREE, renderer, scene, camera, composer, bloom: bloomPass, outputPass, render, LOW, LITE, tier: tier(), reduce: reduceMotion, ready: false, paused: false,
     onResize(fn) { resizeFns.push(fn); fn(box.clientWidth, box.clientHeight, pr); },
     /** pixel ratio de rendu actuel (diagnostic : il doit revenir au maximum sur une machine correcte) */
     get pixelRatio() { return pr; },

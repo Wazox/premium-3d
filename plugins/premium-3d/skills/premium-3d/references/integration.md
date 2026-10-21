@@ -27,6 +27,8 @@ Les modules ES ne se chargent pas en `file://` : tester avec `tools/serve.py`.
 - Ou un plugin de code (snippets) si la personne ne gère pas de thème enfant.
 
 ## React, Next.js, Vite, Vue
+- React / Next.js : utiliser `lib/react.js` (`usePremium3D`), qui gère le montage, le préchauffage et
+  `stage.dispose()` au démontage. Exemple complet en tête du fichier.
 - `npm i three@0.169.0`. Les fichiers de `lib/` s'importent tels quels (ils importent `three`).
 - Créer la scène dans un `useEffect` (React) / `onMounted` (Vue) avec le `ref` du canvas ;
   nettoyer au démontage avec `stage.dispose()`.
