@@ -16,7 +16,8 @@ Les options entre `{ }` sont toutes facultatives (valeur par défaut indiquée).
 | `stage.start((dt, t) => …)` | Boucle d'animation (seulement quand la scène est proche de l'écran). |
 | `stage.paused`, `stage.ready`, `stage.dispose()` | Pause, état, nettoyage (React/Vue). |
 | `scrollTrack(section)` | `.progress()` 0→1 dans une section haute (enfant `position: sticky`), `.goto(p)`. |
-| `fitDistance(camera, w, h, margin \| { x, y, margin })` | Distance pour qu'un objet w × h tienne à l'écran. Passer `x`/`y` si l'objet est décalé du centre. |
+| `fitZone(camera, w, h, { left, right, top, bottom, margin })` | **Cadrage à côté du texte** : renvoie la distance de caméra et place l'objet (resté à l'origine) dans cette zone de l'écran (fractions 0 → 1). La perspective reste de face, le sol reste sous la caméra. `fitZone(camera, w, h)` sans zone = plein écran. |
+| `fitDistance(camera, w, h, margin \| { x, y, margin })` | Distance pour qu'un objet w × h tienne à l'écran ; `x`/`y` si on préfère déplacer l'objet soi-même. |
 | `cameraPath([[p, [x,y,z], [cible]], …])` | Trajet de caméra par plans clés : `path(P, outPos, outTarget)`. |
 | `whenNear(el, fn)` | Lance `fn` quand l'élément approche (scène plus bas dans la page). |
 | `smoothScroll()`, `scrollTo(y)`, `onFrame(fn)` | Lenis (si chargé), scroll animé, boucle commune. |
@@ -43,7 +44,7 @@ formes d'un même morphing ont le même `count`.
 |---|---|
 | `await sampleImage(src, { count, width, mode: "luma", threshold, color })` | Photo → forme. |
 | `await sampleSVG(svg, { count, width, color })` | SVG (logo ou icône de `icons/`) → forme. |
-| `sampleText(texte, { count, width, font, color })` | Texte → forme. Charger la police avant : `await document.fonts.load(font)`. |
+| `await sampleText(texte, { count, width, font, color })` | Texte → forme, dans la police donnée (chargée toute seule). |
 | `await sampleMesh(mesh, { count, color })` | Surface d'un objet 3D → forme. |
 | `shape(count, (i, u, o) => { o.x = …; o.y = …; o.z = …; o.color = … })` | **Forme sur mesure** (mèche, vague, plan, spirale…). Même ordre d'indices entre deux formes proches = transition lisible. |
 | `scatter(count, rayon, { color, shape: "sphere" })` | Nuage dispersé. |
@@ -52,7 +53,8 @@ formes d'un même morphing ont le même `count`.
 ## logo3d.js, text3d.js, icon3d.js : objets en volume
 | Appel | Rôle |
 |---|---|
-| `logoPieces(svg, { size, depth, bevel, pieces, material })` | SVG **en aplats** → `{ group, pieces }`, une pièce par path. Les icônes de `icons/` sont en traits : pas pour `logoPieces`. |
+| `logoPieces(svg, { size, depth, bevel, pieces, material: (i, color) => … })` | SVG **en aplats** → `{ group, pieces, colors, width, height }`, une pièce par path (cercles et rectangles compris). `color` = la couleur de la pièce dans le SVG (classes CSS d'Illustrator comprises). Le `<text>` est ignoré (avertissement en console). Les icônes de `icons/` sont en traits : pas pour `logoPieces`. |
+| `pivot(piece, "bottom" \| "top" \| "left" \| "bottom-left" \| [x,y,z])` | Change le point de rotation d'une pièce sans la déplacer : pétale qui s'ouvre depuis sa base, porte sur ses gonds, couvercle. |
 | `explode(pieces, k, { gap, axis, stagger })` | Écarte les pièces (vue éclatée, assemblage). |
 | `await loadFont(url)` puis `text3d(font, texte, { size, depth, material, splitLetters })` | Texte en volume (.ttf, .otf, .woff ; pas .woff2). |
 | `icon3d(svg, { size, glass, glow })` | Icône en traits → tube de verre avec cœur lumineux (fond sombre). |

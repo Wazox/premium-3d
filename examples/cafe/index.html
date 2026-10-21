@@ -96,7 +96,7 @@ if (stage) {
   const states = [
     scatter(N, 6.5, { color: "#9bb07a" }),
     await sampleSVG(cup, { count: N, width: 3.4, res: 220 }),
-    sampleText("GRAIN NOIR", { count: N, width: 6, font: '900 140px "Fraunces"', color: "#f3e9dc" }),
+    await sampleText("GRAIN NOIR", { count: N, width: 6, font: '900 140px "Fraunces"', color: "#f3e9dc" }),
   ];
   const pm = particleMorph(states, { size: 3.4, turbulence: 0.7 });
   pm.points.position.x = 0.6;

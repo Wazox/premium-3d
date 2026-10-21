@@ -7,6 +7,7 @@
  *   import { sampleImage, sampleSVG, sampleText, sampleMesh, scatter, shape, particleMorph } from "./lib/particles.js";
  *   const A = await sampleImage("photo.jpg", { count: 20000, width: 6 });
  *   const B = await sampleSVG(logoSvg, { count: 20000, width: 4 });
+ *   const C = await sampleText("BONJOUR", { count: 20000, font: "800 160px 'Ma Police'" });
  *   const pm = particleMorph([scatter(20000, 8), A, B], { size: 3.5 });
  *   scene.add(pm.points);
  *   pm.set(P * 2);   // 0 = nuage, 1 = photo, 2 = logo (valeurs intermédiaires = transition)
@@ -54,8 +55,15 @@ export async function sampleSVG(svg, { count = 20000, width = 4, res = 260, colo
   const [, g] = canvasOf(w, h); g.drawImage(img, 0, 0, w, h);
   return fromPixels(g.getImageData(0, 0, w, h).data, w, h, count, width, { mode: "alpha", color, depth });
 }
-/** Texte → particules (police déjà chargée sur la page). */
-export function sampleText(text, { count = 20000, width = 6, font = "800 160px system-ui", color = "#ffffff", depth = 0.2 } = {}) {
+/**
+ * Texte → particules, dans la police donnée (chargée automatiquement avant de dessiner : sans ça,
+ * le texte serait dessiné dans la police de secours du navigateur). Asynchrone : `await sampleText(…)`.
+ */
+export async function sampleText(text, { count = 20000, width = 6, font = "800 160px system-ui", color = "#ffffff", depth = 0.2 } = {}) {
+  if (document.fonts) {
+    try { await document.fonts.load(font, text); } catch (e) {}
+    if (!document.fonts.check(font, text)) console.warn(`premium-3d : la police « ${font} » n'est pas disponible, sampleText utilise la police de secours.`);
+  }
   const [c0, g0] = canvasOf(10, 10); g0.font = font; const m = g0.measureText(text);
   const size = parseFloat(font.match(/(\d+)px/)[1]);
   const w = Math.ceil(m.width + size * 0.2), h = Math.ceil(size * 1.3);
@@ -105,7 +113,8 @@ export function scatter(count, radius = 8, { color = "#ffffff", shape = "sphere"
 /**
  * Morphing entre plusieurs formes (même nombre de particules partout).
  * @param states  tableau d'échantillons
- * @param size    taille des points en pixels, vus à 10 unités de la caméra
+ * @param size    taille des points en pixels CSS, vus à 10 unités de la caméra (identique sur tous les
+ *                écrans : suit le pixel ratio réel du rendu, pas celui de l'appareil)
  * @param additive  mélange additif (lumineux sur fond sombre) ; false sur fond clair
  * @param turbulence  amplitude du flottement pendant la transition
  * @param solid     points pleins et nets, sans scintillement (par défaut : oui sur fond clair,
@@ -113,7 +122,11 @@ export function scatter(count, radius = 8, { color = "#ffffff", shape = "sphere"
  *                  semi-transparents paraissent pâles et clairsemés.
  */
 export function particleMorph(states, { size = 3, additive = true, turbulence = 0.6, opacity = 1, solid = !additive } = {}) {
+  if (states.some((s) => !s || typeof s.then === "function" || !s.positions))
+    throw new Error("particleMorph : une forme n'est pas prête. sampleImage, sampleSVG, sampleText et sampleMesh sont asynchrones : écrire await devant.");
   const count = states[0].positions.length / 3;
+  if (states.some((s) => s.positions.length !== count * 3))
+    throw new Error("particleMorph : toutes les formes doivent avoir le même nombre de particules (même count).");
   const geo = new THREE.BufferGeometry();
   const seeds = new Float32Array(count); for (let i = 0; i < count; i++) seeds[i] = Math.random();
   geo.setAttribute("position", new THREE.BufferAttribute(states[0].positions.slice(), 3));
@@ -125,7 +138,7 @@ export function particleMorph(states, { size = 3, additive = true, turbulence = 
   geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 50);
   const mat = new THREE.ShaderMaterial({
     transparent: true, depthWrite: false, blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending,
-    uniforms: { uMix: { value: 0 }, uTime: { value: 0 }, uSize: { value: size }, uPR: { value: Math.min(devicePixelRatio, 2) }, uTurb: { value: turbulence }, uOpacity: { value: opacity } },
+    uniforms: { uMix: { value: 0 }, uTime: { value: 0 }, uSize: { value: size }, uPR: { value: 1 }, uTurb: { value: turbulence }, uOpacity: { value: opacity } },
     vertexShader: `${NOISE}
       attribute vec3 aA,aB,cA,cB;attribute float aSeed;uniform float uMix,uTime,uSize,uPR,uTurb;varying vec3 vC;varying float vA;
       void main(){
@@ -144,6 +157,9 @@ export function particleMorph(states, { size = 3, additive = true, turbulence = 
       }`,
   });
   const points = new THREE.Points(geo, mat);
+  /* le rendu tourne souvent sous la densité de l'écran (1 sur mobile, 1,25 sur ordinateur, adaptatif) :
+     on suit son pixel ratio réel, sinon les points doublent ou triplent de taille sur un téléphone */
+  points.onBeforeRender = (renderer) => { mat.uniforms.uPR.value = renderer.getPixelRatio(); };
   let cur = -1;
   return {
     points, material: mat,
