@@ -50,11 +50,11 @@ Or copy `plugins/premium-3d/skills/premium-3d` into `~/.claude/skills/` and use 
 
 | Module | What it does |
 |---|---|
-| `core.js` | Stage, device tier (low/mid/high), studio reflections, materials (glass, frosted, metal, enamel, soft), bloom, scroll tracking, camera paths, warm-up, adaptive quality, `dispose()` |
+| `core.js` | Stage, device tier (low/mid/high), studio reflections, materials (glass, frosted, metal, enamel, soft), bloom, scroll tracking, camera paths, framing in a screen zone next to the text (`fitZone`), warm-up, adaptive quality, `dispose()` |
 | `shaders.js` | `liquify` (molten metal, jelly, water surfaces), `dissolve` (burn-in reveal with a glowing edge) |
 | `particles.js` | Particles shaped from a photo, an SVG logo, text, a 3D mesh or your own function (`shape()`), morphing between shapes |
 | `text3d.js` | 3D text in any `.ttf/.otf/.woff` font, letter by letter |
-| `logo3d.js` | SVG logo to extruded 3D pieces, exploded view and assembly |
+| `logo3d.js` | SVG logo to extruded 3D pieces in their original colors, custom pivots (petals, doors, lids), exploded view and assembly |
 | `textures.js` | Procedural wood, marble, concrete, paper (no image files) |
 | `models.js` | `.glb/.gltf` (Draco) loading, three-point studio light, soft ground shadow |
 | `interact.js` | Drag to rotate with inertia, hover picking, pointer light, device tilt |

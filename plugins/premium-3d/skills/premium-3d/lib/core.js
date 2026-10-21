@@ -126,6 +126,28 @@ export function fitDistance(camera, w, h, opts = 1.25) {
   return Math.max(dh, dw) * margin;
 }
 
+/**
+ * Cadre un objet (largeur w, hauteur h, centré à l'origine) dans une ZONE de l'écran, pour laisser
+ * la place au texte. Zone en fractions de 0 à 1 depuis le haut à gauche. Renvoie la distance de
+ * caméra ; décale le cadre de la caméra (setViewOffset) au lieu de déplacer l'objet : la
+ * perspective reste de face, et un sol (softGround) reste sous les yeux de la caméra.
+ *   stage.onResize((w) => {
+ *     const zone = w < 860 ? { top: 0.1, bottom: 0.52 } : { left: 0.45 };   // mobile : en haut ; ordi : à droite
+ *     stage.camera.position.set(0, 0, fitZone(stage.camera, 3, 3.5, zone));
+ *     stage.camera.lookAt(0, 0, 0);
+ *   });
+ * Sans zone (ou zone null), retire le décalage : plein écran.
+ */
+export function fitZone(camera, w, h, zone = null) {
+  const { left = 0, right = 1, top = 0, bottom = 1, margin = 1.1 } = zone || {};
+  const t = Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2), zw = Math.max(0.05, right - left), zh = Math.max(0.05, bottom - top);
+  /* setViewOffset redéfinit camera.aspect avec les deux premiers nombres : on lui donne le vrai ratio */
+  const a = camera.aspect;
+  if (zone) camera.setViewOffset(a, 1, (0.5 - (left + right) / 2) * a, 0.5 - (top + bottom) / 2, a, 1);
+  else if (camera.view) camera.clearViewOffset();
+  return Math.max((h * margin) / (2 * zh * t), (w * margin) / (2 * zw * t * camera.aspect));
+}
+
 /* ---------- studio de reflets : sans lui, le verre et le métal paraissent ternes ---------- */
 /*
  * front : lumière douce placée côté caméra (0 = studio pur, par défaut). À activer (front: 1) quand

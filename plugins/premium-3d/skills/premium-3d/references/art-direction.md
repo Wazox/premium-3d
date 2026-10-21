@@ -65,17 +65,18 @@ Choisis selon la demande. Ne mets pas systématiquement une grande section sombr
 - Décide pour chaque taille d'écran **où va le texte et où va la 3D** (ex. ordinateur : texte en bas
   à gauche, objet en haut à droite ; mobile : objet en haut, texte en bas). Les deux ne doivent
   jamais se chevaucher, à aucun moment du scroll.
-- Recadre la caméra par taille d'écran dans `stage.onResize((w, h) => …)` : `fitDistance` avec une
-  largeur différente sur mobile, et un décalage de l'objet sur ordinateur. Donne ce décalage à
-  `fitDistance` (`{ x, y }`) : la caméra recule assez pour que le côté décalé reste à l'écran.
+- Recadre par taille d'écran dans `stage.onResize((w, h) => …)` avec `fitZone` : tu donnes la zone de
+  l'écran où va la 3D, elle calcule la distance et décale le cadre de la caméra. L'objet reste à
+  l'origine (un sol posé dessous reste vu d'en haut, la perspective reste de face).
   ```js
   stage.onResize((w) => {
-    const mobile = w < 860, x = mobile ? 0 : 1.6, y = mobile ? 1 : 0;   // à droite / en haut
-    stage.camera.position.set(0, 0, fitDistance(stage.camera, 4, 3.5, { x, y, margin: 1.1 }));
+    const zone = w < 860 ? { top: 0.1, bottom: 0.52 } : { left: 0.45, top: 0.08 };   // mobile : en haut ; ordi : à droite
+    stage.camera.position.set(0, 0.5, fitZone(stage.camera, 4, 3.5, zone));            // 0.5 : légèrement au-dessus
     stage.camera.lookAt(0, 0, 0);
-    objet.position.set(x, y, 0);
   });
   ```
+- Ne monte pas un sol (`softGround`) au niveau de la caméra : vu par la tranche, il dessine un trait
+  sur toute la largeur. Caméra légèrement au-dessus de l'objet, sol sous l'objet.
 - Donne une largeur fixe aux blocs de texte positionnés en absolu (sinon ils se resserrent).
 - Cadre pour l'état **le plus étalé** de la scène (pièces écartées, particules dispersées), pas
   seulement pour l'état final : sinon des éléments sortent de l'écran au début ou à la fin.

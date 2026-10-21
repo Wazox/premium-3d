@@ -114,9 +114,12 @@ mèche, une vague, un plan), écris-la avec `shape()`.
 Les icônes de `icons/` sont dessinées en **traits** : elles marchent avec `icon3d` et `sampleSVG`,
 pas avec `logoPieces` (qui extrude des aplats).
 
-Pour un **logo** : chaque `<path>` du SVG devient une pièce (avec son propre matériau si besoin).
-Trop de paths (texte inclus) : garde le symbole ou regroupe avec `pieces`. Logo en PNG/JPG :
-redessine le symbole en SVG propre (polygones aux coins arrondis), ne vectorise pas au pixel.
+Pour un **logo** : chaque `<path>` du SVG devient une pièce, avec sa couleur d'origine
+(`material: (i, color) => materials.enamel({ color })`). Le texte `<text>` du SVG est ignoré : le nom
+se fait avec `text3d` ou reste en HTML. Trop de paths (texte vectorisé) : garde le symbole ou regroupe
+avec `pieces`. Pour qu'une pièce tourne autour de sa base ou d'un bord (pétale, porte, couvercle) :
+`pivot(piece, "bottom")`. Logo en PNG/JPG : redessine le symbole en SVG propre (polygones aux coins
+arrondis), ne vectorise pas au pixel.
 
 Comment brancher le socle (la scène elle-même est à écrire pour le projet) :
 ```js
@@ -137,9 +140,9 @@ if (stage) {
 - Lenis (scroll fluide) est optionnel : charge-le et appelle `smoothScroll()`.
 - Pour une scène en plusieurs temps : `acts()` pour nommer les actes, `steps()` pour des paliers
   lisibles, `captionSync()` pour les légendes HTML, `cameraPath()` pour la caméra.
-- `fitDistance(camera, largeur, hauteur)` pour que l'objet tienne à l'écran sur mobile comme sur
-  ordinateur. Objet décalé à côté du texte : `fitDistance(camera, l, h, { x: décalage, y: … })`,
-  sinon le côté décalé sort de l'écran.
+- Cadrage : `fitZone(camera, largeur, hauteur, zone)` place l'objet dans la zone de l'écran qui lui
+  revient (ex. mobile `{ top: 0.1, bottom: 0.52 }`, ordinateur `{ left: 0.45 }`) sans le déplacer.
+  C'est la façon la plus simple de garder texte et 3D séparés à toutes les tailles.
 - Dose ce qui coûte cher selon `stage.tier` ("low" / "mid" / "high") : nombre de particules,
   subdivisions, ombres, profondeur de champ. Ex. `{ low: 6000, mid: 12000, high: 20000 }[stage.tier]`.
 - Textes : en HTML (accessibles, indexables), jamais uniquement dans la 3D.
@@ -170,6 +173,9 @@ Sans `--full`, les captures sont faites sans post-traitement (rapide) ; avec, on
 (bloom, grain…), à utiliser pour le jury. Les halos de bloom (chrome qui bave, surtout sur mobile)
 **n'apparaissent qu'avec `--full`** : passe-le au moins une fois avant de conclure. Sans carte graphique, chaque capture peut prendre du temps.
 Expose `window.__demo = { get ready() { return stage.ready; } }` pour que le script attende la 3D.
+Le script signale aussi « À VÉRIFIER » quand la 3D touche un bord de l'écran (objet sans doute
+coupé) : regarde la capture indiquée, recadre si l'objet est coupé par erreur. La capture mobile
+simule un vrai téléphone (écran 3×, tactile).
 Regarde **chaque** capture (desktop et 390×844) :
 - le **premier écran, avant tout scroll**, est déjà beau et plein : la scène ne commence pas
   par un objet minuscule ou un vide (c'est ce que tout visiteur voit, même s'il ne scrolle pas) ;

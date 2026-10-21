@@ -32,7 +32,7 @@ if (stage) {
   g.fillStyle = gr; g.beginPath(); g.arc(300, 200, 180, 0, 7); g.fill();
   const states = [
     scatter(N, 7, { color: "#5b8cff" }),
-    sampleText("BONJOUR", { count: N, width: 6.4, font: "900 150px system-ui", color: "#e8eeff" }),
+    await sampleText("BONJOUR", { count: N, width: 6.4, font: "900 150px system-ui", color: "#e8eeff" }),
     await sampleSVG(icon, { count: N, width: 3.2, res: 200 }),
     await sampleImage(c.toDataURL(), { count: N, width: 4.5, threshold: 30 }),
   ];
