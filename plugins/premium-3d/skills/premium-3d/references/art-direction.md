@@ -57,7 +57,8 @@ Choisis selon la demande. Ne mets pas systématiquement une grande section sombr
   seulement pour l'état final : sinon des éléments sortent de l'écran au début ou à la fin.
 - Liens et boutons : couleur héritée (`a{color:inherit}`), jamais le bleu par défaut du navigateur.
 - Légendes qui changent au scroll : l'ancienne sort vite (0,25 s), la nouvelle entre **après**
-  (délai de 0,25 s). Deux textes ne doivent jamais être visibles l'un sur l'autre.
+  (délai de 0,25 s). Deux textes ne doivent jamais être visibles l'un sur l'autre. `captionSync()` (lib/story.js)
+  le fait tout seul.
 
 ## Mouvement
 - Calme par défaut : mouvements lents, pauses, rebonds légers (`easeBack` avec c1 ≤ 1.4).

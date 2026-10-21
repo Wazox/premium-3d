@@ -61,10 +61,12 @@ Or copy `plugins/premium-3d/skills/premium-3d` into `~/.claude/skills/` and use 
 | `fx.js` | Film grain, chromatic aberration, vignette, depth of field |
 | `icon3d.js` + `icons/` | 78 Lucide icons as neon tubes inside glass |
 | `objects3d.js` | Glass photo frames, pedestals, glow rings, dust, animated aurora |
+| `story.js` | Multi-act scroll stories: named acts, stepped progress, captions that never overlap |
 
 Plus `references/` (concepts, art direction, performance, integration for HTML, Symfony,
-WordPress, React/Next/Vue) and `tools/check.mjs` (Playwright screenshots, console errors,
-overflow).
+WordPress, React/Next/Vue) `tools/check.mjs` (Playwright screenshots, console errors,
+overflow, visual report with the jury scores) and `tools/record.mjs` (smooth 1920×1080 screen video
+of any page, for social media).
 
 ## Requirements
 

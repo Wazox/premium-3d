@@ -25,6 +25,7 @@ lib/models.js      modèles .glb/.gltf du client (Draco), lumière studio, ombre
 lib/interact.js    attraper pour tourner (inertie), survol d'objets, lumière qui suit le pointeur, gyroscope
 lib/fx.js          grain, aberration chromatique, vignette, profondeur de champ
 lib/textures.js    matières procédurales sans image : bois, marbre, béton, papier
+lib/story.js       scène en plusieurs actes : acts(), steps() à paliers, captionSync() (légendes sans superposition)
 icons/             78 icônes Lucide (licence ISC) couvrant la plupart des métiers
 demos/             démos TECHNIQUES (comment appeler le code, pas des modèles de design)
 references/        concepts.md, art-direction.md, performance.md, integration.md
@@ -120,7 +121,8 @@ if (stage) {
 ```
 - La page utilise une **importmap** vers `three@0.169.0` (jsdelivr), ou `npm i three@0.169.0`.
 - Lenis (scroll fluide) est optionnel : charge-le et appelle `smoothScroll()`.
-- Pour une scène en plusieurs temps : `cameraPath()` + `ss(a, b, P)` pour chaque temps.
+- Pour une scène en plusieurs temps : `acts()` pour nommer les actes, `steps()` pour des paliers
+  lisibles, `captionSync()` pour les légendes HTML, `cameraPath()` pour la caméra.
 - `fitDistance(camera, largeur, hauteur)` pour que l'objet tienne à l'écran sur mobile comme sur ordinateur.
 - Textes : en HTML (accessibles, indexables), jamais uniquement dans la 3D.
 - Animation qui tourne en continu plus de 5 secondes : bouton pause (`motionToggle`), c'est une
