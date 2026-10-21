@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Démo technique : logo 3D et vue éclatée au scroll</title>
+<!-- Démo de technique, volontairement sobre. Ce n'est PAS un modèle de page :
+     le design de chaque projet se construit à partir de la marque et de la demande. -->
+<style>
+:root{--bg:#f2efe9;--ink:#191919;--accent:#3b5bdb}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 system-ui,sans-serif}
+.intro,.outro{max-width:720px;margin:0 auto;padding:18vh 24px}
+h1{font-size:clamp(32px,5vw,56px);line-height:1.05;margin:0 0 16px}
+#stage{height:400vh;position:relative}
+.pin{position:sticky;top:0;height:100svh;overflow:hidden}
+#gl{position:absolute;inset:0;width:100%;height:100%}
+.label{position:absolute;left:24px;bottom:24px;font:600 14px/1.4 ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase}
+.no-gl #gl{display:none}
+</style>
+</head>
+<body>
+<section class="intro"><h1>Un logo en volume, en vue éclatée.</h1><p>Descendez : le logo pivote et ses couches se séparent, comme un schéma technique.</p></section>
+<section id="stage"><div class="pin"><canvas id="gl" aria-hidden="true"></canvas><div class="label" id="label">0 %</div></div></section>
+<section class="outro"><p>Fin de la démo.</p></section>
+
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}</script>
+<script type="module">
+import { createStage, scrollTrack, materials, cameraPath, ss, roomEnvironment, fitDistance, THREE } from "../lib/core.js";
+import { logoPieces, explode } from "../lib/logo3d.js";
+
+const LOGO = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <path d="M30 30 H95 V95 H30 Z"/><path d="M105 30 H170 V95 H105 Z"/><path d="M30 105 H95 V170 H30 Z"/><path d="M135 105 A35 35 0 1 1 134.9 105 Z"/>
+</svg>`;
+
+const stage = createStage(document.getElementById("gl"), { background: "#f2efe9", accent: "#3b5bdb", accent2: "#f59f00", env: "room", bloom: false });
+if (stage) {
+  const { scene, camera } = stage;
+  scene.add(new THREE.HemisphereLight(0xffffff, 0xd9d2c5, 1.2));
+  const key = new THREE.DirectionalLight(0xffffff, 2); key.position.set(3, 5, 6); scene.add(key);
+  const metalEnv = roomEnvironment(stage.renderer);
+  const mats = [materials.enamel({ color: "#3b5bdb" }), materials.enamel({ color: "#191919" }), materials.enamel({ color: "#ffffff" }), materials.metal({ color: "#f59f00", envMap: metalEnv })];
+  const logo = logoPieces(LOGO, { size: 3, depth: 0.5, material: (i) => mats[i % mats.length] });
+  scene.add(logo.group);
+  const track = scrollTrack(document.getElementById("stage"));
+  /* trajet en unités « taille du logo » : multiplié par la distance qui fait tenir le logo à l'écran */
+  const shot = cameraPath([[0, [0, 0, 1.4], [0, 0, 0]], [0.5, [1.1, 0.5, 1.1], [0, 0, 0]], [1, [1.3, 0.2, 1.6], [0, 0, 0]]]);
+  const pos = new THREE.Vector3(), tgt = new THREE.Vector3(), label = document.getElementById("label");
+  let P = 0, shown = -1;
+  stage.warm().then(() => stage.start((dt, t) => {
+    P += (track.progress() - P) * (stage.reduce ? 1 : 1 - Math.pow(0.0005, dt));
+    shot(P, pos, tgt); camera.position.copy(pos.multiplyScalar(fitDistance(camera, 3, 3))); camera.lookAt(tgt);
+    explode(logo.pieces, ss(0.25, 0.75, P), { gap: 0.9 });
+    logo.group.rotation.set(ss(0, 1, P) * -0.3, ss(0, 1, P) * -0.6 + (stage.reduce ? 0 : Math.sin(t * 0.4) * 0.04), 0);
+    const pc = Math.round(P * 100); if (pc !== shown) { shown = pc; label.textContent = pc + " %"; }
+  }));
+  window.__demo = { get ready() { return stage.ready; } };
+}
+</script>
+</body>
+</html>

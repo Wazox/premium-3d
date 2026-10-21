@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<!-- Exemple généré avec le skill premium-3d pour une entreprise FICTIVE. Ne pas copier : chaque projet doit être conçu à partir de sa propre marque. -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Grain Noir · Torréfacteur à Lyon</title>
+<meta name="description" content="Grain Noir torréfie son café sur place à Lyon. Cafés de spécialité en boutique et en ligne.">
+<style>
+@font-face{font-family:"Fraunces";src:url(fonts/fraunces-latin-900-normal.woff) format("woff");font-weight:900;font-display:swap}
+:root{--espresso:#140d09;--crema:#f3e9dc;--caramel:#c8823a;--green:#9bb07a;--ink:#2a1d15;--ink2:#6b5a4c}
+*{box-sizing:border-box}
+body{margin:0;background:var(--crema);color:var(--ink);font:17px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
+a{color:inherit}
+header{position:fixed;inset:0 0 auto;z-index:5;display:flex;justify-content:space-between;align-items:center;padding:18px clamp(20px,4vw,48px);color:var(--crema);mix-blend-mode:difference}
+.brand{font:900 20px/1 "Fraunces",serif;letter-spacing:.02em;text-decoration:none}
+header nav a{margin-left:22px;font-size:14px;text-decoration:none}
+#roast{height:340vh;position:relative;background:var(--espresso)}
+.pin{position:sticky;top:0;height:100svh;overflow:hidden}
+#gl{position:absolute;inset:0;width:100%;height:100%}
+.copy{position:absolute;left:clamp(20px,6vw,80px);bottom:clamp(28px,8vh,90px);max-width:520px;color:var(--crema)}
+.step{position:absolute;left:0;bottom:0;width:min(500px,86vw);opacity:0;transform:translateY(12px);transition:opacity .6s,transform .6s}
+.step.on{opacity:1;transform:none}
+.step small{display:block;font:600 12px/1 ui-monospace,monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--caramel);margin-bottom:12px}
+.step h1,.step h2{font:900 clamp(34px,5vw,64px)/1 "Fraunces",serif;margin:0 0 12px;letter-spacing:-.01em}
+.step p{margin:0;color:#cdbba8;max-width:40ch}
+.copy .holder{position:relative;height:220px}
+section.light{padding:clamp(70px,12vh,130px) clamp(20px,6vw,80px);max-width:1180px;margin:0 auto}
+.light h2{font:900 clamp(32px,4.4vw,56px)/1.02 "Fraunces",serif;margin:0 0 18px}
+.lead{color:var(--ink2);max-width:52ch;margin:0 0 40px}
+.cafes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.cafe{background:#fffaf3;border:1px solid #e3d5c3;border-radius:18px;padding:24px}
+.cafe b{font:900 22px/1.1 "Fraunces",serif;display:block;margin-bottom:6px}
+.cafe span{font:600 12px/1 ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--caramel)}
+.cafe p{margin:10px 0 0;color:var(--ink2);font-size:15px}
+.visit{display:flex;flex-wrap:wrap;gap:40px;justify-content:space-between;border-top:1px solid #e3d5c3;padding-top:40px}
+.btn{display:inline-block;background:var(--ink);color:var(--crema);padding:14px 22px;border-radius:999px;text-decoration:none;font-weight:600}
+footer{padding:28px clamp(20px,6vw,80px);color:var(--ink2);font-size:14px;border-top:1px solid #e3d5c3}
+@media (max-width:820px){.cafes{grid-template-columns:1fr}header nav{display:none}}
+@media (prefers-reduced-motion:reduce){.step{transition:none}}
+.no-gl #gl{display:none}.no-gl .pin{background:radial-gradient(circle at 60% 40%,#3a2416,#140d09 60%)}
+</style>
+</head>
+<body>
+<header><a class="brand" href="#">GRAIN NOIR</a><nav><a href="#cafes">Nos cafés</a><a href="#visite">La boutique</a></nav></header>
+
+<section id="roast" aria-label="La torréfaction">
+  <div class="pin">
+    <canvas id="gl" aria-hidden="true"></canvas>
+    <div class="copy"><div class="holder">
+      <div class="step on" data-a="0" data-b=".3"><small>Lyon · torréfié sur place</small><h1>Tout commence par un grain vert.</h1><p>Des cafés de spécialité, choisis lot par lot chez les producteurs.</p></div>
+      <div class="step" data-a=".3" data-b=".66"><small>La torréfaction</small><h2>Douze minutes de feu.</h2><p>Chaque lot est torréfié ici, en petites quantités, pour révéler ses arômes.</p></div>
+      <div class="step" data-a=".66" data-b="1.1"><small>Grain Noir</small><h2>Dans votre tasse, la semaine même.</h2><p>En boutique ou livré chez vous, toujours torréfié depuis moins de sept jours.</p></div>
+    </div></div>
+  </div>
+</section>
+
+<section class="light" id="cafes">
+  <h2>Nos cafés du moment</h2>
+  <p class="lead">[À REMPLACER] La sélection change avec les récoltes. Trois exemples d'origines.</p>
+  <div class="cafes">
+    <article class="cafe"><span>Éthiopie</span><b>[À REMPLACER] Nom du lot</b><p>Notes florales et agrumes. Idéal en filtre.</p></article>
+    <article class="cafe"><span>Colombie</span><b>[À REMPLACER] Nom du lot</b><p>Chocolat au lait, noisette. Parfait en espresso.</p></article>
+    <article class="cafe"><span>Brésil</span><b>[À REMPLACER] Nom du lot</b><p>Rond et doux, pour tous les jours.</p></article>
+  </div>
+</section>
+
+<section class="light" id="visite">
+  <div class="visit">
+    <div><h2>Venez sentir la torréfaction.</h2><p class="lead">[À REMPLACER] Adresse à Lyon, horaires d'ouverture.</p></div>
+    <div><a class="btn" href="#">Commander en ligne</a></div>
+  </div>
+</section>
+<footer>© Grain Noir · Torréfacteur à Lyon</footer>
+
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}</script>
+<script type="module">
+import { createStage, scrollTrack, onFrame, fitDistance, ss, hdr, THREE } from "../../plugins/premium-3d/skills/premium-3d/lib/core.js";
+import { sampleSVG, sampleText, scatter, particleMorph } from "../../plugins/premium-3d/skills/premium-3d/lib/particles.js";
+import { dust } from "../../plugins/premium-3d/skills/premium-3d/lib/objects3d.js";
+import { addLensFx } from "../../plugins/premium-3d/skills/premium-3d/lib/fx.js";
+
+/* légendes HTML synchronisées au scroll (état mémorisé : pas de changement de classe inutile) */
+const section = document.getElementById("roast"), track = scrollTrack(section);
+const steps = [...document.querySelectorAll(".step")]; let cur = 0;
+onFrame(() => { const p = track.progress(); const i = steps.findIndex((s) => p >= +s.dataset.a && p < +s.dataset.b); if (i >= 0 && i !== cur) { steps[cur].classList.remove("on"); steps[i].classList.add("on"); cur = i; } });
+
+/* Signature : la torréfaction. Des grains VERTS dispersés brunissent en se rassemblant (couleur du
+   grain cru → caramel → torréfié), dessinent une tasse, puis le nom de la maison. */
+const stage = createStage(document.getElementById("gl"), { background: "#140d09", accent: "#c8823a", accent2: "#9bb07a", bloom: { strength: 0.55, radius: 0.6, threshold: 0.35 } });
+if (stage) {
+  await document.fonts.load('900 120px "Fraunces"');
+  const N = stage.LOW ? 9000 : 16000;
+  const cup = (await (await fetch("coffee.svg")).text()).replace('stroke="currentColor"', 'stroke="#c8823a"').replace('stroke-width="2"', 'stroke-width="2.4"');
+  const states = [
+    scatter(N, 6.5, { color: "#9bb07a" }),
+    await sampleSVG(cup, { count: N, width: 3.4, res: 220 }),
+    sampleText("GRAIN NOIR", { count: N, width: 6, font: '900 140px "Fraunces"', color: "#f3e9dc" }),
+  ];
+  const pm = particleMorph(states, { size: 3.4, turbulence: 0.7 });
+  pm.points.position.x = 0.6;
+  stage.scene.add(pm.points);
+  /* fumée de torréfaction : quelques particules chaudes qui montent */
+  const smoke = dust({ count: 220, area: [14, 8, 8], color: hdr("#c8823a", 0.9), size: 0.06 });
+  stage.scene.add(smoke.points);
+  const lens = addLensFx(stage, { grain: 0.06, aberration: 0.0015, vignette: 0.45 });
+  stage.onResize((w, h) => { const wide = w > 820; stage.camera.position.set(0, 0, fitDistance(stage.camera, wide ? 8.4 : 6.2, 4.4)); stage.camera.lookAt(0, 0, 0); pm.points.position.x = wide ? 1.3 : 0; pm.points.position.y = wide ? 0.6 : 1.1; });
+  let P = 0;
+  await stage.warm();
+  stage.start((dt, t) => {
+    P += (track.progress() - P) * (stage.reduce ? 1 : 1 - Math.pow(0.0005, dt));
+    /* paliers : grains (0-0.2), tasse (0.35-0.6), nom (0.75-1) */
+    pm.set(ss(0.12, 0.38, P) + ss(0.5, 0.76, P));
+    pm.update(stage.reduce ? 0 : t);
+    pm.points.rotation.y = stage.reduce ? 0 : Math.sin(t * 0.25) * 0.12;
+    if (!stage.reduce) smoke.update(dt);
+    lens.update(t);
+  });
+  window.__demo = { get ready() { return stage.ready; } };
+}
+</script>
+<a href="../../" style="position:fixed;right:12px;bottom:12px;z-index:50;font:600 12px/1 system-ui,sans-serif;background:rgba(20,20,20,.82);color:#fff;padding:9px 12px;border-radius:999px;text-decoration:none">Exemple fait avec premium-3d · entreprise fictive</a>
+</body>
+</html>

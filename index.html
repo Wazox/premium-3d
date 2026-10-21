@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>premium-3d · un skill Claude Code pour de la 3D web sur mesure</title>
+<meta name="description" content="Skill Claude Code open source : métal liquide, particules qui changent de forme, texte 3D, vraies matières, modèles produits. Chaque scène est inventée à partir de la marque, jamais d'un modèle.">
+<meta property="og:title" content="premium-3d · 3D web sur mesure avec Claude Code">
+<meta property="og:description" content="Un skill open source qui invente une scène 3D unique pour chaque marque.">
+<meta property="og:image" content="docs/gallery/matter.png">
+<style>
+:root{--bg:#0b0b0c;--ink:#f2f0ec;--ink2:#9b9790;--line:rgba(255,255,255,.1);--accent:#ff8a3d}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
+a{color:inherit}
+.hero{position:relative;min-height:100svh;display:grid;align-items:end;padding:0 clamp(20px,5vw,64px) clamp(36px,8vh,80px);overflow:hidden}
+#gl{position:absolute;inset:0;width:100%;height:100%}
+.hero-txt{position:relative;max-width:680px;pointer-events:none}
+.hero-txt *{pointer-events:auto}
+.kicker{font:600 12px/1 ui-monospace,monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--accent)}
+h1{font-size:clamp(44px,7vw,96px);line-height:.95;letter-spacing:-.045em;margin:16px 0 18px}
+.lead{color:var(--ink2);max-width:52ch;margin:0 0 26px}
+.cta{display:flex;flex-wrap:wrap;gap:10px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:13px 20px;border-radius:999px;text-decoration:none;font-weight:600;border:1px solid var(--line)}
+.btn.main{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.hint{position:absolute;right:clamp(20px,5vw,64px);bottom:clamp(36px,8vh,80px);font:12px/1 ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--ink2)}
+section{max-width:1180px;margin:0 auto;padding:clamp(70px,12vh,120px) clamp(20px,5vw,64px)}
+h2{font-size:clamp(30px,4vw,52px);line-height:1;letter-spacing:-.035em;margin:0 0 14px}
+.sub{color:var(--ink2);max-width:60ch;margin:0 0 40px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.card{display:block;text-decoration:none;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:#121214;transition:transform .3s,border-color .3s}
+.card:hover{transform:translateY(-3px);border-color:rgba(255,255,255,.25)}
+.card img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}
+.card div{padding:16px 18px}
+.card b{display:block}
+.card span{color:var(--ink2);font-size:14px}
+.steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;counter-reset:s}
+.steps div{border-top:1px solid var(--line);padding-top:18px}
+.steps div::before{counter-increment:s;content:"0" counter(s);font:600 13px/1 ui-monospace,monospace;color:var(--accent)}
+.steps b{display:block;margin:10px 0 6px}
+.steps p{margin:0;color:var(--ink2);font-size:15px}
+pre{background:#121214;border:1px solid var(--line);border-radius:14px;padding:18px 20px;overflow:auto;font:14px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace}
+footer{border-top:1px solid var(--line);padding:26px clamp(20px,5vw,64px);color:var(--ink2);font-size:14px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px}
+@media (max-width:900px){.grid{grid-template-columns:1fr 1fr}.steps{grid-template-columns:1fr 1fr}.hint{display:none}}
+@media (max-width:560px){.grid,.steps{grid-template-columns:1fr}}
+.no-gl .hero{background:radial-gradient(circle at 70% 35%,#3a2a20,#0b0b0c 60%)}
+</style>
+</head>
+<body>
+<header class="hero">
+  <canvas id="gl" aria-hidden="true"></canvas>
+  <div class="hero-txt">
+    <div class="kicker">Skill Claude Code · open source</div>
+    <h1>De la 3D web qui n'existe nulle part ailleurs.</h1>
+    <p class="lead">premium-3d invente une scène 3D pour chaque marque : métal liquide, particules qui changent de forme, texte en volume, vraies matières, modèles produits. Jamais de modèle tout fait, jamais deux fois la même.</p>
+    <div class="cta"><a class="btn main" href="https://github.com/Wazox/premium-3d">Voir sur GitHub</a><a class="btn" href="#exemples">Voir les exemples</a></div>
+  </div>
+  <div class="hint">Attrapez la goutte</div>
+</header>
+
+<section id="exemples">
+  <h2>Trois métiers, trois scènes.</h2>
+  <p class="sub">Générés avec le skill pour des entreprises fictives. Chacun part d'une « signature » propre à la marque, jamais d'un gabarit.</p>
+  <div class="grid">
+    <a class="card" href="examples/cafe/"><img src="docs/gallery/cafe-1.png" alt="Torréfacteur : particules qui forment une tasse" loading="lazy"><div><b>Torréfacteur</b><span>Des grains verts qui brunissent en dessinant la tasse, puis le nom.</span></div></a>
+    <a class="card" href="examples/cosme/"><img src="docs/gallery/cosme.png" alt="Huiles de soin : goutte d'huile en verre" loading="lazy"><div><b>Huiles de soin</b><span>Une goutte d'huile qui déforme le nom posé derrière elle.</span></div></a>
+    <a class="card" href="examples/bois/"><img src="docs/gallery/bois.png" alt="Menuisier : assemblage de planches en bois" loading="lazy"><div><b>Menuisier</b><span>Les planches du logo s'emboîtent au scroll, ombre sur l'établi.</span></div></a>
+  </div>
+</section>
+
+<section>
+  <h2>Les briques.</h2>
+  <p class="sub">Démos techniques des modules : c'est avec elles que le skill compose chaque scène.</p>
+  <div class="grid">
+    <a class="card" href="plugins/premium-3d/skills/premium-3d/demos/matter.html"><img src="docs/gallery/matter.png" alt="" loading="lazy"><div><b>Matière liquide et texte 3D</b><span>Chrome qui ondule, lettres qui se consument.</span></div></a>
+    <a class="card" href="plugins/premium-3d/skills/premium-3d/demos/particles.html"><img src="docs/gallery/particles.png" alt="" loading="lazy"><div><b>Particules morphing</b><span>Nuage, texte, icône, image.</span></div></a>
+    <a class="card" href="plugins/premium-3d/skills/premium-3d/demos/model.html"><img src="docs/gallery/model.png" alt="" loading="lazy"><div><b>Modèle produit</b><span>.glb, lumière studio, ombre douce.</span></div></a>
+    <a class="card" href="plugins/premium-3d/skills/premium-3d/demos/showcase.html"><img src="docs/gallery/icons.png" alt="" loading="lazy"><div><b>Icônes néon</b><span>78 icônes en verre lumineux.</span></div></a>
+    <a class="card" href="plugins/premium-3d/skills/premium-3d/demos/textures.html"><div><b>Matières procédurales</b><span>Bois, marbre, béton, papier, sans image.</span></div></a>
+    <a class="card" href="plugins/premium-3d/skills/premium-3d/demos/logo-explode.html"><div><b>Logo en volume</b><span>Extrusion SVG, vue éclatée au scroll.</span></div></a>
+  </div>
+</section>
+
+<section>
+  <h2>Comment il travaille.</h2>
+  <p class="sub">Vous décrivez ce que vous voulez. Le skill fait le reste, et se relit avant de livrer.</p>
+  <div class="steps">
+    <div><b>Comprendre</b><p>Le métier, la marque, le but. Il ne pose que les questions qui manquent.</p></div>
+    <div><b>Trouver la signature</b><p>Un détail tiré de cette marque précise, que personne d'autre n'aurait.</p></div>
+    <div><b>Construire</b><p>Avec un moteur optimisé : préchauffage, pause hors écran, qualité adaptative.</p></div>
+    <div><b>Passer le jury</b><p>Captures desktop et mobile, note sur 6 critères, il recommence sous 8/10.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2>L'installer.</h2>
+  <p class="sub">Dans Claude Code :</p>
+<pre>claude plugin marketplace add Wazox/premium-3d
+claude plugin install premium-3d@premium-3d</pre>
+  <p class="sub" style="margin-top:20px">Puis : « /premium-3d:premium-3d une landing pour mon salon de coiffure, avec mon logo en 3D ».</p>
+</section>
+
+<footer><span>MIT · three.js, Lenis, Lucide, Google Fonts (licences jointes)</span><span>Créé par Yannis El Hajaoui</span></footer>
+
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}</script>
+<script type="module">
+import { createStage, materials, fitDistance, THREE } from "./plugins/premium-3d/skills/premium-3d/lib/core.js";
+import { liquify, blobGeometry } from "./plugins/premium-3d/skills/premium-3d/lib/shaders.js";
+import { dragRotate, pointerLight } from "./plugins/premium-3d/skills/premium-3d/lib/interact.js";
+const stage = createStage(document.getElementById("gl"), { background: "#0b0b0c", accent: "#ff8a3d", accent2: "#7aa2ff", bloom: { strength: 0.45, radius: 0.6, threshold: 0.8 } });
+if (stage) {
+  const { scene, camera, renderer } = stage;
+  const chrome = materials.metal({ color: "#dcd8d0", rough: 0.1, env: 1.15 });
+  const waves = liquify(chrome, { amp: 0.15, freq: 0.8, speed: 0.35 });
+  const blob = new THREE.Mesh(blobGeometry(1.25, 72), chrome); scene.add(blob);
+  const spin = dragRotate(renderer.domElement, blob);
+  const pl = pointerLight(stage, { color: new THREE.Color(1, 0.55, 0.25).multiplyScalar(2), intensity: 10, z: 3 });
+  stage.onResize((w) => { const wide = w > 900; camera.position.set(0, 0, fitDistance(camera, wide ? 7.5 : 3.4, 3.4)); camera.lookAt(0, 0, 0); blob.position.set(wide ? 2.7 : 0, wide ? 0.2 : 2.6, 0); blob.scale.setScalar(wide ? 1 : 0.72); });
+  await stage.warm();
+  stage.start((dt, t) => { waves.uTime.value = stage.reduce ? 0 : t; spin.update(dt); if (!spin.dragging && !stage.reduce) blob.rotation.y += dt * 0.12; pl.update(dt); });
+  window.__demo = { get ready() { return stage.ready; } };
+}
+</script>
+</body>
+</html>

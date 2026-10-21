@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Démo technique : matière liquide, texte 3D, combustion</title>
+<!-- Démo de technique, volontairement sobre. Ce n'est PAS un modèle de page. -->
+<style>
+body{margin:0;background:#120f0d;color:#efe7dc;font:16px/1.5 system-ui,sans-serif}
+.wrap{height:100svh;position:relative}
+#gl{position:absolute;inset:0;width:100%;height:100%}
+p{position:absolute;left:24px;bottom:16px;margin:0;opacity:.7;font-size:14px;max-width:60ch}
+</style>
+</head>
+<body>
+<div class="wrap"><canvas id="gl" aria-hidden="true"></canvas><p>Goutte de métal liquide (attrapez-la pour la faire tourner), texte en volume qui apparaît en se consumant, grain et aberration de lentille.</p></div>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}</script>
+<script type="module">
+import { createStage, materials, roomEnvironment, fitDistance, hdr, ss, THREE } from "../lib/core.js";
+import { liquify, dissolve, blobGeometry } from "../lib/shaders.js";
+import { loadFont, text3d } from "../lib/text3d.js";
+import { dragRotate } from "../lib/interact.js";
+import { addLensFx } from "../lib/fx.js";
+
+const stage = createStage(document.getElementById("gl"), { background: "#120f0d", accent: "#ff8a3d", accent2: "#7aa2ff", bloom: { strength: 0.4, radius: 0.6, threshold: 0.85 } });
+if (stage) {
+  const { scene, camera, renderer } = stage;
+  const env = roomEnvironment(renderer);
+  /* goutte de métal liquide */
+  const chrome = materials.metal({ color: "#d9d4cc", rough: 0.12, env: 1.1 }); // studio sombre de la scène : reflets contrastés = vrai chrome
+  const waves = liquify(chrome, { amp: 0.14, freq: 0.85, speed: 0.4 });
+  const blob = new THREE.Mesh(blobGeometry(1.15, 72), chrome); blob.position.set(0, 0.55, 0); scene.add(blob);
+  const spin = dragRotate(renderer.domElement, blob, { returnHome: false });
+  /* texte en volume, lettres séparées, qui apparaît en se consumant */
+  const font = await loadFont("./fonts/archivo-black-latin-400-normal.woff");
+  const copper = materials.metal({ color: "#ff8a3d", rough: 0.25, envMap: env, env: 1.2 });
+  const burn = dissolve(copper, { edge: hdr("#ffb36b", 6), width: 0.08, scale: 3 });
+  const word = text3d(font, "MATIÈRE", { size: 0.62, depth: 0.22, bevel: 0.02, material: copper, splitLetters: true });
+  word.position.y = -1.35; scene.add(word);
+  const lens = addLensFx(stage, { grain: 0.05, aberration: 0.0025, vignette: 0.4 });
+  stage.onResize(() => { camera.position.set(0, 0, fitDistance(camera, 5.2, 4.2)); camera.lookAt(0, -0.2, 0); });
+  await stage.warm(() => (burn.uProgress.value = 0.5), () => (burn.uProgress.value = 0));
+  stage.start((dt, t) => {
+    waves.uTime.value = stage.reduce ? 0 : t;
+    spin.update(dt); if (!spin.dragging && !stage.reduce) blob.rotation.y += dt * 0.15;
+    burn.uProgress.value = stage.reduce ? 1 : ss(0.4, 2.6, t);
+    word.children.forEach((m, i) => { m.position.y = m.userData.home.y + (stage.reduce ? 0 : Math.sin(t * 1.2 + i * 0.6) * 0.03); });
+    lens.update(t);
+  });
+  window.__demo = { get ready() { return stage.ready; } };
+}
+</script>
+</body>
+</html>

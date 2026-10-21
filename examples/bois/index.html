@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<!-- Exemple généré avec le skill premium-3d pour une entreprise FICTIVE. Ne pas copier : chaque projet doit être conçu à partir de sa propre marque. -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Atelier Chêne · Menuiserie sur mesure</title>
+<meta name="description" content="Atelier Chêne : menuiserie sur mesure, escaliers, cuisines et agencements en bois massif.">
+<style>
+@font-face{font-family:"Bricolage";src:url(fonts/bricolage-grotesque-latin-800-normal.woff) format("woff");font-weight:800;font-display:swap}
+:root{--bg:#ece5d8;--ink:#23201b;--ink2:#6d655a;--oak:#b98652;--green:#3f5a3c}
+*{box-sizing:border-box}
+a{color:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{position:fixed;inset:0 0 auto;z-index:3;display:flex;justify-content:space-between;align-items:center;padding:20px clamp(20px,5vw,60px)}
+.brand{font:800 20px/1 "Bricolage",sans-serif;letter-spacing:-.01em}
+#build{height:320vh;position:relative}
+.pin{position:sticky;top:0;height:100svh;overflow:hidden}
+#gl{position:absolute;inset:0;width:100%;height:100%}
+.txt{position:absolute;left:clamp(20px,5vw,60px);top:50%;transform:translateY(-50%);width:min(440px,84vw)}
+.txt h1{font:800 clamp(38px,5.4vw,76px)/.98 "Bricolage",sans-serif;letter-spacing:-.03em;margin:0 0 18px}
+.txt p{margin:0;color:var(--ink2);max-width:36ch}
+.tag{position:absolute;right:clamp(20px,5vw,60px);bottom:28px;font:600 12px/1 ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--ink2)}
+section.work{max-width:1100px;margin:0 auto;padding:100px clamp(20px,5vw,60px)}
+.work h2{font:800 clamp(30px,4vw,52px)/1 "Bricolage",sans-serif;letter-spacing:-.02em;margin:0 0 30px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.grid div{background:#f6f1e8;border-radius:16px;padding:22px;border:1px solid #ddd2c0}
+.grid b{display:block;font:800 20px/1.1 "Bricolage",sans-serif;margin-bottom:6px}
+@media (max-width:860px){.tag{display:none}.txt{top:auto;bottom:40px;transform:none}.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><span class="brand">Atelier Chêne</span><a href="#">Demander un devis</a></header>
+<section id="build" aria-label="L'assemblage">
+  <div class="pin">
+    <canvas id="gl" aria-hidden="true"></canvas>
+    <div class="txt"><h1>Assemblé à la main, sans une vis.</h1><p>Escaliers, cuisines et agencements en bois massif, dessinés et ajustés dans notre atelier.</p></div>
+    <div class="tag">Faites défiler · l'assemblage se fait</div>
+  </div>
+</section>
+<section class="work">
+  <h2>Ce qu'on fabrique</h2>
+  <div class="grid"><div><b>Escaliers</b>[À REMPLACER] Description courte.</div><div><b>Cuisines</b>[À REMPLACER] Description courte.</div><div><b>Agencements</b>[À REMPLACER] Description courte.</div></div>
+</section>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}</script>
+<script type="module">
+import { createStage, scrollTrack, materials, fitDistance, ss, THREE } from "../../plugins/premium-3d/skills/premium-3d/lib/core.js";
+import { logoPieces, explode } from "../../plugins/premium-3d/skills/premium-3d/lib/logo3d.js";
+import { studioLights, softGround } from "../../plugins/premium-3d/skills/premium-3d/lib/models.js";
+import { dragRotate } from "../../plugins/premium-3d/skills/premium-3d/lib/interact.js";
+import { woodMaterial } from "../../plugins/premium-3d/skills/premium-3d/lib/textures.js";
+
+/* Signature : l'assemblage à tenon et mortaise. Les trois planches du logo arrivent en glissant
+   latéralement et s'emboîtent, comme un vrai assemblage d'ébéniste, ombre portée sur l'établi. */
+const LOGO = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 200">
+  <path d="M20 150 h200 v30 h-200 Z"/><path d="M50 100 h40 v40 h60 v-40 h40 v50 h-140 Z"/><path d="M90 40 h60 v90 h-60 Z"/></svg>`;
+const stage = createStage(document.getElementById("gl"), { background: "#ece5d8", env: "room", bloom: false });
+if (stage) {
+  const { scene, camera, renderer } = stage;
+  const woods = [["#c99a66", "#8a5a32", 1], ["#b07a48", "#6e4425", 2], ["#d8b080", "#a0703f", 3]].map(([l, d, seed]) => woodMaterial({ light: l, dark: d, seed, scale: 0.55, varnish: true }));
+  const logo = logoPieces(LOGO, { size: 3, depth: 0.8, bevel: 0.03, material: (i) => woods[i] });
+  const holder = new THREE.Group(); holder.add(logo.group); scene.add(holder);
+  logo.pieces.forEach((m) => { m.castShadow = true; m.receiveShadow = true; });
+  studioLights(stage, { shadows: true, key: 2.4, keyColor: "#fff1dc" });
+  scene.add(softGround({ y: -logo.height / 2 - 0.02, opacity: 0.32, color: "#6b4a2a" }));
+  holder.rotation.set(-0.35, -0.55, 0);
+  const spin = dragRotate(renderer.domElement, holder, { returnHome: true, limitX: 0.3 });
+  const track = scrollTrack(document.getElementById("build"));
+  stage.onResize((w) => { const wide = w > 860; camera.position.set(0, 0.6, fitDistance(camera, wide ? 7.5 : 4.8, 4.6)); camera.lookAt(0, 0, 0); holder.position.set(wide ? 2.1 : 0, wide ? 0 : 0.9, 0); });
+  let P = 0;
+  await stage.warm();
+  stage.start((dt, t) => {
+    P += (track.progress() - P) * (stage.reduce ? 1 : 1 - Math.pow(0.0005, dt));
+    /* écartées latéralement au début, emboîtées à 70 % du scroll */
+    explode(logo.pieces, 1 - ss(0.05, 0.7, P), { gap: innerWidth > 860 ? 1.8 : 1.05, axis: [1, 0.15, 0], stagger: 0.35 });
+    spin.update(dt);
+  });
+  window.__demo = { get ready() { return stage.ready; } };
+}
+</script>
+<a href="../../" style="position:fixed;right:12px;bottom:12px;z-index:50;font:600 12px/1 system-ui,sans-serif;background:rgba(20,20,20,.82);color:#fff;padding:9px 12px;border-radius:999px;text-decoration:none">Exemple fait avec premium-3d · entreprise fictive</a>
+</body>
+</html>

@@ -1,0 +1,2 @@
+Polices : chargées depuis Google Fonts (licence SIL Open Font License 1.1), aucun fichier de police redistribué.
+Three.js (MIT) et Lenis (MIT) sont chargés depuis jsdelivr ; icônes Lucide (ISC). Licences jointes.

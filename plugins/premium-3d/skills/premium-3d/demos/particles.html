@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Démo technique : particules qui changent de forme au scroll</title>
+<!-- Démo de technique, volontairement sobre. Ce n'est PAS un modèle de page. -->
+<style>
+body{margin:0;background:#06080d;color:#dfe6f3;font:17px/1.6 system-ui,sans-serif}
+.intro,.outro{max-width:720px;margin:0 auto;padding:16vh 24px}
+#stage{height:400vh;position:relative}
+.pin{position:sticky;top:0;height:100svh;overflow:hidden}
+#gl{position:absolute;inset:0;width:100%;height:100%}
+</style>
+</head>
+<body>
+<section class="intro"><h1>Particules qui changent de forme.</h1><p>Descendez : nuage, puis texte, puis icône, puis image.</p></section>
+<section id="stage"><div class="pin"><canvas id="gl" aria-hidden="true"></canvas></div></section>
+<section class="outro"><p>Fin de la démo.</p></section>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}</script>
+<script type="module">
+import { createStage, scrollTrack, fitDistance, THREE } from "../lib/core.js";
+import { sampleText, sampleSVG, sampleImage, scatter, particleMorph } from "../lib/particles.js";
+
+const stage = createStage(document.getElementById("gl"), { background: "#06080d", bloom: { strength: 0.7, radius: 0.5, threshold: 0.2 } });
+if (stage) {
+  const N = stage.LOW ? 9000 : 18000;
+  const icon = (await (await fetch("../icons/rocket.svg")).text()).replace('stroke="currentColor"', 'stroke="#7cc4ff"').replace('stroke-width="2"', 'stroke-width="2.6"');
+  /* image générée pour la démo (dans un vrai projet : une photo du client) */
+  const c = document.createElement("canvas"); c.width = 600; c.height = 400; const g = c.getContext("2d");
+  const gr = g.createLinearGradient(0, 0, 600, 400); gr.addColorStop(0, "#ff6b6b"); gr.addColorStop(0.5, "#ffd166"); gr.addColorStop(1, "#06d6a0");
+  g.fillStyle = gr; g.beginPath(); g.arc(300, 200, 180, 0, 7); g.fill();
+  const states = [
+    scatter(N, 7, { color: "#5b8cff" }),
+    sampleText("BONJOUR", { count: N, width: 6.4, font: "900 150px system-ui", color: "#e8eeff" }),
+    await sampleSVG(icon, { count: N, width: 3.2, res: 200 }),
+    await sampleImage(c.toDataURL(), { count: N, width: 4.5, threshold: 30 }),
+  ];
+  const pm = particleMorph(states, { size: 2.6, turbulence: 0.8 });
+  stage.scene.add(pm.points);
+  const track = scrollTrack(document.getElementById("stage"));
+  stage.onResize(() => { stage.camera.position.set(0, 0, fitDistance(stage.camera, 7, 3.6)); stage.camera.lookAt(0, 0, 0); });
+  let P = 0;
+  await stage.warm();
+  stage.start((dt, t) => {
+    P += (track.progress() - P) * (stage.reduce ? 1 : 1 - Math.pow(0.0005, dt));
+    /* paliers : chaque forme reste lisible un moment avant la suivante */
+    const s = P * 3, i = Math.floor(s), f = s - i, hold = Math.min(1, Math.max(0, (f - 0.35) / 0.5));
+    pm.set(Math.min(3, i + hold * hold * (3 - 2 * hold)));
+    pm.update(stage.reduce ? 0 : t);
+    pm.points.rotation.y = stage.reduce ? 0 : Math.sin(t * 0.2) * 0.15;
+  });
+  window.__demo = { get ready() { return stage.ready; } };
+}
+</script>
+</body>
+</html>

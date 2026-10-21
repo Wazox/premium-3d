@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Démo technique : modèle 3D, lumière studio, ombre douce</title>
+<!-- Démo de technique, volontairement sobre. Ce n'est PAS un modèle de page. -->
+<style>
+body{margin:0;background:#efece6;color:#1d1b18;font:16px/1.5 system-ui,sans-serif}
+.wrap{height:100svh;position:relative}
+#gl{position:absolute;inset:0;width:100%;height:100%}
+p{position:absolute;left:24px;bottom:16px;margin:0;opacity:.7;font-size:14px;max-width:60ch}
+</style>
+</head>
+<body>
+<div class="wrap"><canvas id="gl" aria-hidden="true"></canvas><p>Modèle .glb chargé, centré et mis à l'échelle, lumière trois points, ombre douce au sol, rotation à la souris. Ici le modèle est fabriqué à la volée ; dans un vrai projet c'est le fichier du client.</p></div>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}</script>
+<script type="module">
+import { createStage, materials, fitDistance, THREE } from "../lib/core.js";
+import { loadModel, studioLights, softGround } from "../lib/models.js";
+import { dragRotate } from "../lib/interact.js";
+import { GLTFExporter } from "three/addons/exporters/GLTFExporter.js";
+
+/* fabrique un petit .glb pour la démo (une tasse) */
+async function demoGlb() {
+  const g = new THREE.Group();
+  const pts = [[0, 0], [0.9, 0], [1, 0.08], [1.05, 1.6], [0.98, 1.62], [0.92, 0.12], [0, 0.12]].map(([x, y]) => new THREE.Vector2(x, y));
+  g.add(new THREE.Mesh(new THREE.LatheGeometry(pts, 96), new THREE.MeshStandardMaterial({ color: "#e9e4da", roughness: 0.35 })));
+  const handle = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.09, 24, 64, Math.PI * 1.2), new THREE.MeshStandardMaterial({ color: "#e9e4da", roughness: 0.35 }));
+  handle.position.set(1.05, 0.85, 0); handle.rotation.z = -Math.PI * 0.6; g.add(handle);
+  const buf = await new GLTFExporter().parseAsync(g, { binary: true });
+  return URL.createObjectURL(new Blob([buf], { type: "model/gltf-binary" }));
+}
+
+const stage = createStage(document.getElementById("gl"), { background: "#efece6", env: "room", bloom: false });
+if (stage) {
+  const { scene, camera, renderer } = stage;
+  const model = await loadModel(await demoGlb(), { size: 2.6 });
+  scene.add(model);
+  studioLights(stage, { shadows: true });
+  scene.add(softGround({ y: model.userData.bottom, opacity: 0.3 }));
+  const spin = dragRotate(renderer.domElement, model, { returnHome: true });
+  stage.onResize(() => { camera.position.set(0, 1.4, fitDistance(camera, 3.6, 3)); camera.lookAt(0, -0.2, 0); });
+  await stage.warm();
+  stage.start((dt, t) => { spin.update(dt); if (!spin.dragging && !stage.reduce) model.rotation.y += dt * 0.25; });
+  window.__demo = { get ready() { return stage.ready; } };
+}
+</script>
+</body>
+</html>

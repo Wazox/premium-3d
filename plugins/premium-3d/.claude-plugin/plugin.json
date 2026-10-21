@@ -1,0 +1,10 @@
+{
+  "name": "premium-3d",
+  "version": "1.0.0",
+  "description": "Premium real-time 3D for any website: liquid metal, morphing particles, 3D type, procedural wood/marble, product models, neon icons and scroll-driven scenes. Each scene is invented from the brand, never from a template.",
+  "author": { "name": "Yannis El Hajaoui" },
+  "homepage": "https://github.com/Wazox/premium-3d",
+  "repository": "https://github.com/Wazox/premium-3d",
+  "license": "MIT",
+  "keywords": ["3d", "threejs", "webgl", "landing-page", "design", "scroll", "animation"]
+}

@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="fr">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Démo technique : textures procédurales</title>
+<!-- Démo de technique : les textures sont générées dans le navigateur, aucune image à fournir. -->
+<style>body{margin:0;padding:24px;background:#e7e4df;font:15px/1.5 system-ui,sans-serif;color:#222}div{display:flex;flex-wrap:wrap;gap:12px}figure{margin:0}canvas{width:220px;height:220px;display:block;border-radius:8px}figcaption{margin-top:6px}</style>
+</head>
+<body>
+<p>Bois, marbre, béton, papier : générés au chargement, réglables (couleurs, échelle, graine).</p>
+<div id="g"></div>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}</script>
+<script type="module">
+import { woodTexture, marbleTexture, concreteTexture, paperTexture } from "../lib/textures.js";
+const items = [["Bois clair", woodTexture({})], ["Bois foncé", woodTexture({ light: "#b07a48", dark: "#6e4425", seed: 2 })], ["Marbre", marbleTexture({})], ["Béton", concreteTexture({})], ["Papier", paperTexture({})]];
+for (const [label, c] of items) { const f = document.createElement("figure"); f.append(c); const cap = document.createElement("figcaption"); cap.textContent = label; f.append(cap); document.getElementById("g").append(f); }
+window.__demo = { ready: true };
+</script>
+</body>
+</html>

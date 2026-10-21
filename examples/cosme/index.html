@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<!-- Exemple généré avec le skill premium-3d pour une entreprise FICTIVE. Ne pas copier : chaque projet doit être conçu à partir de sa propre marque. -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Maison Olea · Huiles de soin naturelles</title>
+<meta name="description" content="Maison Olea : huiles de soin naturelles pressées à froid, flacons rechargeables.">
+<style>
+@font-face{font-family:"Fraunces";src:url(fonts/fraunces-latin-700-normal.woff) format("woff");font-weight:700;font-display:swap}
+:root{--bg:#f6efe6;--ink:#2b2420;--ink2:#7a6b5e;--amber:#c98a2b;--sage:#8a9a7b}
+*{box-sizing:border-box}
+a{color:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.65 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{display:flex;justify-content:space-between;align-items:center;padding:22px clamp(20px,5vw,64px)}
+.brand{font:700 22px/1 "Fraunces",serif;letter-spacing:.06em}
+header a.cta{font-size:14px;text-decoration:none;border-bottom:1px solid currentColor}
+.hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);align-items:center;min-height:calc(100svh - 70px);padding:0 clamp(20px,5vw,64px)}
+.hero h1{font:700 clamp(40px,5.6vw,82px)/1 "Fraunces",serif;margin:0 0 20px;letter-spacing:-.02em}
+.hero h1 em{font-style:italic;color:var(--amber)}
+.hero p{color:var(--ink2);max-width:40ch;margin:0 0 28px}
+.btn{display:inline-block;background:var(--ink);color:var(--bg);padding:14px 24px;border-radius:999px;text-decoration:none;font-weight:600}
+.drop{position:relative;height:min(78svh,680px)}
+#gl{position:absolute;inset:0;width:100%;height:100%;touch-action:pan-y}
+.hint{position:absolute;right:8%;bottom:6%;font:12px/1 ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--ink2)}
+section.more{max-width:1100px;margin:0 auto;padding:90px clamp(20px,5vw,64px);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px;border-top:1px solid #e6d9c8}
+.more h3{font:700 24px/1.1 "Fraunces",serif;margin:0 0 8px}.more p{margin:0;color:var(--ink2)}
+@media (max-width:860px){.hero{grid-template-columns:1fr;padding-top:10px}.drop{height:52svh;order:-1}section.more{grid-template-columns:1fr}}
+.no-gl .drop{background:radial-gradient(circle at 50% 50%,#f0c98a 0,#f6efe6 40%)}
+</style>
+</head>
+<body>
+<header><span class="brand">OLEA</span><a class="cta" href="#">Boutique</a></header>
+<main>
+  <section class="hero">
+    <div>
+      <h1>Une goutte <em>suffit.</em></h1>
+      <p>Huiles de soin pressées à froid, sans parfum ajouté. Une goutte le soir, et la peau retrouve sa souplesse.</p>
+      <a class="btn" href="#">Découvrir les huiles</a>
+    </div>
+    <div class="drop"><canvas id="gl" aria-hidden="true"></canvas><span class="hint">Faites-la tourner</span></div>
+  </section>
+  <section class="more">
+    <div><h3>Pressée à froid</h3><p>[À REMPLACER] Origine des graines et méthode de pression.</p></div>
+    <div><h3>Flacon rechargeable</h3><p>[À REMPLACER] Fonctionnement de la recharge.</p></div>
+    <div><h3>Trois ingrédients</h3><p>[À REMPLACER] Liste exacte des ingrédients.</p></div>
+  </section>
+</main>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}</script>
+<script type="module">
+import { createStage, materials, fitDistance, THREE } from "../../plugins/premium-3d/skills/premium-3d/lib/core.js";
+import { liquify } from "../../plugins/premium-3d/skills/premium-3d/lib/shaders.js";
+import { loadFont, text3d } from "../../plugins/premium-3d/skills/premium-3d/lib/text3d.js";
+import { dragRotate } from "../../plugins/premium-3d/skills/premium-3d/lib/interact.js";
+
+/* Signature : la goutte d'huile posée sur l'étiquette. Le nom de la maison est derrière la goutte,
+   et la goutte le déforme comme une vraie goutte d'huile sur un papier. */
+const stage = createStage(document.getElementById("gl"), { background: "#f6efe6", accent: "#c98a2b", accent2: "#8a9a7b", env: "room", bloom: false });
+if (stage) {
+  const { scene, camera, renderer } = stage;
+  /* profil de goutte (tour) : pointe en haut, ventre rond en bas */
+  const prof = [];
+  for (let i = 0; i <= 120; i++) { const a = Math.PI - (i / 120) * Math.PI; prof.push(new THREE.Vector2(Math.max(0.0001, Math.sin(a) * Math.sin(a / 2) * 1.25), Math.cos(a) * 1.45)); }
+  const geo = new THREE.LatheGeometry(prof, 160);
+  const oil = materials.glass({ tint: "#e0a43c", dist: 2.6, thick: 1.3, disp: 3, irid: 0.15, env: 1.3 });
+  oil.ior = 1.47; oil.roughness = 0.02;
+  const waves = liquify(oil, { amp: 0.035, freq: 1.3, speed: 0.5 });
+  const drop = new THREE.Mesh(geo, oil); scene.add(drop);
+  const font = await loadFont("./fonts/fraunces-latin-700-normal.woff");
+  const name = text3d(font, "OLEA", { size: 1.25, depth: 0.04, bevel: 0, material: materials.soft({ color: "#b58a5a", rough: 0.8 }) });
+  name.position.set(0, -0.1, -1.6); scene.add(name);
+  scene.add(new THREE.HemisphereLight(0xffffff, 0xe8dccb, 1.4));
+  const spin = dragRotate(renderer.domElement, drop, { returnHome: true, limitX: 0.4 });
+  stage.onResize((w) => { camera.position.set(0, 0.1, fitDistance(camera, w < 600 ? 4.6 : 3.4, 3.4, 1.15)); camera.lookAt(0, 0, 0); });
+  await stage.warm();
+  stage.start((dt, t) => {
+    waves.uTime.value = stage.reduce ? 0 : t;
+    spin.update(dt);
+    if (!spin.dragging && !stage.reduce) { drop.rotation.y += dt * 0.2; drop.position.y = Math.sin(t * 0.9) * 0.05; }
+  });
+  window.__demo = { get ready() { return stage.ready; } };
+}
+</script>
+<a href="../../" style="position:fixed;right:12px;bottom:12px;z-index:50;font:600 12px/1 system-ui,sans-serif;background:rgba(20,20,20,.82);color:#fff;padding:9px 12px;border-radius:999px;text-decoration:none">Exemple fait avec premium-3d · entreprise fictive</a>
+</body>
+</html>
