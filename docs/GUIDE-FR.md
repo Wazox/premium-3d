@@ -37,12 +37,14 @@ ressemble. Claude ne pose que les questions qui manquent.
 
 ## 3. Ce que Claude fait
 
-1. **Comprend** le métier, la marque et le but de la page.
+1. **Comprend** le métier, la marque et le but de la page. Si vous avez déjà un site, il en extrait
+   tout seul les couleurs, les polices, le logo et les textes.
 2. **Trouve une signature** : un détail que seule votre marque pourrait avoir.
 3. **Fait la direction artistique** à partir de votre logo : couleurs, polices, matières.
 4. **Construit** avec le moteur du skill : métal liquide, particules, texte 3D, bois et marbre,
    modèles, icônes néon…
-5. **Vérifie** : captures ordinateur et mobile, erreurs, puis un **jury** sur 6 critères.
+5. **Vérifie** : captures ordinateur et mobile (en simulant un vrai téléphone), erreurs, 3D coupée
+   ou passant sous un texte, budget de performance, puis un **jury** sur 6 critères.
    En dessous de 8/10, il recommence.
 6. **Livre** les fichiers, un rapport visuel des tests et la marche à suivre pour les intégrer.
 
@@ -50,8 +52,9 @@ ressemble. Claude ne pose que les questions qui manquent.
 
 | Outil | Commande | À quoi il sert |
 |---|---|---|
+| Marque du client | `node tools/brand.mjs https://site-du-client.fr ./brand` | Couleurs, polices, logo et textes du site actuel, dans `brand.html` |
 | Serveur local | `python3 tools/serve.py 5180` | Voir la page (les modules ne marchent pas en double-clic) |
-| Contrôle | `node tools/check.mjs <url> ./captures --section "#scene"` | Captures ordinateur + mobile, erreurs, `report.html` |
+| Contrôle | `node tools/check.mjs <url> ./captures --section "#scene"` | Captures ordinateur + mobile, erreurs, 3D coupée ou sous le texte, performances, titres en gros plan, `report.html` |
 | Rendu final | ajouter `--full` | Captures avec bloom et effets, pour le jury |
 | Image de secours | ajouter `--poster img/poster.jpg` | Image affichée pendant le chargement et sans 3D |
 | Vidéo | `node tools/record.mjs <url> video.mp4 --duration 12` | Vidéo 1920×1080 fluide pour les réseaux sociaux |

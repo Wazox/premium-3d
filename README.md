@@ -15,6 +15,9 @@ scene starts from the brand, and two sites made with it should never look alike.
 |---|---|---|
 | ![](docs/gallery/cafe-1.png) | ![](docs/gallery/cosme.png) | ![](docs/gallery/bois.png) |
 | Green beans roast into a cup, then the name | An oil drop that warps the name behind it | Wooden planks of the logo slide into place |
+| **Hair salon** | **Garage** | **Florist** |
+| [![](docs/gallery/coiffeur.png)](examples/coiffeur/) | [![](docs/gallery/garage.png)](examples/garage/) | [![](docs/gallery/fleuriste.png)](examples/fleuriste/) |
+| A lock of hair in particles gets cut, falls, becomes the scissors, then the initials | Chrome wheel nuts screw in star order, 1-3-5-2-4, like a real mechanic | The client's own SVG logo blooms: a closed bud whose petals open from their base |
 
 *Examples generated with the skill for fictional businesses.*
 
@@ -65,9 +68,10 @@ Or copy `plugins/premium-3d/skills/premium-3d` into `~/.claude/skills/` and use 
 | `react.js` | `usePremium3D` hook for React and Next.js (mount, warm-up, cleanup) |
 
 Plus `references/` (one-line API reference, concepts, art direction, performance, integration for HTML, Symfony,
-WordPress, React/Next/Vue) `tools/check.mjs` (Playwright screenshots, console errors,
-overflow, visual report with the jury scores) and `tools/record.mjs` (smooth 1920×1080 screen video
-of any page, for social media).
+WordPress, React/Next/Vue), `tools/brand.mjs` (pulls colors, fonts, logo and copy from a client's
+existing site), `tools/check.mjs` (desktop + real-phone screenshots, console errors, overflow,
+3D cut off at the edge or hidden under text, performance budget, title close-ups, visual report with the jury
+scores) and `tools/record.mjs` (smooth 1920×1080 screen video of any page, for social media).
 
 ## Requirements
 

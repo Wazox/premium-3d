@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Atelier Mèche · Coiffure à Lyon</title>
+<meta name="description" content="Atelier Mèche, salon de coiffure à Lyon : coupe femme et homme, couleur, soin. Sur rendez-vous.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Jost:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--cream:#f3ece3;--ink:#1f1a17;--muted:#6b5e55;--copper:#a4552c;--line:#d9cdbf}
+*{box-sizing:border-box}
+html{background:var(--cream)}
+body{margin:0;color:var(--ink);font:17px/1.6 Jost,system-ui,sans-serif;background:var(--cream)}
+a{color:inherit}
+h1,h2,h3{font-family:"Cormorant Garamond",Georgia,serif;font-weight:600;line-height:1.02;margin:0}
+.top{position:fixed;inset:0 0 auto;z-index:5;display:flex;justify-content:space-between;align-items:center;padding:22px clamp(16px,4vw,48px)}
+.brand{font:600 22px "Cormorant Garamond",serif;letter-spacing:.02em;text-decoration:none}
+.cta{display:inline-block;background:var(--ink);color:var(--cream);text-decoration:none;padding:12px 22px;border-radius:999px;font-weight:500;font-size:15px}
+.cta.light{background:transparent;color:var(--ink);border:1px solid var(--ink)}
+
+/* scène épinglée */
+#coupe{height:420vh;position:relative}
+.pin{position:sticky;top:0;height:100svh;overflow:hidden}
+#gl{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity .8s}
+.p3d-ready #gl{opacity:1}
+.caps{position:absolute;left:clamp(16px,6vw,96px);bottom:clamp(40px,12vh,120px);width:min(460px,40vw)}
+.cap{position:absolute;left:0;bottom:0;width:100%}
+.cap .k{font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--copper);margin:0 0 14px}
+.cap h1,.cap h2{font-size:clamp(44px,6vw,84px)}
+.cap p{color:var(--muted);margin:16px 0 0;max-width:380px}
+.cap .row{display:flex;gap:12px;margin-top:24px;flex-wrap:wrap}
+.hint{position:absolute;right:clamp(16px,4vw,48px);bottom:28px;font-size:13px;color:var(--muted);letter-spacing:.1em}
+.no-gl .hint{display:none}
+
+/* sections légères */
+section.s{padding:clamp(72px,12vh,140px) clamp(16px,6vw,96px);border-top:1px solid var(--line)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:28px;margin-top:40px}
+.card h3{font-size:30px}
+.card p{color:var(--muted);margin:8px 0 0}
+.price{font-weight:500;margin-top:10px}
+.s h2{font-size:clamp(38px,5vw,64px)}
+.info{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:28px;margin-top:32px}
+footer{padding:28px clamp(16px,6vw,96px);color:var(--muted);font-size:14px;border-top:1px solid var(--line)}
+
+@media (max-width:860px){
+  .caps{left:16px;right:16px;width:auto;bottom:64px}
+  .cap h1,.cap h2{font-size:44px}
+  .hint{display:none}
+  .top .cta{padding:10px 16px}
+}
+</style>
+</head>
+<body>
+<header class="top"><a class="brand" href="#">Atelier Mèche</a><a class="cta" href="#rdv">Prendre rendez-vous</a></header>
+
+<main>
+<section id="coupe" aria-label="Le geste">
+  <div class="pin">
+    <canvas id="gl" aria-hidden="true"></canvas>
+    <div class="caps">
+      <div class="cap"><p class="k">Salon de coiffure · Lyon, Croix-Rousse</p><h1>Tout part d'une mèche.</h1><p>Coupe, couleur et soin, pensés pour la façon dont vos cheveux tombent vraiment.</p><div class="row"><a class="cta" href="#rdv">Prendre rendez-vous</a><a class="cta light" href="#prestations">Les prestations</a></div></div>
+      <div class="cap"><p class="k">La coupe</p><h2>On coupe juste ce qu'il faut.</h2><p>On regarde d'abord la matière, le sens de pousse, votre quotidien. Ensuite seulement, les ciseaux.</p></div>
+      <div class="cap"><p class="k">L'outil</p><h2>Ciseaux, pas tondeuse.</h2><p>Chaque mèche coupée à la main, au peigne et aux ciseaux, pour une coupe qui repousse bien.</p></div>
+      <div class="cap"><p class="k">Atelier Mèche</p><h2>À vous de venir.</h2><p>Sur rendez-vous, du mardi au samedi.</p><div class="row"><a class="cta" href="#rdv">Réserver</a></div></div>
+    </div>
+    <span class="hint">Faites défiler ↓</span>
+  </div>
+</section>
+
+<section class="s" id="prestations">
+  <h2>Prestations</h2>
+  <div class="grid">
+    <div class="card"><h3>Coupe femme</h3><p>Diagnostic, shampoing, coupe, coiffage.</p><p class="price">à partir de 48 €</p></div>
+    <div class="card"><h3>Coupe homme</h3><p>Coupe aux ciseaux, finitions nuque et contours.</p><p class="price">à partir de 32 €</p></div>
+    <div class="card"><h3>Couleur</h3><p>Racines, couleur complète, balayage.</p><p class="price">à partir de 65 €</p></div>
+    <div class="card"><h3>Soin</h3><p>Soin profond adapté à votre matière.</p><p class="price">à partir de 25 €</p></div>
+  </div>
+</section>
+
+<section class="s" id="rdv">
+  <h2>Venir au salon</h2>
+  <div class="info">
+    <div><p><strong>Adresse</strong><br>Grande rue de la Croix-Rousse, Lyon</p></div>
+    <div><p><strong>Horaires</strong><br>Mardi au samedi · 9 h 30 à 19 h</p></div>
+    <div><p><strong>Réserver</strong><br>Par téléphone ou en ligne</p></div>
+  </div>
+</section>
+</main>
+<footer>Atelier Mèche · salon fictif</footer>
+
+<a href="../../" style="position:fixed;right:12px;bottom:12px;z-index:50;font:600 12px/1 system-ui,sans-serif;background:rgba(20,20,20,.82);color:#fff;padding:9px 12px;border-radius:999px;text-decoration:none">Exemple fait avec premium-3d · entreprise fictive</a>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}</script>
+<script type="module">
+import { createStage, scrollTrack, fitDistance, THREE } from "../../plugins/premium-3d/skills/premium-3d/lib/core.js";
+import { sampleSVG, sampleText, shape, particleMorph } from "../../plugins/premium-3d/skills/premium-3d/lib/particles.js";
+import { steps, captionSync } from "../../plugins/premium-3d/skills/premium-3d/lib/story.js";
+
+const section = document.getElementById("coupe");
+const caps = captionSync(section.querySelectorAll(".cap"));
+const track = scrollTrack(section);
+
+const stage = createStage(document.getElementById("gl"), { background: "#f3ece3", env: "room", bloom: false });
+if (!stage) {
+  /* sans WebGL : légendes pilotées par le scroll quand même */
+  addEventListener("scroll", () => caps.show(Math.min(3, Math.floor(track.progress() * 4))), { passive: true });
+} else {
+  const N = { low: 9000, mid: 14000, high: 18000 }[stage.tier];
+
+  /* 1. la mèche : des dizaines de fils ondulés, du châtain racine au cuivré pointe */
+  const strands = 90, cutU = 0.64;
+  const strand = (i, o) => {
+    const s = i % strands, u = ((i * 0.6180339) % 1);        // u : position le long du fil (0 racine, 1 pointe)
+    const off = (s / strands - 0.5) * (0.7 - u * 0.35), ph = s * 0.41;
+    o.x = -2.2 + u * 4.2;
+    o.y = 1.15 - u * 1.5 + Math.sin(u * 4.6 + 0.6) * 0.45 * u + off;
+    o.z = Math.cos(u * 4 + ph) * 0.18 * u;
+    o.color = new THREE.Color("#2e1c13").lerp(new THREE.Color("#9a4a24"), Math.pow(u, 1.5));
+    return u;
+  };
+  const lock = shape(N, (i, _, o) => { strand(i, o); });
+  /* 2. la coupe : même ordre de particules ; au-delà de la ligne de coupe, les pointes tombent au sol */
+  const cut = shape(N, (i, _, o) => {
+    const u = strand(i, o);
+    if (u > cutU) { o.x = 0.2 + Math.random() * 1.9; o.y = -1.6 + Math.random() * 0.12; o.z = (Math.random() - 0.5) * 0.8; }
+  });
+
+  /* 3. les ciseaux (icône de la bibliothèque) et 4. les initiales du salon */
+  const svg = (await (await fetch("../../plugins/premium-3d/skills/premium-3d/icons/scissors.svg")).text()).replace('stroke-width="2"', 'stroke-width="2.4"');
+  const tools = await sampleSVG(svg, { count: N, width: 3.1, res: 220, color: "#3b2519", depth: 0.2 });
+  await document.fonts.load("600 200px 'Cormorant Garamond'");
+  const mark = await sampleText("AM", { count: N, width: 3.2, font: "600 220px 'Cormorant Garamond'", color: "#a4552c", depth: 0.15 });
+
+  const pm = particleMorph([lock, cut, tools, mark], { size: 2.2, additive: false, turbulence: 0.5 });
+  stage.scene.add(pm.points);
+
+  /* cadrage : objet à droite sur ordinateur, en haut sur mobile ; cadré pour l'état le plus étalé (5 × 4) */
+  stage.onResize((w) => {
+    const mobile = w < 860, cam = stage.camera, x = mobile ? 0 : 1.7, y = mobile ? 1.05 : 0.1;
+    cam.position.set(0, 0, fitDistance(cam, 4.6, 3.2, { x, y, margin: 1.08 }));
+    cam.lookAt(0, 0, 0);
+    pm.points.position.set(x, y, 0);
+  });
+
+  let P = 0;
+  await stage.warm();
+  stage.start((dt, t, real) => {
+    P += (track.progress() - P) * (stage.reduce ? 1 : 1 - Math.pow(0.0005, real));
+    const v = steps(P, 4, 0.5);
+    pm.set(v);
+    pm.update(stage.reduce ? 0 : t);
+    caps.show(Math.round(v));
+    pm.points.rotation.y = stage.reduce ? 0 : Math.sin(t * 0.25) * 0.12;
+  });
+}
+window.__demo = { get ready() { return !stage || stage.ready; } };
+</script>
+</body>
+</html>

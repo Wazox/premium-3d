@@ -13,8 +13,11 @@ Les options entre `{ }` sont toutes facultatives (valeur par défaut indiquée).
 | `stage.LOW`, `stage.reduce` | Petit écran ou machine modeste ; `prefers-reduced-motion`. |
 | `stage.onResize((w, h, pr) => …)` | Appelé tout de suite puis à chaque redimensionnement : recadrer ici. |
 | `await stage.warm(prepare?, restore?)` | Compile tout avant d'afficher. `prepare()` rend visible ce qui apparaîtra plus tard. |
-| `stage.start((dt, t) => …)` | Boucle d'animation (seulement quand la scène est proche de l'écran). |
-| `stage.paused`, `stage.ready`, `stage.dispose()` | Pause, état, nettoyage (React/Vue). |
+| `stage.start((dt, t, real) => …)` | Boucle d'animation (seulement quand la scène est proche de l'écran). `dt`, `t` : temps de l'animation, figés en pause ; `real` : temps réel, pour lisser le scroll (`1 - Math.pow(0.0005, real)`). |
+| `stage.still` | Temps figé (`t` et `dt` ne bougent plus) mais la scène suit toujours le scroll : c'est ce que fait le bouton pause. |
+| `stage.paused`, `stage.ready`, `stage.dispose()` | Arrêt complet du rendu (rare), état, nettoyage (React/Vue). |
+| `?tier=high` dans l'URL | Force le niveau d'appareil (tests, captures). `?lite` : sans bloom. |
+| `createStage(…, { poster: "img/p.jpg" })` ou `{ poster: { desktop, mobile } }` | Image de secours sur un calque derrière le canvas (le fond du conteneur reste intact), retirée en fondu quand la 3D est prête. |
 | `scrollTrack(section)` | `.progress()` 0→1 dans une section haute (enfant `position: sticky`), `.goto(p)`. |
 | `fitZone(camera, w, h, { left, right, top, bottom, margin })` | **Cadrage à côté du texte** : renvoie la distance de caméra et place l'objet (resté à l'origine) dans cette zone de l'écran (fractions 0 → 1). La perspective reste de face, le sol reste sous la caméra. `fitZone(camera, w, h)` sans zone = plein écran. |
 | `fitDistance(camera, w, h, margin \| { x, y, margin })` | Distance pour qu'un objet w × h tienne à l'écran ; `x`/`y` si on préfère déplacer l'objet soi-même. |
@@ -34,8 +37,9 @@ Les options entre `{ }` sont toutes facultatives (valeur par défaut indiquée).
 | Appel | Rôle |
 |---|---|
 | `acts([[nom, début, fin], …])` | `.at(P)` → `{ name, index, k }` ; `.k(nom, P)` → progression locale adoucie. |
-| `steps(P, n, hold = .45)` | Valeur 0 → n-1 à paliers (chaque état reste lisible). Idéal pour `particleMorph.set()`. |
+| `steps(P, n, hold = .45, { tail: .15 })` | Valeur 0 → n-1 à paliers (chaque état reste lisible) ; le dernier état reste affiché sur la dernière part `tail` du scroll. Avec des légendes : `const v = steps(P, n); pm.set(v); caps.show(Math.round(v));` (`Math.floor(v + 0.1)` pour changer de légende plus tard). |
 | `captionSync(elements)` | Légendes HTML superposées : `.show(i)` (l'ancienne sort, puis la nouvelle entre). |
+| `classToggle(el, "on")` | Renvoie `fn(bool)` à appeler dans la boucle : la classe n'est écrite que quand l'état change. |
 
 ## particles.js : particules qui changent de forme
 Une **forme** = `{ positions: Float32Array(count*3), colors: Float32Array(count*3) }`. Toutes les
@@ -48,7 +52,7 @@ formes d'un même morphing ont le même `count`.
 | `await sampleMesh(mesh, { count, color })` | Surface d'un objet 3D → forme. |
 | `shape(count, (i, u, o) => { o.x = …; o.y = …; o.z = …; o.color = … })` | **Forme sur mesure** (mèche, vague, plan, spirale…). Même ordre d'indices entre deux formes proches = transition lisible. |
 | `scatter(count, rayon, { color, shape: "sphere" })` | Nuage dispersé. |
-| `particleMorph(formes, { size, additive, solid, turbulence, opacity })` | `.points` à ajouter, `.set(v)` (0 → n-1), `.update(t)`. Fond clair : `additive: false` (points pleins automatiquement). |
+| `particleMorph(formes, { size, additive, solid, turbulence, opacity })` | `.points` à ajouter, `.set(v)` (0 → n-1), `.update(t)`. Fond clair : `additive: false` (points pleins automatiquement). `turbulence` gonfle le nuage pendant la transition : 0,4 à 0,6 garde une forme lisible, au-delà de 0,8 c'est une boule. |
 
 ## logo3d.js, text3d.js, icon3d.js : objets en volume
 | Appel | Rôle |
@@ -72,13 +76,13 @@ formes d'un même morphing ont le même `count`.
 ## shaders.js, fx.js, interact.js : effets et interactions
 | Appel | Rôle |
 |---|---|
-| `liquify(material, { amp, freq, speed })` + `blobGeometry()` | Surface qui ondule. Renvoie les uniforms : `u.uTime.value = t`. |
+| `liquify(material, { amp, freq, speed })` + `blobGeometry()` ou `discGeometry(r)` | Surface qui ondule (objet rond, ou liquide plat dans un bol, une tasse, un verre). Renvoie les uniforms : `u.uTime.value = t`. |
 | `dissolve(material, { edge, width })` | Apparition par combustion : `u.uProgress.value` 0 → 1. |
 | `addLensFx(stage, { grain, aberration, vignette })`, `addDepthOfField(stage, { focus })` | Effets d'objectif (profondeur de champ coupée sur machine modeste). |
 | `dragRotate(el, objet, { returnHome })` (`.update(dt)`) | Attraper pour tourner, avec inertie. |
 | `hoverPick(stage, objets, { onEnter, onLeave, onClick })` | Survol et clic sur des objets 3D. |
 | `pointerLight(stage, { color })` (`.update(dt)`), `tilt()` | Lumière qui suit le pointeur, gyroscope. |
-| `motionToggle(stage, bouton)` | Bouton pause obligatoire si l'animation tourne seule plus de 5 s. |
+| `motionToggle(stage, bouton)` | Bouton pause obligatoire si l'animation tourne seule plus de 5 s. Fige le temps, jamais le scroll ; démarre figé avec « réduire les animations ». |
 
 ## react.js
 `usePremium3D(async (stage) => (dt, t) => { … }, optionsDeCreateStage)` renvoie une `ref` à poser

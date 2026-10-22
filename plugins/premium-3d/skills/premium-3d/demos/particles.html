@@ -42,8 +42,8 @@ if (stage) {
   stage.onResize(() => { stage.camera.position.set(0, 0, fitDistance(stage.camera, 7, 3.6)); stage.camera.lookAt(0, 0, 0); });
   let P = 0;
   await stage.warm();
-  stage.start((dt, t) => {
-    P += (track.progress() - P) * (stage.reduce ? 1 : 1 - Math.pow(0.0005, dt));
+  stage.start((dt, t, real) => {
+    P += (track.progress() - P) * (stage.reduce ? 1 : 1 - Math.pow(0.0005, real));
     /* paliers : chaque forme reste lisible un moment avant la suivante */
     const s = P * 3, i = Math.floor(s), f = s - i, hold = Math.min(1, Math.max(0, (f - 0.35) / 0.5));
     pm.set(Math.min(3, i + hold * hold * (3 - 2 * hold)));

@@ -46,8 +46,8 @@ if (stage) {
   const shot = cameraPath([[0, [0, 0, 1.4], [0, 0, 0]], [0.5, [1.1, 0.5, 1.1], [0, 0, 0]], [1, [1.3, 0.2, 1.6], [0, 0, 0]]]);
   const pos = new THREE.Vector3(), tgt = new THREE.Vector3(), label = document.getElementById("label");
   let P = 0, shown = -1;
-  stage.warm().then(() => stage.start((dt, t) => {
-    P += (track.progress() - P) * (stage.reduce ? 1 : 1 - Math.pow(0.0005, dt));
+  stage.warm().then(() => stage.start((dt, t, real) => {
+    P += (track.progress() - P) * (stage.reduce ? 1 : 1 - Math.pow(0.0005, real));
     shot(P, pos, tgt); camera.position.copy(pos.multiplyScalar(fitDistance(camera, 3, 3))); camera.lookAt(tgt);
     explode(logo.pieces, ss(0.25, 0.75, P), { gap: 0.9 });
     logo.group.rotation.set(ss(0, 1, P) * -0.3, ss(0, 1, P) * -0.6 + (stage.reduce ? 0 : Math.sin(t * 0.4) * 0.04), 0);

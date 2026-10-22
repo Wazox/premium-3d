@@ -31,7 +31,8 @@ icons/             78 icônes Lucide (licence ISC, dessinées en traits) couvran
 demos/             démos TECHNIQUES (comment appeler le code, pas des modèles de design)
 references/        api.md (toutes les fonctions en une ligne), concepts.md, art-direction.md,
                    performance.md, integration.md
-tools/check.mjs    captures desktop + mobile, erreurs, rapport visuel report.html (avec le jury)
+tools/brand.mjs    extrait la marque d'un site existant : couleurs, polices, logo, textes (brand.html)
+tools/check.mjs    captures desktop + mobile, erreurs, 3D coupée, performances, rapport report.html (avec le jury)
 tools/record.mjs   vidéo fluide de la page (écran d'ordinateur 1920×1080) pour présenter le travail
 tools/serve.py     serveur local
 licenses/          licences tierces à livrer avec le projet
@@ -45,7 +46,16 @@ ressembler le résultat : **ne reprends jamais leur mise en page, leurs couleurs
 
 ## Étape 1 : comprendre la demande
 
-Lis tout ce que la personne a fourni (texte, logo, photos, site existant, captures). Puis pose
+Lis tout ce que la personne a fourni (texte, logo, photos, site existant, captures). Si elle a déjà
+un site, extrais sa marque avant toute question (copie `tools/` dans le projet, puis
+`npm i playwright` si besoin) :
+```bash
+node tools/brand.mjs https://site-du-client.fr ./brand
+```
+`brand/brand.html` montre les couleurs, les polices, le logo (récupéré en SVG quand c'est possible)
+et les textes du site : pars de là pour la palette, les polices et les mots du client, et ne
+redemande pas ce qui s'y trouve. Relis-le : une couleur peut venir d'un bandeau cookies ou d'un
+widget. Puis pose
 **seulement** les questions qui manquent, en un seul `AskUserQuestion` (4 questions maximum),
 parmi :
 - le livrable : une page complète, une section à ajouter à un site existant, un hero, un logo 3D ?
@@ -53,7 +63,9 @@ parmi :
 - les éléments de marque : logo (SVG idéal, sinon n'importe quel format), couleurs, photos ;
 - la stack si c'est pour un site existant (HTML, Symfony, WordPress, React/Next, Vue…).
 
-Si la personne a déjà tout dit, ne demande rien et passe à l'étape 2.
+Si la personne a déjà tout dit, ne demande rien et passe à l'étape 2. Si l'outil de questions
+n'existe pas ou que la personne n'est pas là pour répondre : choisis la réponse la plus raisonnable,
+écris tes hypothèses en tête de la direction, et continue.
 
 ## Étape 2 : choisir le concept
 
@@ -130,9 +142,9 @@ if (stage) {
   const track = scrollTrack(section);              // si la scène suit le scroll
   let P = 0;
   await stage.warm();                              // compile tout avant d'arriver sur la scène
-  stage.start((dt, t) => {
-    P += (track.progress() - P) * (stage.reduce ? 1 : 1 - Math.pow(0.0005, dt));
-    // … animer selon P (scroll) et/ou t (temps) …
+  stage.start((dt, t, real) => {
+    P += (track.progress() - P) * (stage.reduce ? 1 : 1 - Math.pow(0.0005, real));   // real : jamais figé
+    // … animer selon P (scroll) et/ou t (temps, figé par le bouton pause) …
   });
 }
 ```
@@ -147,7 +159,7 @@ if (stage) {
   subdivisions, ombres, profondeur de champ. Ex. `{ low: 6000, mid: 12000, high: 20000 }[stage.tier]`.
 - Textes : en HTML (accessibles, indexables), jamais uniquement dans la 3D.
 - Animation qui tourne en continu plus de 5 secondes : bouton pause (`motionToggle`), c'est une
-  règle d'accessibilité. Scène plus bas dans la page : `whenNear()`. Fondu d'apparition : classe
+  règle d'accessibilité. Il fige le temps, jamais le scroll : le récit reste lisible. Scène plus bas dans la page : `whenNear()`. Fondu d'apparition : classe
   `p3d-ready` (voir `references/performance.md`). Image de secours : option `poster` de `createStage`,
   générée à la fin avec `check.mjs --poster`.
 
@@ -162,21 +174,31 @@ au-dessus du canvas.
 ## Étape 6 : vérifier
 
 Copie `tools/check.mjs`, `tools/record.mjs` et `tools/serve.py` du dossier du skill dans un dossier `tools/` du projet
-(Node cherche `playwright` à côté du script), puis, depuis la racine du projet :
+(Node cherche `playwright` à côté du script ou dans un dossier parent ; si un navigateur Playwright
+est déjà installé ailleurs, `PLAYWRIGHT_BROWSERS_PATH` l'indique), puis, depuis la racine du projet
+(changer le port s'il est pris) :
 ```bash
 python3 tools/serve.py 5180 &           # sert le dossier courant
 npm i playwright                        # une fois (navigateur : npx playwright install chromium si absent)
 node tools/check.mjs http://127.0.0.1:5180/index.html ./captures --section "#ma-scene"
 node tools/check.mjs http://127.0.0.1:5180/index.html ./captures-full --section "#ma-scene" --full
 ```
-Sans `--full`, les captures sont faites sans post-traitement (rapide) ; avec, on voit le rendu final
+Le script affiche sa progression. Pour itérer vite : `--points 0,0.5,1` et `--views mobile` (ou
+`desktop`) ; pour conclure : la liste de points par défaut, les deux vues et `--full`. Sans carte
+graphique, la page se croirait sur une machine faible : le script force le niveau d'un vrai appareil
+(ordinateur « high », mobile « mid ») pour que tu juges ce que verra le visiteur (`--tier auto` pour
+ne rien forcer). Avec `--section`, une capture « fin de page » est ajoutée, et le rapport montre les
+titres en gros plan (vérifie les accents du nom). Sans `--full`, les captures sont faites sans post-traitement (rapide) ; avec, on voit le rendu final
 (bloom, grain…), à utiliser pour le jury. Les halos de bloom (chrome qui bave, surtout sur mobile)
 **n'apparaissent qu'avec `--full`** : passe-le au moins une fois avant de conclure. Sans carte graphique, chaque capture peut prendre du temps.
 Expose `window.__demo = { get ready() { return stage.ready; } }` pour que le script attende la 3D.
 Le script signale aussi « À VÉRIFIER » quand la 3D touche un bord de l'écran (objet sans doute
-coupé) : regarde la capture indiquée, recadre si l'objet est coupé par erreur. La capture mobile
+coupé) ou passe sous un texte visible (titre, paragraphe, bouton) : regarde la capture indiquée,
+recadre avec `fitZone` si c'est une erreur. La capture mobile
 simule un vrai téléphone (écran 3×, tactile).
-Regarde **chaque** capture (desktop et 390×844) :
+Le rapport donne aussi les **performances** (appels de dessin, triangles, particules, poids
+téléchargé, LCP, CLS) avec un budget : chaque dépassement est listé dans « À VÉRIFIER » avec la piste
+de correction. Regarde **chaque** capture (desktop et 390×844) :
 - le **premier écran, avant tout scroll**, est déjà beau et plein : la scène ne commence pas
   par un objet minuscule ou un vide (c'est ce que tout visiteur voit, même s'il ne scrolle pas) ;
 - les arêtes et reflets fins sont nets, sans scintillement ni crénelage (sinon : vérifier
@@ -215,7 +237,8 @@ premier essai veut dire que tu n'as pas assez regardé.
 
 Si l'outil Agent est disponible et que la personne veut le meilleur résultat, fais aussi noter
 les captures par un agent qui n'a pas vu le travail (donne-lui seulement les captures, la demande
-et ce tableau), et corrige ce qu'il relève.
+et ce tableau), et corrige ce qu'il relève. Sans outil Agent : écris une critique capture par
+capture (ce qui gêne, où, pourquoi) avant de noter, puis corrige.
 
 ## Étape 8 : livrer
 
@@ -224,12 +247,15 @@ Si la personne veut présenter son site (réseaux sociaux, client, portfolio), p
 node tools/record.mjs http://127.0.0.1:5180/index.html video.mp4 --section "#ma-scene" --duration 12
 ```
 Une vraie fenêtre Chrome s'ouvre (carte graphique utilisée, vidéo fluide), défile doucement et
-produit un .mp4 1920×1080. `--pause 0.35,0.7` marque une pause sur les moments forts.
+produit un .mp4 1920×1080. `--pause 0.35,0.7` marque une pause sur les moments forts. Il faut un
+écran et une carte graphique : dans un environnement sans écran (serveur, cloud), propose plutôt à
+la personne de lancer la commande sur son ordinateur.
 
 Donne les fichiers, explique en deux lignes ce que fait la 3D, liste les éléments à remplacer
 (photos, chiffres, textes provisoires marqués `[À REMPLACER]`) et la façon d'intégrer
-(`references/integration.md`). Copie `lib/` utilisés, les icônes utilisées et `licenses/` avec le
-projet.
+(`references/integration.md`). Copie les modules de `lib/` utilisés, les icônes utilisées, et dans
+`licenses/` seulement les licences de ce qui est livré (three.js, Lucide si icônes, Lenis si utilisé,
+polices embarquées).
 
 ## Jamais
 

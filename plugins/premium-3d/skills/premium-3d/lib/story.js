@@ -4,6 +4,7 @@
  *   acts()        découpe la progression P (0→1) en actes nommés, avec la progression locale de chacun
  *   steps()       progression « à paliers » : chaque état reste lisible avant de passer au suivant
  *   captionSync() légendes HTML synchronisées : l'ancienne sort, PUIS la nouvelle entre
+ *   classToggle() classe CSS pilotée par la boucle, écrite seulement quand l'état change
  *                 (jamais deux textes l'un sur l'autre), accessible (aria-hidden sur les inactives)
  *
  *   import { acts, steps, captionSync } from "./lib/story.js";
@@ -37,10 +38,15 @@ export function acts(defs) {
  * Progression à paliers entre n états : renvoie une valeur entre 0 et n-1 qui reste fixe sur
  * chaque état pendant une part `hold` de son intervalle, puis transite en douceur.
  * Idéal pour particleMorph.set() ou une caméra qui va d'un objet à l'autre.
+ * tail : part de la fin du scroll où le DERNIER état reste affiché (sans elle, il n'apparaît
+ * qu'au tout dernier pixel). Légendes associées :
+ *   const v = steps(P, 4); pm.set(v); caps.show(Math.round(v));
  */
-export function steps(P, n, hold = 0.45) {
+export function steps(P, n, hold = 0.45, { tail = 0.15 } = {}) {
   if (n < 2) return 0;
-  const s = Math.min(n - 1 - 1e-6, Math.max(0, P) * (n - 1));
+  P = Math.min(1, Math.max(0, P) / (1 - tail));
+  const s = Math.min(n - 1, P * (n - 1));
+  if (s >= n - 1) return n - 1;
   const i = Math.floor(s), f = s - i, t = Math.min(1, Math.max(0, (f - hold) / (1 - hold)));
   return i + t * t * (3 - 2 * t);
 }
@@ -75,4 +81,15 @@ export function captionSync(elements, { outMs = 250, inMs = 600 } = {}) {
   };
   api.show(0);
   return api;
+}
+
+/**
+ * Classe CSS pilotée depuis la boucle d'animation, sans écriture DOM inutile : le DOM n'est touché
+ * que quand l'état change (écrire une classe à chaque image force le navigateur à recalculer les styles).
+ *   const marque = classToggle(etape3, "on");
+ *   // boucle : marque(P > 0.6);
+ */
+export function classToggle(el, cls) {
+  let cur = el.classList.contains(cls);
+  return (on) => { on = !!on; if (on !== cur) { cur = on; el.classList.toggle(cls, on); } return on; };
 }

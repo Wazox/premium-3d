@@ -19,7 +19,9 @@ import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 export { THREE };
 export const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 export const LITE = /[?&]lite\b/.test(location.search);
-export const LOW = innerWidth < 860 || (navigator.hardwareConcurrency || 8) <= 4;
+/* ?tier=high|mid|low dans l'URL force le niveau (captures sans carte graphique, tests) */
+const FORCED = (location.search.match(/[?&]tier=(low|mid|high)\b/) || [])[1] || null;
+export const LOW = FORCED ? FORCED === "low" || innerWidth < 860 : innerWidth < 860 || (navigator.hardwareConcurrency || 8) <= 4;
 
 /**
  * Niveau de l'appareil : "low" | "mid" | "high". Sert à doser ce qui coûte cher
@@ -30,6 +32,7 @@ export const LOW = innerWidth < 860 || (navigator.hardwareConcurrency || 8) <= 4
 let _tier = null;
 export function tier() {
   if (_tier) return _tier;
+  if (FORCED) return (_tier = FORCED);
   const cores = navigator.hardwareConcurrency || 4, mem = navigator.deviceMemory || 4, small = innerWidth < 860;
   let gpu = "";
   try {
@@ -217,7 +220,18 @@ export function createStage(canvas, {
   bloom = { strength: 0.55, radius: 0.5, threshold: 0.9 }, exposure = 1, maxPixelRatio = 1.25, poster = null,
 } = {}) {
   /* image de secours : visible pendant le chargement, et à la place de la 3D si WebGL manque */
-  if (poster) Object.assign(canvas.parentElement.style, { backgroundImage: `url("${poster}")`, backgroundSize: "cover", backgroundPosition: "center" });
+  /* poster : "img/poster.jpg" ou { desktop: "img/poster.jpg", mobile: "img/poster-mobile.jpg" }.
+     Posée sur un calque derrière le canvas (le fond CSS du conteneur reste intact), retirée en fondu
+     quand la 3D est prête (utile si le canvas est transparent). */
+  let posterEl = null;
+  if (poster) {
+    const src = typeof poster === "string" ? poster : (innerWidth < 860 && poster.mobile) || poster.desktop || poster.mobile;
+    const box0 = canvas.parentElement;
+    if (getComputedStyle(box0).position === "static") box0.style.position = "relative";
+    posterEl = document.createElement("div"); posterEl.className = "p3d-poster"; posterEl.setAttribute("aria-hidden", "true");
+    Object.assign(posterEl.style, { position: "absolute", inset: "0", backgroundImage: `url("${src}")`, backgroundSize: "cover", backgroundPosition: "center", pointerEvents: "none", transition: "opacity .8s" });
+    box0.insertBefore(posterEl, canvas);
+  }
   let renderer;
   try {
     renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: background === null, powerPreference: "high-performance" });
@@ -253,7 +267,9 @@ export function createStage(canvas, {
   let visible = false;
   const io = new IntersectionObserver((es) => { visible = es[0].isIntersecting; }, { rootMargin: "100% 0px" }); io.observe(box);
   let stopFrame = null;
-  const render = () => (composer ? composer.render() : renderer.render(scene, camera));
+  /* compteurs d'une image entière (le post-traitement fait plusieurs rendus par image) : lus par tools/check.mjs */
+  renderer.info.autoReset = false;
+  const render = () => { renderer.info.reset(); composer ? composer.render() : renderer.render(scene, camera); };
   /*
    * Pixel ratio adaptatif, calé sur la fréquence réelle de l'écran (60, 75, 120, 144 Hz…) :
    * - on mesure l'intervalle le plus court observé (≈ une image de l'écran) ;
@@ -276,7 +292,7 @@ export function createStage(canvas, {
     if (next !== pr) { pr = next; layout(); }
   }
   const stage = {
-    THREE, renderer, scene, camera, composer, bloom: bloomPass, outputPass, render, LOW, LITE, tier: tier(), reduce: reduceMotion, ready: false, paused: false,
+    THREE, renderer, scene, camera, composer, bloom: bloomPass, outputPass, render, LOW, LITE, tier: tier(), reduce: reduceMotion, ready: false, paused: false, still: false,
     onResize(fn) { resizeFns.push(fn); fn(box.clientWidth, box.clientHeight, pr); },
     /** pixel ratio de rendu actuel (diagnostic : il doit revenir au maximum sur une machine correcte) */
     get pixelRatio() { return pr; },
@@ -292,17 +308,25 @@ export function createStage(canvas, {
       try { await renderer.compileAsync(scene, camera); } catch (e) {}
       render();
       if (restore) restore();
-      stage.ready = true;
+      stage.ready = true; stage.readyAt = performance.now();
       box.classList.add("p3d-ready"); // CSS : .p3d-ready canvas { opacity: 1 } pour un fondu d'apparition
+      if (posterEl) { posterEl.style.opacity = "0"; setTimeout(() => posterEl.remove(), 900); }
     },
-    /** Lance la boucle : update(dt, t) n'est appelé que si la section est proche de l'écran. */
+    /**
+     * Lance la boucle : update(dt, t, real) n'est appelé que si la section est proche de l'écran.
+     * dt, t : temps de l'animation (figés quand stage.still) ; real : temps réel, pour lisser le scroll.
+     */
     start(update) {
       const clock = new THREE.Clock();
+      let T = 0;
       if (stopFrame) stopFrame();
       stopFrame = onFrame((now) => {
-        const dt = Math.min(clock.getDelta(), 0.05), t = clock.elapsedTime;
+        const real = Math.min(clock.getDelta(), 0.05);
         if (!visible || !stage.ready || stage.paused || document.hidden) return;
-        update(dt, t); render(); adapt(now);
+        /* still : le temps est figé (bouton pause, animations réduites) : dt = 0 et t ne bouge plus.
+           real = temps réellement écoulé, toujours : c'est lui qui lisse le suivi du scroll. */
+        const dt = stage.still ? 0 : real; T += dt;
+        update(dt, T, real); render(); adapt(now);
       });
     },
     /** Libère tout (applications React/Vue/Next au démontage du composant). */
@@ -317,5 +341,6 @@ export function createStage(canvas, {
       renderer.dispose();
     },
   };
+  (window.__p3d || (window.__p3d = { stages: [] })).stages.push(stage); // diagnostic (tools/check.mjs)
   return stage;
 }
