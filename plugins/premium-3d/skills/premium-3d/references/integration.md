@@ -3,6 +3,13 @@
 Principe commun : on n'ajoute que la zone 3D, on ne restyle rien d'autre, et Three.js n'est
 chargé que sur les pages qui en ont besoin. Les textes restent en HTML (SEO, accessibilité).
 
+## Icônes dans le HTML
+Les icônes de `icons/` sont en `stroke="currentColor"` : en `<img>`, elles restent noires. Pour
+qu'elles prennent la couleur du texte, intègre le SVG dans la page, ou utilise un masque :
+```css
+.ico{width:20px;height:20px;background:currentColor;-webkit-mask:url(icons/phone.svg) center/contain no-repeat;mask:url(icons/phone.svg) center/contain no-repeat}
+```
+
 ## HTML statique
 Copier `lib/` (seulement les fichiers utilisés), les icônes utilisées et `licenses/`. Dans la page :
 ```html

@@ -83,11 +83,13 @@ export function tilt({ max = 0.25 } = {}) {
 /**
  * Bouton pause / lecture pour les animations qui tournent en continu (accessibilité : toute
  * animation automatique de plus de 5 s doit pouvoir être arrêtée). Le bouton est fourni par la page.
+ * La pause fige le TEMPS (t et dt ne bougent plus) mais la scène continue de suivre le scroll :
+ * le récit reste lisible. Avec « réduire les animations », le temps démarre figé.
  *   motionToggle(stage, document.querySelector("#pause"), { pauseLabel: "Pause", playLabel: "Lecture" });
  */
 export function motionToggle(stage, button, { pauseLabel = "Mettre en pause l'animation", playLabel = "Relancer l'animation" } = {}) {
-  const sync = () => { button.setAttribute("aria-pressed", String(stage.paused)); button.setAttribute("aria-label", stage.paused ? playLabel : pauseLabel); button.dataset.state = stage.paused ? "paused" : "playing"; };
-  if (stage.reduce) stage.paused = true;
-  button.addEventListener("click", () => { stage.paused = !stage.paused; sync(); if (stage.paused) stage.render(); });
+  const sync = () => { button.setAttribute("aria-pressed", String(stage.still)); button.setAttribute("aria-label", stage.still ? playLabel : pauseLabel); button.dataset.state = stage.still ? "paused" : "playing"; };
+  if (stage.reduce) stage.still = true;
+  button.addEventListener("click", () => { stage.still = !stage.still; sync(); });
   sync();
 }

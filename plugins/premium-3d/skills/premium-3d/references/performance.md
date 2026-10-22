@@ -24,10 +24,11 @@ déjà l'essentiel ; ce fichier dit ce qu'il fait et ce qu'il ne faut pas casser
    Prévoir `canvas { opacity: 0; transition: opacity .8s } .p3d-ready canvas { opacity: 1 }` :
    la scène apparaît d'un coup propre, jamais à moitié chargée.
 
-10. **Image de secours** : `createStage(canvas, { poster: "img/poster.jpg" })` affiche l'image derrière
-   le canvas pendant le chargement, et à sa place si WebGL manque. Générer l'image avec
-   `node tools/check.mjs <url> ./captures-full --full --poster img/poster.jpg` (1re capture ordinateur,
-   la page doit donc être finie). Utile aussi comme image de partage (og:image).
+10. **Image de secours** : `createStage(canvas, { poster: "img/poster.jpg" })` (ou `{ poster: { desktop,
+   mobile } }`) affiche l'image sur un calque derrière le canvas pendant le chargement, et à sa place si
+   WebGL manque ; le fond CSS du conteneur reste intact. Générer l'image avec
+   `node tools/check.mjs <url> ./captures-full --full --poster img/poster.jpg` (1re capture : ordinateur
+   dans `poster.jpg`, mobile dans `poster-mobile.jpg` ; la page doit donc être finie). Utile aussi comme image de partage (og:image).
 
 ## Règles à respecter dans ton code
 - Ne crée **aucun** matériau, géométrie ou texture pendant l'animation : tout au chargement.
@@ -35,7 +36,7 @@ déjà l'essentiel ; ce fichier dit ce qu'il fait et ce qu'il ne faut pas casser
   s'il n'a jamais été rendu (ou inclus-le dans `prepare()` du préchauffage).
 - Aucune allocation dans la boucle (`new Vector3`, `.clone()`) : réutilise des objets.
 - Textures canvas animées : redessin 20 fois par seconde au maximum, sans mipmaps, seulement si visible.
-- Ne modifie une classe CSS que si l'état change (garde l'état précédent en mémoire).
+- Ne modifie une classe CSS que si l'état change : `classToggle()` (lib/story.js) le fait pour toi.
 - Pas de `backdrop-filter` sur des éléments posés au-dessus du canvas.
 - Photos : 1600 px de large maximum, JPEG ou WebP.
 - Une scène par page de préférence ; deux maximum, sur la même boucle.

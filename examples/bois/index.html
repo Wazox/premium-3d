@@ -70,8 +70,8 @@ if (stage) {
   stage.onResize((w) => { const wide = w > 860; camera.position.set(0, 0.6, fitDistance(camera, wide ? 7.5 : 4.8, 4.6)); camera.lookAt(0, 0, 0); holder.position.set(wide ? 2.1 : 0, wide ? 0 : 0.9, 0); });
   let P = 0;
   await stage.warm();
-  stage.start((dt, t) => {
-    P += (track.progress() - P) * (stage.reduce ? 1 : 1 - Math.pow(0.0005, dt));
+  stage.start((dt, t, real) => {
+    P += (track.progress() - P) * (stage.reduce ? 1 : 1 - Math.pow(0.0005, real));
     /* écartées latéralement au début, emboîtées à 70 % du scroll */
     explode(logo.pieces, 1 - ss(0.05, 0.7, P), { gap: innerWidth > 860 ? 1.8 : 1.05, axis: [1, 0.15, 0], stagger: 0.35 });
     spin.update(dt);

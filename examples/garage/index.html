@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Garage Ferrand · Mécanique toutes marques</title>
+<meta name="description" content="Garage Ferrand : entretien, freinage, pneus et diagnostic toutes marques. Devis avant intervention.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d0f12;--ink:#eef0f2;--muted:#9aa1a9;--red:#e5482e;--line:#23272d}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:16px/1.6 Inter,system-ui,sans-serif}
+a{color:inherit}
+h1,h2,h3{font-family:"Barlow Condensed",sans-serif;font-weight:700;text-transform:uppercase;line-height:.95;margin:0;letter-spacing:.01em}
+.top{position:fixed;inset:0 0 auto;z-index:5;display:flex;justify-content:space-between;align-items:center;padding:20px clamp(16px,4vw,48px)}
+.brand{font:700 24px "Barlow Condensed",sans-serif;text-transform:uppercase;text-decoration:none;letter-spacing:.04em}
+.brand b{color:var(--red)}
+.cta{display:inline-block;background:var(--red);color:#fff;text-decoration:none;padding:12px 22px;border-radius:6px;font-weight:500;font-size:15px}
+.cta.ghost{background:transparent;border:1px solid #3a3f46}
+#atelier{height:460vh;position:relative}
+.pin{position:sticky;top:0;height:100svh;overflow:hidden}
+#gl{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity .8s}
+.p3d-ready #gl{opacity:1}
+.caps{position:absolute;left:clamp(16px,6vw,96px);bottom:clamp(40px,12vh,120px);width:min(480px,42vw)}
+.cap{position:absolute;left:0;bottom:0;width:100%}
+.cap .k{font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--red);margin:0 0 12px;font-weight:500}
+.cap h1,.cap h2{font-size:clamp(52px,7vw,104px)}
+.cap p{color:var(--muted);margin:14px 0 0;max-width:400px}
+.cap .row{display:flex;gap:12px;margin-top:22px;flex-wrap:wrap}
+.order{position:absolute;right:clamp(16px,4vw,48px);top:50%;transform:translateY(-50%);display:grid;gap:10px;font:600 15px "Barlow Condensed";letter-spacing:.1em;color:#4a5058}
+.order span.on{color:var(--ink)}
+section.s{padding:clamp(72px,12vh,140px) clamp(16px,6vw,96px);border-top:1px solid var(--line)}
+.s h2{font-size:clamp(44px,6vw,80px)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:24px;margin-top:36px}
+.card{border:1px solid var(--line);border-radius:10px;padding:24px}
+.card h3{font-size:30px}
+.card p{color:var(--muted);margin:8px 0 0}
+footer{padding:28px clamp(16px,6vw,96px);color:var(--muted);font-size:14px;border-top:1px solid var(--line)}
+@media (max-width:860px){
+  .caps{left:16px;right:16px;width:auto;bottom:64px}
+  .cap h1,.cap h2{font-size:52px}
+  .order{display:none}
+}
+</style>
+</head>
+<body>
+<header class="top"><a class="brand" href="#">Garage <b>Ferrand</b></a><a class="cta" href="#contact">Demander un devis</a></header>
+<main>
+<section id="atelier" aria-label="Le serrage">
+  <div class="pin">
+    <canvas id="gl" aria-hidden="true"></canvas>
+    <div class="order" aria-hidden="true"><span>1</span><span>3</span><span>5</span><span>2</span><span>4</span></div>
+    <div class="caps">
+      <div class="cap"><p class="k">Mécanique toutes marques · Villeurbanne</p><h1>Chaque écrou à sa place.</h1><p>Entretien, freinage, pneus, diagnostic. On vous explique ce qu'on fait, et on le fait dans l'ordre.</p><div class="row"><a class="cta" href="#contact">Demander un devis</a><a class="cta ghost" href="#services">Nos services</a></div></div>
+      <div class="cap"><p class="k">Serrage en étoile</p><h2>Jamais dans le désordre.</h2><p>Une roue se serre en croisant les écrous, pour qu'elle porte bien à plat sur le moyeu. Ce détail-là, on l'applique à tout le reste.</p></div>
+      <div class="cap"><p class="k">Au couple</p><h2>Ni trop, ni pas assez.</h2><p>Clé dynamométrique et valeurs du constructeur, pour chaque intervention.</p></div>
+      <div class="cap"><p class="k">Restitution</p><h2>Contrôlé avant de rendre les clés.</h2><p>Devis validé avant intervention, facture détaillée après.</p><div class="row"><a class="cta" href="#contact">Prendre rendez-vous</a></div></div>
+    </div>
+  </div>
+</section>
+<section class="s" id="services">
+  <h2>Services</h2>
+  <div class="grid">
+    <div class="card"><h3>Entretien</h3><p>Vidange, filtres, révision constructeur.</p></div>
+    <div class="card"><h3>Freinage</h3><p>Plaquettes, disques, liquide de frein.</p></div>
+    <div class="card"><h3>Pneus</h3><p>Montage, équilibrage, géométrie.</p></div>
+    <div class="card"><h3>Diagnostic</h3><p>Valise toutes marques, voyants, électronique.</p></div>
+  </div>
+</section>
+<section class="s" id="contact">
+  <h2>Passer au garage</h2>
+  <div class="grid">
+    <div><p><strong>Adresse</strong><br>Zone artisanale, Villeurbanne</p></div>
+    <div><p><strong>Horaires</strong><br>Lundi au vendredi · 8 h à 18 h 30</p></div>
+    <div><p><strong>Téléphone</strong><br>Devis par téléphone ou sur place</p></div>
+  </div>
+</section>
+</main>
+<footer>Garage Ferrand · garage fictif</footer>
+
+<a href="../../" style="position:fixed;right:12px;bottom:12px;z-index:50;font:600 12px/1 system-ui,sans-serif;background:rgba(20,20,20,.82);color:#fff;padding:9px 12px;border-radius:999px;text-decoration:none">Exemple fait avec premium-3d · entreprise fictive</a>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}</script>
+<script type="module">
+import { createStage, scrollTrack, materials, fitZone, fitDistance, ss, hdr, THREE } from "../../plugins/premium-3d/skills/premium-3d/lib/core.js";
+import { acts, captionSync, classToggle } from "../../plugins/premium-3d/skills/premium-3d/lib/story.js";
+import { glowRing } from "../../plugins/premium-3d/skills/premium-3d/lib/objects3d.js";
+
+const section = document.getElementById("atelier");
+const caps = captionSync(section.querySelectorAll(".cap"));
+const order = [...section.querySelectorAll(".order span")].map((el) => classToggle(el, "on"));
+const track = scrollTrack(section);
+const story = acts([["intro", 0, 0.1], ["etoile", 0.1, 0.5], ["couple", 0.5, 0.82], ["fin", 0.82, 1]]);
+
+const stage = createStage(document.getElementById("gl"), { background: "#0d0f12", accent: "#e5482e", accent2: "#8fb3ff", front: 1, bloom: { strength: 0.55, radius: 0.5, threshold: 1.6 } });
+if (stage) {
+  const wheel = new THREE.Group();
+  stage.scene.add(wheel);
+
+  /* disque de frein percé */
+  const ring = new THREE.Shape(); ring.absarc(0, 0, 1.6, 0, Math.PI * 2);
+  const bore = new THREE.Path(); bore.absarc(0, 0, 0.92, 0, Math.PI * 2, true); ring.holes.push(bore);
+  for (let i = 0; i < 24; i++) { const a = (i / 24) * Math.PI * 2, r = i % 2 ? 1.18 : 1.36; const h = new THREE.Path(); h.absarc(Math.cos(a) * r, Math.sin(a) * r, 0.045, 0, Math.PI * 2, true); ring.holes.push(h); }
+  const disc = new THREE.Mesh(new THREE.ExtrudeGeometry(ring, { depth: 0.2, bevelEnabled: true, bevelSize: 0.015, bevelThickness: 0.015, curveSegments: 64 }), materials.metal({ color: "#a3a8ad", rough: 0.34 }));
+  disc.position.z = -0.35; wheel.add(disc);
+
+  /* moyeu (bol) */
+  const hat = new THREE.Mesh(new THREE.CylinderGeometry(0.95, 0.95, 0.38, 96), materials.metal({ color: "#6b7178", rough: 0.42 }));
+  hat.rotation.x = Math.PI / 2; hat.position.z = -0.02; wheel.add(hat);
+  const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.34, 0.16, 64), materials.metal({ color: "#e5482e", rough: 0.3 }));
+  cap.rotation.x = Math.PI / 2; cap.position.z = 0.24; wheel.add(cap);
+
+  /* goujons et écrous chromés (5 trous) */
+  const chrome = materials.metal({ color: "#eef1f4", rough: 0.28 });
+  const studGeo = new THREE.CylinderGeometry(0.065, 0.065, 0.62, 24);
+  const nutGeo = new THREE.CylinderGeometry(0.17, 0.17, 0.22, 6); nutGeo.rotateX(Math.PI / 2);
+  const coneGeo = new THREE.CylinderGeometry(0.12, 0.17, 0.08, 6); coneGeo.rotateX(Math.PI / 2); coneGeo.translate(0, 0, -0.15);
+  const nuts = [];
+  for (let i = 0; i < 5; i++) {
+    const a = Math.PI / 2 + (i / 5) * Math.PI * 2, x = Math.cos(a) * 0.62, y = Math.sin(a) * 0.62;
+    const stud = new THREE.Mesh(studGeo, chrome); stud.rotation.x = Math.PI / 2; stud.position.set(x, y, 0.3); wheel.add(stud);
+    const nut = new THREE.Group(); nut.add(new THREE.Mesh(nutGeo, chrome), new THREE.Mesh(coneGeo, chrome));
+    nut.position.set(x, y, 0.36); nut.userData.home = nut.position.clone(); wheel.add(nut); nuts.push(nut);
+  }
+  const starOrder = [0, 2, 4, 1, 3];
+
+  /* anneau de contrôle */
+  const halo = glowRing(1.75, hdr("#e5482e", 3), 0.014); halo.material.opacity = 0; halo.position.z = -0.25; wheel.add(halo);
+
+  /* cadrage : roue à droite (ordinateur), en haut (mobile) */
+  let mobile = false;
+  stage.onResize((w) => {
+    mobile = w < 860;
+    if (mobile) {
+      /* mobile : la roue a sa zone en haut, le texte garde la sienne en bas */
+      stage.camera.position.set(0, 0, fitZone(stage.camera, 3.9, 3.9, { top: 0.09, bottom: 0.5, margin: 1.05 }));
+      wheel.position.set(0, 0, 0);
+    } else {
+      /* ordinateur : roue décalée à droite, vue légèrement de côté (les reflets du chrome restent sages) */
+      fitZone(stage.camera, 3.9, 3.9); // retire un éventuel décalage de cadre
+      stage.camera.position.set(0, 0, fitDistance(stage.camera, 3.9, 3.9, { x: 1.6, y: 0.15, margin: 1.1 }));
+      wheel.position.set(1.6, 0.15, 0);
+    }
+    stage.camera.lookAt(0, 0, 0);
+  });
+
+  let P = 0;
+  await stage.warm();
+  stage.start((dt, t, real) => {
+    P += (track.progress() - P) * (stage.reduce ? 1 : 1 - Math.pow(0.0005, real));
+    const a = story.at(P);
+    caps.show(a.index);
+    /* les écrous arrivent dévissés, puis se vissent en étoile */
+    const kStar = story.k("etoile", P, false), kTorque = story.k("couple", P, false);
+    starOrder.forEach((n, j) => {
+      const s = ss(j / 5, (j + 1) / 5, kStar), nut = nuts[n];
+      const out = (1 - s) * 1.4;
+      nut.position.z = nut.userData.home.z + out;
+      nut.rotation.z = -out * 9; // le filetage : il tourne en avançant
+      order[j](s > 0.98);
+    });
+    /* au couple : le dernier quart de tour sur chaque écrou */
+    nuts.forEach((nut) => (nut.rotation.z -= kTorque * Math.PI / 3));
+    const kEnd = story.k("fin", P);
+    halo.material.opacity = kEnd;
+    wheel.rotation.y = -0.55 * (1 - kEnd) + (stage.reduce ? 0 : Math.sin(t * 0.3) * 0.04);
+    wheel.rotation.x = -0.18 * (1 - kEnd);
+  });
+}
+window.__demo = { get ready() { return !stage || stage.ready; } };
+</script>
+</body>
+</html>

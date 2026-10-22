@@ -3,6 +3,7 @@
 Le but : que le résultat ressemble à la marque de la personne, pas à un « site 3D » générique.
 
 ## Palette
+- Site existant : `tools/brand.mjs` donne le fond, le texte et les accents réellement utilisés ; pars de là.
 - Pars du logo : relève 1 couleur principale et 1 secondaire (pipette sur le SVG ou l'image).
 - Sans logo ni couleurs : choisis selon le secteur et le ton, et dis-le dans la direction.
 - `accent` = la couleur qui brille (anneaux, flux, néons, bloom). `accent2` = reflets secondaires.
@@ -11,7 +12,9 @@ Le but : que le résultat ressemble à la marque de la personne, pas à un « si
 
 ## Fond clair ou sombre
 - **Sombre** : néon, verre lumineux, bloom, ambiance nuit (bars, tech, événementiel, luxe).
-- **Clair** : émail, métal, matières douces, ombres (artisans, santé, enfance, food, mode claire).
+- **Clair** : émail, métal, matières douces, ombres (artisans, santé, enfance, food de jour, mode claire).
+- **Food** : décider selon l'heure du service. Clair pour boulangerie, épicerie, brunch, salon de thé ;
+  sombre pour comptoir du soir, bar, ramen, cuisine au feu de bois.
   Sur fond clair : `bloom: false`, `env: "room"`, lumières `HemisphereLight` + `DirectionalLight`,
   matériaux `enamel`, `metal`, `soft` ; le verre transparent rend mal sur fond clair.
 - Une page peut alterner : sections claires et une zone 3D sombre, ou l'inverse, ou tout clair.
@@ -27,6 +30,10 @@ Le but : que le résultat ressemble à la marque de la personne, pas à un « si
 | Sport, énergie | Anton, Bebas Neue, Archivo Black | Barlow, Inter |
 | Enfance, ludique | Fredoka, Baloo 2, Quicksand | Nunito |
 Si la marque a déjà ses polices, utilise-les.
+**Teste le nom exact de la marque** (accents, macrons, ç, œ, ligatures) dans la police et la graisse
+choisies avant de construire : certaines polices dessinent mal les diacritiques en grande taille
+(ex. le « ō » de « Kōji » perdu en Fraunces 800). Le rapport de `check.mjs` montre les titres en gros
+plan pour le vérifier.
 
 ## Matériaux par ton
 - Verre optique (`glass`) : tech, beauté, premium moderne.
@@ -41,7 +48,9 @@ Si la marque a déjà ses polices, utilise-les.
   - une face **plate** tournée vers le visiteur (roue, écrou, médaille, logo vu de face) devient
     noire dans le studio : `createStage(canvas, { front: 1 })` ajoute une lumière douce côté caméra.
     Ne pas l'activer sur un métal poli courbe (goutte, sphère) : elle s'y reflète en rectangle gris.
-- Émail (`enamel`) : marques franches, objets « céramique ».
+- Émail (`enamel`) : marques franches, objets « céramique ». Émail **sombre** sur fond sombre : les
+  panneaux du studio se reflètent en anneaux lumineux sous les objets ronds (bol, tasse) ; monter le
+  seuil du bloom au-dessus de 1 et baisser `envMapIntensity` vers 0,6.
 - Doux (`soft`) : enfance, objets du quotidien, marques accessibles.
 
 ## Particules sur fond clair

@@ -4,6 +4,7 @@
  * les reflets et la transmission) :
  *   liquify(material, opts)   la surface ondule comme du métal fondu, de la gélatine, de l'eau
  *   dissolve(material, opts)  l'objet apparaît / disparaît en se consumant, avec un bord lumineux
+ *   blobGeometry(), discGeometry()  sphère et disque très subdivisés, prêts pour liquify
  * Chaque fonction renvoie les uniforms à animer dans la boucle.
  *
  * Bruit simplex 3D : Ian McEwan, Ashima Arts (licence MIT).
@@ -100,4 +101,34 @@ if(p3dN>p3dT+uEdge)discard;`)
 /** Forme « goutte » prête pour liquify : sphère très subdivisée. */
 export function blobGeometry(radius = 1, detail = 64) {
   return new THREE.IcosahedronGeometry(radius, detail);
+}
+
+/**
+ * Disque plat très subdivisé, prêt pour liquify : surface d'un liquide dans un bol, une tasse, un
+ * verre, une piscine (CircleGeometry n'a pas assez de sommets au centre pour onduler).
+ * Couché à plat (normale vers le haut, axe Y). rings × segments sommets.
+ *   const surface = new THREE.Mesh(discGeometry(1.2), mat); liquify(mat, { amp: 0.03, freq: 2.5 });
+ * Pour une surface rectangulaire : new THREE.PlaneGeometry(w, h, 128, 128).rotateX(-Math.PI / 2).
+ */
+export function discGeometry(radius = 1, rings = 48, segments = 96) {
+  const pos = [], uv = [], idx = [];
+  pos.push(0, 0, 0); uv.push(0.5, 0.5);
+  for (let r = 1; r <= rings; r++) {
+    const rr = (r / rings) * radius;
+    for (let s = 0; s < segments; s++) {
+      const a = (s / segments) * Math.PI * 2, x = Math.cos(a) * rr, z = Math.sin(a) * rr;
+      pos.push(x, 0, z); uv.push(0.5 + x / (2 * radius), 0.5 - z / (2 * radius));
+    }
+  }
+  const at = (r, s) => (r === 0 ? 0 : 1 + (r - 1) * segments + (s % segments));
+  for (let s = 0; s < segments; s++) idx.push(0, at(1, s + 1), at(1, s));
+  for (let r = 1; r < rings; r++) for (let s = 0; s < segments; s++) {
+    const a = at(r, s), b = at(r, s + 1), c = at(r + 1, s), d = at(r + 1, s + 1);
+    idx.push(a, b, c, b, d, c);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
+  g.setIndex(idx); g.computeVertexNormals();
+  return g;
 }

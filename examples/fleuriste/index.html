@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Maison Lys · Fleuriste à Montpellier</title>
+<meta name="description" content="Maison Lys, fleuriste à Montpellier : bouquets composés à la main, mariages, abonnements.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f7f1ea;--ink:#22322a;--muted:#5f6b63;--rose:#b5405e;--green:#2f5d46;--line:#e3d8cc}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:17px/1.6 "DM Sans",system-ui,sans-serif}
+a{color:inherit}
+h1,h2,h3{font-family:"Cormorant Garamond",Georgia,serif;font-weight:600;line-height:1.02;margin:0}
+.top{position:fixed;inset:0 0 auto;z-index:5;display:flex;justify-content:space-between;align-items:center;padding:20px clamp(16px,4vw,48px)}
+.top img{height:38px;width:auto;display:block}
+.cta{display:inline-block;background:var(--green);color:#fff;text-decoration:none;padding:12px 22px;border-radius:999px;font-weight:500;font-size:15px}
+.cta.ghost{background:transparent;color:var(--ink);border:1px solid var(--ink)}
+#eclosion{height:360vh;position:relative}
+.pin{position:sticky;top:0;height:100svh;overflow:hidden}
+#gl{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity .8s}
+.p3d-ready #gl{opacity:1}
+.caps{position:absolute;left:clamp(16px,6vw,96px);bottom:clamp(40px,12vh,120px);width:min(460px,40vw)}
+.cap{position:absolute;left:0;bottom:0;width:100%}
+.cap .k{font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--rose);margin:0 0 12px}
+.cap h1,.cap h2{font-size:clamp(46px,6vw,86px)}
+.cap p{color:var(--muted);margin:14px 0 0;max-width:380px}
+.cap .row{display:flex;gap:12px;margin-top:22px;flex-wrap:wrap}
+section.s{padding:clamp(72px,12vh,140px) clamp(16px,6vw,96px);border-top:1px solid var(--line)}
+.s h2{font-size:clamp(40px,5vw,66px)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:28px;margin-top:36px}
+.grid h3{font-size:30px}.grid p{color:var(--muted);margin:6px 0 0}
+footer{padding:28px clamp(16px,6vw,96px);color:var(--muted);font-size:14px;border-top:1px solid var(--line)}
+@media (max-width:860px){.caps{left:16px;right:16px;width:auto;bottom:64px}.cap h1,.cap h2{font-size:46px}.top img{height:30px}}
+</style>
+</head>
+<body>
+<header class="top"><a href="#"><img src="img/logo-maison-lys.svg" alt="Maison Lys"></a><a class="cta" href="#commande">Commander</a></header>
+<main>
+<section id="eclosion" aria-label="L'éclosion">
+  <div class="pin">
+    <canvas id="gl" aria-hidden="true"></canvas>
+    <div class="caps">
+      <div class="cap"><p class="k">Fleuriste · Montpellier</p><h1>Chaque bouquet commence fermé.</h1><p>Des fleurs de saison, choisies le matin et composées à la main, à la commande.</p><div class="row"><a class="cta" href="#commande">Commander un bouquet</a><a class="cta ghost" href="#offres">Nos créations</a></div></div>
+      <div class="cap"><p class="k">Le geste</p><h2>On attend le bon moment.</h2><p>Une fleur se livre au moment où elle s'ouvre, pas avant. C'est notre seule règle.</p></div>
+      <div class="cap"><p class="k">Maison Lys</p><h2>Ouvert, comme nous.</h2><p>Boutique ouverte du mardi au dimanche matin. Livraison dans Montpellier et alentours.</p><div class="row"><a class="cta" href="#commande">Passer commande</a></div></div>
+    </div>
+  </div>
+</section>
+<section class="s" id="offres">
+  <h2>Nos créations</h2>
+  <div class="grid">
+    <div><h3>Bouquets du jour</h3><p>Composés le matin avec l'arrivage.</p></div>
+    <div><h3>Mariages</h3><p>Bouquet de mariée, boutonnières, décor de table.</p></div>
+    <div><h3>Abonnements</h3><p>Des fleurs fraîches chaque semaine, au bureau ou chez vous.</p></div>
+  </div>
+</section>
+<section class="s" id="commande"><h2>Commander</h2><p>En boutique, par téléphone ou en ligne, jusqu'à la veille 18 h pour une livraison le lendemain.</p></section>
+</main>
+<footer>Maison Lys · fleuriste fictif</footer>
+
+<a href="../../" style="position:fixed;right:12px;bottom:12px;z-index:50;font:600 12px/1 system-ui,sans-serif;background:rgba(20,20,20,.82);color:#fff;padding:9px 12px;border-radius:999px;text-decoration:none">Exemple fait avec premium-3d · entreprise fictive</a>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}</script>
+<script type="module">
+import { createStage, scrollTrack, materials, fitZone, easeBack, THREE } from "../../plugins/premium-3d/skills/premium-3d/lib/core.js";
+import { logoPieces, pivot } from "../../plugins/premium-3d/skills/premium-3d/lib/logo3d.js";
+import { softGround } from "../../plugins/premium-3d/skills/premium-3d/lib/models.js";
+import { acts, captionSync } from "../../plugins/premium-3d/skills/premium-3d/lib/story.js";
+
+const section = document.getElementById("eclosion");
+const caps = captionSync(section.querySelectorAll(".cap"));
+const track = scrollTrack(section);
+const story = acts([["ferme", 0, 0.2], ["ouvre", 0.2, 0.75], ["ouvert", 0.75, 1]]);
+
+const stage = createStage(document.getElementById("gl"), { background: "#f7f1ea", env: "room", bloom: false });
+if (stage) {
+  const svg = await (await fetch("img/logo-maison-lys.svg")).text();
+  /* les couleurs viennent du logo lui-même */
+  const logo = logoPieces(svg, { size: 3.2, depth: 0.32, material: (i, color) => materials.enamel({ color }) });
+  const [stem, leaf, petalL, petalR, petalC, heart] = logo.pieces;
+  [petalL, petalR, petalC].forEach((m) => pivot(m, "bottom"));   // les pétales s'ouvrent depuis leur base
+  pivot(leaf, "bottom-left");                                     // la feuille pousse depuis la tige
+  stage.scene.add(logo.group);
+  stage.scene.add(new THREE.HemisphereLight(0xffffff, 0xd9cfc4, 0.8));
+  const sun = new THREE.DirectionalLight(0xfff4e6, 1.6); sun.position.set(3, 5, 4); stage.scene.add(sun);
+  const ground = softGround({ y: -logo.height / 2 - 0.05, opacity: 0.2, color: "#7a5a48" }); stage.scene.add(ground);
+
+  stage.onResize((w) => {
+    const zone = w < 860 ? { top: 0.1, bottom: 0.52 } : { left: 0.42, right: 0.98, top: 0.08 };   // mobile : en haut ; ordi : à droite
+    stage.camera.position.set(0, 0.6, fitZone(stage.camera, logo.width, logo.height, zone));   // un peu au-dessus : on voit le sol
+    stage.camera.lookAt(0, 0, 0);
+  });
+
+  let P = 0;
+  await stage.warm();
+  stage.start((dt, t, real) => {
+    P += (track.progress() - P) * (stage.reduce ? 1 : 1 - Math.pow(0.0005, real));
+    caps.show(Math.min(2, story.at(P).index));
+    const k = story.k("ouvre", P);
+    const open = easeBack(k, 1.2);
+    petalL.rotation.z = -(1 - open) * 0.62;   // fermés : les pétales se rejoignent au-dessus du cœur
+    petalR.rotation.z = (1 - open) * 0.62;
+    petalC.scale.setScalar(0.82 + 0.18 * k);
+    leaf.scale.setScalar(0.35 + 0.65 * k);
+    logo.group.rotation.y = -0.35 + k * 0.35 + (stage.reduce ? 0 : Math.sin(t * 0.4) * 0.05);
+  });
+}
+window.__demo = { get ready() { return !stage || stage.ready; } };
+</script>
+</body>
+</html>

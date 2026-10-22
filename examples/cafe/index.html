@@ -108,8 +108,8 @@ if (stage) {
   stage.onResize((w, h) => { const wide = w > 820; stage.camera.position.set(0, 0, fitDistance(stage.camera, wide ? 8.4 : 6.2, 4.4)); stage.camera.lookAt(0, 0, 0); pm.points.position.x = wide ? 1.3 : 0; pm.points.position.y = wide ? 0.6 : 1.1; });
   let P = 0;
   await stage.warm();
-  stage.start((dt, t) => {
-    P += (track.progress() - P) * (stage.reduce ? 1 : 1 - Math.pow(0.0005, dt));
+  stage.start((dt, t, real) => {
+    P += (track.progress() - P) * (stage.reduce ? 1 : 1 - Math.pow(0.0005, real));
     /* paliers : grains (0-0.2), tasse (0.35-0.6), nom (0.75-1) */
     pm.set(ss(0.12, 0.38, P) + ss(0.5, 0.76, P));
     pm.update(stage.reduce ? 0 : t);
