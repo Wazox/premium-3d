@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ramen Kōji · Comptoir à ramen, Montpellier</title>
+<meta name="description" content="Ramen Kōji, Montpellier : bouillon mijoté 18 heures, nouilles faites maison, 24 places au comptoir.">
+<meta property="og:image" content="img/poster.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#130d0a; --bg2:#1d1410; --ink:#f4e9dc; --mute:#c9b6a2; --amber:#f0a245; --chili:#d4472c; --line:#3a2a20;
+}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 "DM Sans",system-ui,sans-serif;overflow-x:hidden}
+a{color:inherit}
+h1,h2,h3{font-family:"DM Serif Display",Georgia,serif;font-weight:400;line-height:1.02;margin:0;letter-spacing:-.01em}
+.skip{position:absolute;left:-999px}
+.skip:focus{left:16px;top:16px;z-index:10;background:var(--ink);color:var(--bg);padding:8px 12px}
+
+/* ---------- la scène épinglée ---------- */
+#bol{height:520vh;position:relative}
+.pin{position:sticky;top:0;height:100svh;overflow:hidden;background:radial-gradient(120% 90% at 72% 60%,#2a1a10 0%,var(--bg) 62%)}
+#gl{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity .8s}
+.p3d-ready #gl{opacity:1}
+.brand{position:absolute;top:22px;left:clamp(16px,5vw,64px);right:clamp(16px,5vw,64px);display:flex;justify-content:space-between;align-items:center;z-index:2;font-weight:700;letter-spacing:.18em;text-transform:uppercase;font-size:12px;color:var(--mute)}
+.brand b{color:var(--ink);font-family:"DM Serif Display",serif;letter-spacing:.02em;font-size:20px;text-transform:none}
+.brand a{text-decoration:none;border:1px solid var(--line);padding:8px 14px;border-radius:999px}
+.brand a:hover{border-color:var(--amber);color:var(--ink)}
+
+.caps{position:absolute;left:clamp(16px,5vw,64px);top:50%;transform:translateY(-50%);width:min(440px,40vw);z-index:2}
+.cap{position:absolute;left:0;top:50%;width:100%;translate:0 -50%}
+.cap .k{display:block;font-size:12px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--amber);margin-bottom:14px}
+.cap h1{font-size:clamp(56px,7.4vw,108px)}
+.cap h2{font-size:clamp(40px,4.6vw,68px)}
+.cap h1 em,.cap h2 em{font-style:normal;color:var(--amber)}
+.cap p{color:var(--mute);margin:18px 0 0;max-width:36ch}
+.cap .facts{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px;padding:0;list-style:none}
+.cap .facts li{border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:14px;color:var(--ink)}
+.cta{display:inline-block;margin-top:26px;background:var(--amber);color:#1a0f07;text-decoration:none;font-weight:700;padding:14px 22px;border-radius:999px}
+.cta:hover{background:#ffb75c}
+.cap .big{font-family:"DM Serif Display",serif;font-weight:400;font-size:clamp(84px,10vw,150px);line-height:.9;color:var(--amber);display:block}
+.cap .big small{font-size:.38em;color:var(--ink);margin-left:.08em}
+
+.hint{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--mute);z-index:2;transition:opacity .4s}
+.pause{position:absolute;right:clamp(16px,3vw,28px);bottom:60px;z-index:3;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:rgba(19,13,10,.7);color:var(--ink);cursor:pointer;display:grid;place-items:center}
+.pause:hover{border-color:var(--amber)}
+.pause svg{width:16px;height:16px}
+.pause .play{display:none}
+.pause[data-state=paused] .play{display:block}
+.pause[data-state=paused] .bars{display:none}
+.no-gl .pause{display:none}
+
+/* ---------- infos ---------- */
+.info{background:var(--bg2);padding:clamp(72px,12vw,140px) clamp(16px,5vw,64px);border-top:1px solid var(--line)}
+.info h2{font-size:clamp(40px,5vw,72px);max-width:14ch}
+.info>p{color:var(--mute);max-width:52ch;margin:20px 0 0}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:56px}
+.card{border:1px solid var(--line);border-radius:18px;padding:26px;background:var(--bg)}
+.card .ico{display:block;width:26px;height:26px;background:var(--amber,#f0a245);-webkit-mask:var(--i) center/contain no-repeat;mask:var(--i) center/contain no-repeat}
+.card h3{font-size:22px;margin:14px 0 6px}
+.card p{margin:0;color:var(--mute)}
+.todo{color:var(--chili);font-weight:500}
+footer{padding:28px clamp(16px,5vw,64px);color:var(--mute);font-size:14px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;padding-bottom:64px}
+
+@media (max-width:859px){
+  .caps{top:auto;bottom:64px;transform:none;width:auto;right:16px;left:16px;height:36svh}
+  .cap{top:auto;bottom:0;translate:none}
+  .cap h1{font-size:52px}
+  .cap h2{font-size:36px}
+  .cap .big{font-size:76px}
+  .cap p{font-size:16px;margin-top:12px}
+  .cap .facts{margin-top:14px}
+  .cta{margin-top:16px}
+  .hint{display:none}
+  .grid{grid-template-columns:1fr}
+  .pause{bottom:auto;top:64px}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#infos">Aller aux infos pratiques</a>
+
+<section id="bol" aria-label="Le bol de Ramen Kōji">
+  <div class="pin">
+    <canvas id="gl" aria-hidden="true"></canvas>
+    <header class="brand"><b>Ramen Kōji</b><a href="#infos">Venir</a></header>
+
+    <div class="caps">
+      <div class="cap">
+        <span class="k">Comptoir à ramen · Montpellier</span>
+        <h1>Ramen <em>Kōji</em></h1>
+        <p>Un bouillon qui mijote dix-huit heures, des nouilles faites maison, et vingt-quatre places, toutes au comptoir.</p>
+        <a class="cta" href="#infos">Trouver le comptoir</a>
+      </div>
+      <div class="cap">
+        <span class="k">Le bouillon</span>
+        <span class="big">18<small>h</small></span>
+        <h2>sur <em>24</em>.</h2>
+        <p>Le bouillon mijote dix-huit heures avant d'arriver dans le bol. Sur ce cadran, chaque trait allumé est une heure de feu.</p>
+      </div>
+      <div class="cap">
+        <span class="k">Les nouilles</span>
+        <h2>Faites <em>ici</em>, pas en sachet.</h2>
+        <p>Nos nouilles sont faites maison. Pas de paquet ouvert en cuisine : la pâte, la coupe, la cuisson, tout se passe derrière le comptoir.</p>
+      </div>
+      <div class="cap">
+        <span class="k">Le comptoir</span>
+        <h2><em>24</em> places. Pas une de plus.</h2>
+        <p>Pas de grande salle : un seul comptoir, vingt-quatre tabourets, et le bol qui arrive devant vous.</p>
+        <a class="cta" href="#infos">Venir au comptoir</a>
+      </div>
+    </div>
+
+    <span class="hint" aria-hidden="true">Descendez · la vapeur raconte</span>
+    <button class="pause" type="button">
+      <svg class="bars" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="2" width="3.5" height="12" rx="1" fill="currentColor"/><rect x="9.5" y="2" width="3.5" height="12" rx="1" fill="currentColor"/></svg>
+      <svg class="play" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9.5-5.5z" fill="currentColor"/></svg>
+    </button>
+  </div>
+</section>
+
+<section class="info" id="infos">
+  <h2>Un comptoir, 24 tabourets.</h2>
+  <p>Ramen Kōji, à Montpellier. Bouillon mijoté 18 heures, nouilles faites maison.</p>
+  <div class="grid">
+    <div class="card"><span class="ico" style="--i:url(../../plugins/premium-3d/skills/premium-3d/icons/map-pin.svg)"></span><h3>Adresse</h3><p>Écusson, 34000 Montpellier</p></div>
+    <div class="card"><span class="ico" style="--i:url(../../plugins/premium-3d/skills/premium-3d/icons/clock.svg)"></span><h3>Horaires</h3><p>Du mardi au samedi, 12 h à 14 h et 19 h à 22 h 30</p></div>
+    <div class="card"><span class="ico" style="--i:url(../../plugins/premium-3d/skills/premium-3d/icons/phone.svg)"></span><h3>Réserver ou appeler</h3><p>Sans réservation : on attend sa place au comptoir</p></div>
+  </div>
+</section>
+<footer><span>Ramen Kōji · comptoir fictif</span><span>Polices Google Fonts (OFL) · Three.js (MIT) · icônes Lucide (ISC)</span></footer>
+
+<a href="../../" style="position:fixed;right:12px;bottom:12px;z-index:50;font:600 12px/1 system-ui,sans-serif;background:rgba(20,20,20,.82);color:#fff;padding:9px 12px;border-radius:999px;text-decoration:none">Exemple fait avec premium-3d · entreprise fictive</a>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}</script>
+<script type="module" src="js/bol.js"></script>
+</body>
+</html>
