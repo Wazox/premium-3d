@@ -318,16 +318,26 @@ export function createStage(canvas, {
      */
     start(update) {
       const clock = new THREE.Clock();
-      let T = 0;
+      stage._update = update;
       if (stopFrame) stopFrame();
       stopFrame = onFrame((now) => {
         const real = Math.min(clock.getDelta(), 0.05);
         if (!visible || !stage.ready || stage.paused || document.hidden) return;
         /* still : le temps est figé (bouton pause, animations réduites) : dt = 0 et t ne bouge plus.
            real = temps réellement écoulé, toujours : c'est lui qui lisse le suivi du scroll. */
-        const dt = stage.still ? 0 : real; T += dt;
-        update(dt, T, real); render(); adapt(now);
+        const dt = stage.still ? 0 : real; stage._T += dt;
+        update(dt, stage._T, real); render(); adapt(now);
       });
+    },
+    _T: 0,
+    /**
+     * Avance la scène d'exactement une image (dt secondes) et la dessine, hors de la boucle :
+     * vidéo image par image (tools/render.mjs), tests. Mettre stage.paused = true avant.
+     */
+    step(dt = 1 / 30) {
+      if (!stage._update || !stage.ready) return;
+      const d = stage.still ? 0 : dt; stage._T += d;
+      stage._update(d, stage._T, dt); render();
     },
     /** Libère tout (applications React/Vue/Next au démontage du composant). */
     dispose() {

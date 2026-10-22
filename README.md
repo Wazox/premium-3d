@@ -74,7 +74,8 @@ Plus `references/` (one-line API reference, concepts, art direction, performance
 WordPress, React/Next/Vue), `tools/brand.mjs` (pulls colors, fonts, logo and copy from a client's
 existing site), `tools/check.mjs` (desktop + real-phone screenshots, console errors, overflow,
 3D cut off at the edge or hidden under text, performance budget, title close-ups, visual report with the jury
-scores) and `tools/record.mjs` (smooth 1920×1080 screen video of any page, for social media).
+scores) `tools/record.mjs` (live 1920×1080 screen video of any page) and `tools/render.mjs` (frame-perfect
+video rendered frame by frame, even without a GPU, landscape or vertical for reels).
 
 ## Requirements
 

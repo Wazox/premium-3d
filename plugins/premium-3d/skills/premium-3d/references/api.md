@@ -15,6 +15,7 @@ Les options entre `{ }` sont toutes facultatives (valeur par défaut indiquée).
 | `await stage.warm(prepare?, restore?)` | Compile tout avant d'afficher. `prepare()` rend visible ce qui apparaîtra plus tard. |
 | `stage.start((dt, t, real) => …)` | Boucle d'animation (seulement quand la scène est proche de l'écran). `dt`, `t` : temps de l'animation, figés en pause ; `real` : temps réel, pour lisser le scroll (`1 - Math.pow(0.0005, real)`). |
 | `stage.still` | Temps figé (`t` et `dt` ne bougent plus) mais la scène suit toujours le scroll : c'est ce que fait le bouton pause. |
+| `stage.step(dt)` | Avance la scène d'exactement une image et la dessine (avec `stage.paused = true`) : vidéo image par image (`tools/render.mjs`), tests. |
 | `stage.paused`, `stage.ready`, `stage.dispose()` | Arrêt complet du rendu (rare), état, nettoyage (React/Vue). |
 | `?tier=high` dans l'URL | Force le niveau d'appareil (tests, captures). `?lite` : sans bloom. |
 | `createStage(…, { poster: "img/p.jpg" })` ou `{ poster: { desktop, mobile } }` | Image de secours sur un calque derrière le canvas (le fond du conteneur reste intact), retirée en fondu quand la 3D est prête. |
