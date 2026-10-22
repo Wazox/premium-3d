@@ -18,6 +18,9 @@ scene starts from the brand, and two sites made with it should never look alike.
 | **Hair salon** | **Garage** | **Florist** |
 | [![](docs/gallery/coiffeur.png)](examples/coiffeur/) | [![](docs/gallery/garage.png)](examples/garage/) | [![](docs/gallery/fleuriste.png)](examples/fleuriste/) |
 | A lock of hair in particles gets cut, falls, becomes the scissors, then the initials | Chrome wheel nuts screw in star order, 1-3-5-2-4, like a real mechanic | The client's own SVG logo blooms: a closed bud whose petals open from their base |
+| **Ramen bar** | | |
+| [![](docs/gallery/ramen.png)](examples/ramen/) | | |
+| Steam from the bowl draws the house's three numbers: 18 hours of broth, hand-made noodles, 24 seats. Built by a fresh agent that had never seen the skill (blind test) | | |
 
 *Examples generated with the skill for fictional businesses.*
 
