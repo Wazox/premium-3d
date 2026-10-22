@@ -33,7 +33,8 @@ references/        api.md (toutes les fonctions en une ligne), concepts.md, art-
                    performance.md, integration.md
 tools/brand.mjs    extrait la marque d'un site existant : couleurs, polices, logo, textes (brand.html)
 tools/check.mjs    captures desktop + mobile, erreurs, 3D coupée, performances, rapport report.html (avec le jury)
-tools/record.mjs   vidéo fluide de la page (écran d'ordinateur 1920×1080) pour présenter le travail
+tools/record.mjs   vidéo de la page filmée en direct (ordinateur avec écran et carte graphique)
+tools/render.mjs   vidéo calculée image par image, parfaitement fluide, même sans carte graphique
 tools/serve.py     serveur local
 licenses/          licences tierces à livrer avec le projet
 ```
@@ -248,8 +249,13 @@ node tools/record.mjs http://127.0.0.1:5180/index.html video.mp4 --section "#ma-
 ```
 Une vraie fenêtre Chrome s'ouvre (carte graphique utilisée, vidéo fluide), défile doucement et
 produit un .mp4 1920×1080. `--pause 0.35,0.7` marque une pause sur les moments forts. Il faut un
-écran et une carte graphique : dans un environnement sans écran (serveur, cloud), propose plutôt à
-la personne de lancer la commande sur son ordinateur.
+écran et une carte graphique. Sans écran (serveur, cloud), ou pour une vidéo sans aucune saccade,
+utilise `tools/render.mjs` : il calcule chaque image (stage.step) puis assemble le .mp4 avec ffmpeg
+(compter 1 à 3 s de calcul par image sans carte graphique) :
+```bash
+node tools/render.mjs http://127.0.0.1:5180/index.html video.mp4 --section "#ma-scene" --pause 0.33,0.66
+node tools/render.mjs http://127.0.0.1:5180/index.html reel.mp4 --section "#ma-scene" --mobile   # 1080×1920
+```
 
 Donne les fichiers, explique en deux lignes ce que fait la 3D, liste les éléments à remplacer
 (photos, chiffres, textes provisoires marqués `[À REMPLACER]`) et la façon d'intégrer

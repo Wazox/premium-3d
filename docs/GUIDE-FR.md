@@ -57,7 +57,8 @@ ressemble. Claude ne pose que les questions qui manquent.
 | Contrôle | `node tools/check.mjs <url> ./captures --section "#scene"` | Captures ordinateur + mobile, erreurs, 3D coupée ou sous le texte, performances, titres en gros plan, `report.html` |
 | Rendu final | ajouter `--full` | Captures avec bloom et effets, pour le jury |
 | Image de secours | ajouter `--poster img/poster.jpg` | Image affichée pendant le chargement et sans 3D |
-| Vidéo | `node tools/record.mjs <url> video.mp4 --duration 12` | Vidéo 1920×1080 fluide pour les réseaux sociaux |
+| Vidéo | `node tools/record.mjs <url> video.mp4 --duration 12` | Vidéo 1920×1080 filmée en direct (ordinateur avec carte graphique) |
+| Vidéo parfaite | `node tools/render.mjs <url> video.mp4 --section "#scene"` | Calculée image par image, sans saccade, même sans carte graphique ; `--mobile` pour un format vertical 1080×1920 |
 
 Prérequis : `npm i playwright` dans le projet, `ffmpeg` pour la vidéo en .mp4.
 
