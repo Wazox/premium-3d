@@ -8,7 +8,7 @@
 <body>
 <p>Bois, marbre, béton, papier : générés au chargement, réglables (couleurs, échelle, graine).</p>
 <div id="g"></div>
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}</script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"}}</script>
 <script type="module">
 import { woodTexture, marbleTexture, concreteTexture, paperTexture } from "../lib/textures.js";
 const items = [["Bois clair", woodTexture({})], ["Bois foncé", woodTexture({ light: "#b07a48", dark: "#6e4425", seed: 2 })], ["Marbre", marbleTexture({})], ["Béton", concreteTexture({})], ["Papier", paperTexture({})]];

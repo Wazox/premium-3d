@@ -13,7 +13,7 @@ qu'elles prennent la couleur du texte, intègre le SVG dans la page, ou utilise 
 ## HTML statique
 Copier `lib/` (seulement les fichiers utilisés), les icônes utilisées et `licenses/`. Dans la page :
 ```html
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}</script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"}}</script>
 <script type="module" src="js/ma-scene.js"></script>
 ```
 Les modules ES ne se chargent pas en `file://` : tester avec `tools/serve.py`.
@@ -21,9 +21,9 @@ Les modules ES ne se chargent pas en `file://` : tester avec `tools/serve.py`.
 ## Symfony (Twig + AssetMapper ou Encore)
 - La zone devient un partial : `templates/partials/_scene3d.html.twig`, inclus seulement là où il
   faut. Le JS dans `assets/scene3d/` (avec les fichiers de `lib/`).
-- AssetMapper : `php bin/console importmap:require three@0.169.0`, puis vérifier que les imports
+- AssetMapper : `php bin/console importmap:require three@0.186.1`, puis vérifier que les imports
   `three/addons/...` se résolvent (sinon `importmap:require` de chaque chemin d'addon utilisé).
-  Encore : `npm i three@0.169.0`.
+  Encore : `npm i three@0.186.1`.
 - Les données de la scène (textes, couleurs, chemins d'images) passent par un attribut
   `data-config="{{ config|json_encode|e('html_attr') }}"` ou un `<script type="application/json">`,
   avec `trans` pour les sites multilingues. Les chemins avec `asset()`.
@@ -36,7 +36,7 @@ Les modules ES ne se chargent pas en `file://` : tester avec `tools/serve.py`.
 ## React, Next.js, Vite, Vue
 - React / Next.js : utiliser `lib/react.js` (`usePremium3D`), qui gère le montage, le préchauffage et
   `stage.dispose()` au démontage. Exemple complet en tête du fichier.
-- `npm i three@0.169.0`. Les fichiers de `lib/` s'importent tels quels (ils importent `three`).
+- `npm i three@0.186.1`. Les fichiers de `lib/` s'importent tels quels (ils importent `three`).
 - Créer la scène dans un `useEffect` (React) / `onMounted` (Vue) avec le `ref` du canvas ;
   nettoyer au démontage avec `stage.dispose()`.
 - Next.js : composant client (`"use client"`), import dynamique sans SSR pour la scène.

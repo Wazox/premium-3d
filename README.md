@@ -81,7 +81,7 @@ React Three Fiber included, and renders in parallel). All tools use your GPU whe
 
 ## Requirements
 
-A browser with WebGL 2. three.js `0.169.0` from a CDN import map or npm. For the screenshot checks:
+A browser with WebGL 2. three.js `0.186.1` from a CDN import map or npm. For the screenshot checks:
 Node.js and `npm i playwright`.
 
 ## Need it done for you?

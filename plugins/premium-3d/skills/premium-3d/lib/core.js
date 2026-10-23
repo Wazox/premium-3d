@@ -326,11 +326,11 @@ export function createStage(canvas, {
      * dt, t : temps de l'animation (figés quand stage.still) ; real : temps réel, pour lisser le scroll.
      */
     start(update) {
-      const clock = new THREE.Clock();
+      let last = null; // THREE.Clock est obsolète depuis r183 : le temps vient de requestAnimationFrame
       stage._update = update;
       if (stopFrame) stopFrame();
       stopFrame = onFrame((now) => {
-        const real = Math.min(clock.getDelta(), 0.05);
+        const real = last === null ? 0 : Math.min((now - last) / 1000, 0.05); last = now;
         if (!visible || !stage.ready || stage.paused || document.hidden) return;
         /* still : le temps est figé (bouton pause, animations réduites) : dt = 0 et t ne bouge plus.
            real = temps réellement écoulé, toujours : c'est lui qui lisse le suivi du scroll. */

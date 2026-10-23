@@ -69,7 +69,7 @@ fermée toute seule. Toutes les options : `references/tools.md`.
 
 ## 5. Intégrer dans un site existant
 
-- **HTML** : une importmap vers three.js 0.169.0 et les fichiers de `lib/` utilisés.
+- **HTML** : une importmap vers three.js 0.186.1 et les fichiers de `lib/` utilisés.
 - **Symfony** : un partial Twig, le JS dans `assets/`, three.js avec AssetMapper ou Encore.
 - **WordPress** : un bloc HTML personnalisé et le script chargé seulement sur la page concernée.
 - **React / Next.js** : le hook `usePremium3D` de `lib/react.js` (composant client, import dynamique

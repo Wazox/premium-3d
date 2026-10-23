@@ -31,6 +31,7 @@ icons/             78 icônes Lucide (licence ISC, dessinées en traits) couvran
 demos/             démos TECHNIQUES (comment appeler le code, pas des modèles de design)
 references/        api.md (toutes les fonctions en une ligne), concepts.md, art-direction.md,
                    performance.md, integration.md, tools.md
+tools/new.mjs      squelette d'une nouvelle page : toute la plomberie, aucun design
 tools/brand.mjs    extrait la marque d'un site existant : couleurs, polices, logo, textes (brand.html)
 tools/check.mjs    captures desktop + mobile, erreurs, 3D coupée, performances, rapport report.html (avec le jury)
 tools/record.mjs   vidéo de la page filmée en direct (ordinateur avec écran et carte graphique)
@@ -113,8 +114,15 @@ Lis `references/art-direction.md` et applique-le à cette marque. Points clés :
 ## Étape 4 : construire
 
 Les fichiers de ce skill (`lib/`, `icons/`, `references/`, `tools/`) sont dans le dossier du skill,
-dont le chemin est donné au chargement. Copie dans le projet **uniquement** les modules de `lib/`
-et les icônes utilisés (ils s'importent entre eux : garde-les dans le même dossier).
+dont le chemin est donné au chargement. **Pour une nouvelle page, commence par le squelette** : il
+pose toute la plomberie (importmap, canvas épinglé, fondu, préchauffage, scroll lissé, pause,
+`__demo`, cadrage `fitZone`) et copie les modules et les outils, sans aucun design :
+```bash
+node <dossier du skill>/tools/new.mjs mon-projet --modules story,particles   # --hero : scène fixe
+```
+Puis écris tout ce qui est marqué `[À ÉCRIRE]` / `[À CHOISIR]`. Pour une section dans un site
+existant, copie seulement les modules de `lib/` et les icônes utilisés (ils s'importent entre eux :
+garde-les dans le même dossier).
 
 **Lis `references/api.md`** : toutes les fonctions et leurs options, en une ligne. C'est plus
 rapide et plus sûr que de parcourir les sources de `lib/`.
@@ -150,7 +158,7 @@ if (stage) {
   });
 }
 ```
-- La page utilise une **importmap** vers `three@0.169.0` (jsdelivr), ou `npm i three@0.169.0`.
+- La page utilise une **importmap** vers `three@0.186.1` (jsdelivr), ou `npm i three@0.186.1`.
 - Lenis (scroll fluide) est optionnel : charge-le et appelle `smoothScroll()`.
 - Pour une scène en plusieurs temps : `acts()` pour nommer les actes, `steps()` pour des paliers
   lisibles, `captionSync()` pour les légendes HTML, `cameraPath()` pour la caméra.
