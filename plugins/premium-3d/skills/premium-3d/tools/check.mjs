@@ -62,6 +62,7 @@ const runView = async (v) => {
   await page.goto(params ? url + (url.includes("?") ? "&" : "?") + params : url, { waitUntil: "load", timeout: 90000 });
   await page.waitForFunction(() => { const d = window.__demo || window.__scene; return !d || d.ready; }, null, { timeout: 120000 }).catch(() => errors.push(`[${v.name}] la 3D n'est jamais prête`));
   await page.waitForTimeout(1500);
+  pf.renderer = await glRenderer(page); // ici, en haut de page : en bas, cette lecture peut attendre plus d'une minute en rendu logiciel
   if (await dismissCookies(page)) await page.waitForTimeout(400); // bannière de cookies : elle cacherait la 3D
   if (section && !(await page.evaluate((sel) => !!document.querySelector(sel), section))) {
     console.log(`ERREUR : la section « ${section} » n'existe pas dans la page (vérifier l'id). Arrêt.`); process.exit(1);
@@ -138,7 +139,6 @@ const runView = async (v) => {
   if (await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)) errors.push(`[${v.name}] débordement horizontal`);
   /* Fluidité réelle : 3 s de défilement régulier dans la section, temps entre deux images.
      Seulement avec une carte graphique : en rendu logiciel le chiffre ne dirait rien du site. */
-  pf.renderer = await glRenderer(page);
   if (!isSoftware(pf.renderer)) {
     Object.assign(pf, await page.evaluate(async (sel) => {
       const el = sel && document.querySelector(sel), max = document.documentElement.scrollHeight - innerHeight;
