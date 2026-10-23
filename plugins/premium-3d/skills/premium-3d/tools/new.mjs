@@ -138,7 +138,8 @@ if (stage) {
   const root = new THREE.Group();
   stage.scene.add(root);
 
-  // cadrage : la 3D dans sa zone, le texte dans la sienne, à toutes les tailles
+  // cadrage : la 3D dans sa zone, le texte dans la sienne, à toutes les tailles.
+  // Garder ce bloc APRÈS la construction des objets (await compris) : fitZone mesure root.
   stage.onResize((w) => {
     const zone = w < 860 ? { top: 0.08, bottom: 0.5 } : { left: 0.45 }; // [À CHOISIR]
     stage.camera.position.set(0, 0, fitZone(stage.camera, root, zone)); // mesure root : l'objet reste entier

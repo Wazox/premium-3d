@@ -137,7 +137,14 @@ const runView = async (v) => {
       shots.push({ view: v.name, p: "titre", file: f, title: `${t.text} · ${t.font}` });
     } catch (e) {}
   }
-  if (await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)) errors.push(`[${v.name}] débordement horizontal`);
+  const over = await page.evaluate(() => {
+    if (document.documentElement.scrollWidth <= innerWidth + 1) return null;
+    /* les éléments qui dépassent à droite, les plus hauts dans l'arbre (pas leurs enfants) */
+    const name = (el) => el.tagName.toLowerCase() + (el.id ? "#" + el.id : "") + (el.classList.length ? "." + [...el.classList].slice(0, 2).join(".") : "") + (el.type ? `[type=${el.type}]` : "");
+    const out = [...document.body.querySelectorAll("*")].filter((el) => { const r = el.getBoundingClientRect(); return r.width && r.right > innerWidth + 1 && getComputedStyle(el).position !== "fixed"; });
+    return out.filter((el) => !out.includes(el.parentElement)).slice(0, 4).map((el) => `${name(el)} (+${Math.round(el.getBoundingClientRect().right - innerWidth)} px)`);
+  });
+  if (over) errors.push(`[${v.name}] débordement horizontal : ${over.join(", ") || "élément introuvable"} (souvent un élément caché en width:100% ou 100vw ; overflow-x: clip sur son parent)`);
   /* Fluidité réelle : 3 s de défilement régulier dans la section, temps entre deux images.
      Seulement avec une carte graphique : en rendu logiciel le chiffre ne dirait rien du site. */
   if (!isSoftware(pf.renderer)) {
