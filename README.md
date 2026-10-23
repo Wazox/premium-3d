@@ -69,8 +69,10 @@ Or copy `plugins/premium-3d/skills/premium-3d` into `~/.claude/skills/` and use 
 | `objects3d.js` | Glass photo frames, pedestals, glow rings, dust, animated aurora |
 | `story.js` | Multi-act scroll stories: named acts, stepped progress, captions that never overlap |
 | `react.js` | `usePremium3D` hook for React and Next.js (mount, warm-up, cleanup) |
+| `r3f.js` | React Three Fiber components: `<Studio>`, `<Material>`, `<Logo3D>`, `<Text3D>`, `<Particles>` |
+| `splat.js` | Real 3D scans (Gaussian splatting, `.spz`/`.ply`) of the client's actual place or product, via Spark |
 
-Plus `references/` (one-line API reference, concepts, art direction, performance, integration for HTML, Symfony,
+Plus `tools/new.mjs` (starter page with all the plumbing and no design), `bench/` (blind-agent benchmark to compare versions), `references/` (one-line API reference, concepts, art direction, performance, integration for HTML, Symfony,
 WordPress, React/Next/Vue), `tools/brand.mjs` (pulls colors, fonts, logo and copy from a client's
 existing site), `tools/check.mjs` (desktop + real-phone screenshots, console errors, overflow,
 3D cut off at the edge or hidden under text, performance budget, title close-ups, visual report with the jury

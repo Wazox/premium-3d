@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.9.0
+
+**Plus juste**
+- three.js 0.169 → **0.186.1** (THREE.Clock obsolète remplacé, SVGLoader et ombres mis à jour) ;
+  démos et exemples vérifiés sans erreur.
+- `fitZone(camera, objet, zone)` mesure l'objet lui-même : il ne peut plus être coupé.
+- `check.mjs` **propose la correction** : quand la 3D est coupée ou passe sous un texte, il situe
+  l'objet et le texte sur la capture et donne la zone `fitZone` qui les sépare.
+
+**Plus rapide à démarrer**
+- `tools/new.mjs` : squelette d'une nouvelle page avec toute la plomberie (importmap, fondu,
+  préchauffage, scroll lissé, pause, `__demo`, cadrage), sans aucun design.
+
+**Nouveau**
+- `lib/splat.js` : **scans 3D réels** (Gaussian splatting, .spz/.ply) avec Spark, en WebGL 2 ; piste
+  de concept « Le vrai lieu, scanné ».
+- `lib/r3f.js` : composants **React Three Fiber** (Studio, Material, Logo3D, Text3D, Particles),
+  testés dans une vraie app Vite + React 19.
+- Description du skill élargie : il se déclenche sur « site premium », « landing », « hero »,
+  « effet waouh », « animation au scroll », même sans le mot 3D.
+
+**Mesurer**
+- `bench/` : banc d'essai. 5 demandes fixes, des agents à l'aveugle construisent les sites,
+  `bench/score.mjs` contrôle et compare les versions, un agent juge note les captures.
+
 ## 1.8.0
 
 **Plus rapide**

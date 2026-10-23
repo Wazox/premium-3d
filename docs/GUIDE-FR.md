@@ -52,6 +52,7 @@ ressemble. Claude ne pose que les questions qui manquent.
 
 | Outil | Commande | À quoi il sert |
 |---|---|---|
+| Nouvelle page | `node tools/new.mjs mon-projet --modules story` | Squelette avec toute la plomberie (chargement, fondu, scroll, pause, cadrage), sans design |
 | Marque du client | `node tools/brand.mjs https://site-du-client.fr ./brand` | Couleurs, polices, logo et textes du site actuel, dans `brand.html` |
 | Serveur local | `python3 tools/serve.py 5180` | Voir la page (les modules ne marchent pas en double-clic) |
 | Contrôle | `node tools/check.mjs <url> ./captures --section "#scene"` | Captures ordinateur + mobile, erreurs, 3D coupée ou sous le texte, performances, titres en gros plan, `report.html` |
@@ -73,7 +74,9 @@ fermée toute seule. Toutes les options : `references/tools.md`.
 - **Symfony** : un partial Twig, le JS dans `assets/`, three.js avec AssetMapper ou Encore.
 - **WordPress** : un bloc HTML personnalisé et le script chargé seulement sur la page concernée.
 - **React / Next.js** : le hook `usePremium3D` de `lib/react.js` (composant client, import dynamique
-  sans SSR).
+  sans SSR), ou les composants React Three Fiber de `lib/r3f.js` si le site en utilise déjà.
+- **Scans 3D** : le vrai lieu ou produit du client, scanné au téléphone (Scaniverse, Polycam) et
+  exporté en `.spz`, affiché avec `lib/splat.js`.
 
 Le détail est dans `references/integration.md`.
 
