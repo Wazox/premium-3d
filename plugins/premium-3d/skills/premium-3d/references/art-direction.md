@@ -52,6 +52,13 @@ plan pour le vérifier.
   panneaux du studio se reflètent en anneaux lumineux sous les objets ronds (bol, tasse) ; monter le
   seuil du bloom au-dessus de 1 et baisser `envMapIntensity` vers 0,6.
 - Doux (`soft`) : enfance, objets du quotidien, marques accessibles.
+- **Verre et liquide** : un objet en verre (`transmission`) ne voit pas à travers lui les objets
+  transparents. Le liquide dans une coupe ou un flacon doit être **opaque** (couleur, rugosité basse)
+  pour se voir derrière le verre. Verre **teinté** (ambré, fumé) : `tint` et `dist` (plus court =
+  plus foncé) ; sur fond clair, le verre clair paraît rose-beige : le teinter franchement.
+- **Néon et bloom** : `neon(couleur)` règle l'éclat ; avec `--full`, un halo trop fort vire au blanc
+  (le cœur du tube sature). Vérifier sur les captures `--full` et baisser `glow` ou `bloom.strength`
+  plutôt que le seuil.
 
 ## Particules sur fond clair
 - `particleMorph(…, { additive: false })` : les points deviennent pleins et nets automatiquement.
