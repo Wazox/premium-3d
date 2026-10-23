@@ -43,7 +43,8 @@ export function launch(mode, { extra = [], headless } = {}) {
 export async function glRenderer(page) {
   return page.evaluate(() => {
     try {
-      const gl = document.createElement("canvas").getContext("webgl2") || document.createElement("canvas").getContext("webgl");
+      const st = window.__p3d && window.__p3d.stages; // le contexte de la scène, sinon un contexte jetable
+      const gl = (st && st.length && st[0].renderer.getContext()) || document.createElement("canvas").getContext("webgl2") || document.createElement("canvas").getContext("webgl");
       if (!gl) return "aucun WebGL";
       const ext = gl.getExtension("WEBGL_debug_renderer_info");
       return String(ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER));
@@ -62,4 +63,23 @@ export const isSoftware = (renderer) => /swiftshader|llvmpipe|software|basic ren
 export function defaultWorkers(mode) {
   const cores = os.cpus().length || 2;
   return mode === "gpu" ? 2 : cores >= 16 ? Math.min(4, Math.floor(cores / 8)) : 1;
+}
+
+/**
+ * Ferme une bannière de cookies (accepter ou refuser, peu importe : c'est pour les captures).
+ * Un seul passage dans la page : chercher bouton par bouton depuis Node prenait plusieurs secondes
+ * par sélecteur absent. Renvoie le texte du bouton cliqué, ou null.
+ */
+export async function dismissCookies(page) {
+  return page.evaluate(() => {
+    const words = /^(tout accepter|accepter( et fermer| tout)?|j'accepte|ok|d'accord|compris|continuer sans accepter|tout refuser|refuser|accept( all)?|allow all|agree|i agree|got it|reject all)$/i;
+    const boxes = [...document.querySelectorAll('[id*="cookie" i], [class*="cookie" i], [id*="consent" i], [class*="consent" i], [aria-label*="cookie" i], [role="dialog"], #onetrust-banner-sdk, #CybotCookiebotDialog, #axeptio_overlay, #didomi-host, #tarteaucitronRoot')];
+    for (const box of boxes) {
+      for (const b of box.querySelectorAll('button, a[role="button"], [role="button"], input[type="button"], input[type="submit"]')) {
+        const t = (b.textContent || b.value || "").replace(/\s+/g, " ").trim();
+        if (words.test(t) && b.offsetParent !== null) { b.click(); return t; }
+      }
+    }
+    return null;
+  }).catch(() => null);
 }

@@ -58,9 +58,14 @@ ressemble. Claude ne pose que les questions qui manquent.
 | Rendu final | ajouter `--full` | Captures avec bloom et effets, pour le jury |
 | Image de secours | ajouter `--poster img/poster.jpg` | Image affichée pendant le chargement et sans 3D |
 | Vidéo | `node tools/record.mjs <url> video.mp4 --duration 12` | Vidéo 1920×1080 filmée en direct (ordinateur avec carte graphique) |
-| Vidéo parfaite | `node tools/render.mjs <url> video.mp4 --section "#scene"` | Calculée image par image, sans saccade, même sans carte graphique ; `--mobile` pour un format vertical 1080×1920 |
+| Vidéo parfaite | `node tools/render.mjs <url> video.mp4 --section "#scene"` | Calculée image par image, sans saccade, même sans carte graphique ; `--mobile` pour un format vertical 1080×1920, `--still 8` pour filmer sans défiler. Marche aussi pour une page React Three Fiber ou three.js qui n'utilise pas le skill |
 
 Prérequis : `npm i playwright` dans le projet, `ffmpeg` pour la vidéo en .mp4.
+
+Les outils utilisent la **carte graphique** dès qu'il y a un écran (Windows, macOS, Linux de bureau) :
+contrôles et vidéos bien plus rapides. Sur un serveur ou dans le cloud, ils passent en rendu
+logiciel, plus lent mais identique. `--gpu` ou `--cpu` pour forcer. Une bannière de cookies est
+fermée toute seule. Toutes les options : `references/tools.md`.
 
 ## 5. Intégrer dans un site existant
 
@@ -80,8 +85,12 @@ Le moteur gère tout seul :
 - une qualité qui s'adapte à l'écran et à l'appareil ;
 - le chargement différé, le fondu d'apparition et l'image de secours.
 
-Pour vérifier sur votre site : dans la console, `stage.pixelRatio` doit valoir 1 ou plus sur un
-ordinateur correct.
+Pour vérifier sur votre site : `check.mjs` lancé sur un PC avec carte graphique mesure la fluidité
+réelle au défilement (images par seconde, « Performances » dans `report.html` ; bon : 55 ou plus).
+Dans la console, `stage.pixelRatio` doit valoir 1 ou plus sur un ordinateur correct.
+
+Modèles 3D du client : les compresser avant de les mettre en ligne (souvent 5 à 10 fois plus légers) :
+`npx gltf-transform optimize entree.glb sortie.glb --compress meshopt --texture-compress ktx2`.
 
 ## 7. Licence et crédits
 

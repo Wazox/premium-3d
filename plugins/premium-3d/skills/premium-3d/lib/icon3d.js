@@ -2,7 +2,7 @@
  * Icône 3D « néon sous verre » : chaque trait d'une icône SVG (style Lucide, 24×24, stroke)
  * devient un tube de verre avec un cœur lumineux à l'intérieur.
  *   import { icon3d } from "./icon3d.js";
- *   const g = icon3d(svgString, { size: 1.6, glass: monMaterielVerre, glow: new THREE.Color(...) });
+ *   const g = icon3d(svgString, { size: 1.6, glass: monMaterielVerre, glow: neon("#ff3355") });
  */
 import * as THREE from "three";
 import { SVGLoader } from "three/addons/loaders/SVGLoader.js";

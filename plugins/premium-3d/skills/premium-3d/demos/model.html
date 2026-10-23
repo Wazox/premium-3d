@@ -35,7 +35,7 @@ async function demoGlb() {
 const stage = createStage(document.getElementById("gl"), { background: "#efece6", env: "room", bloom: false });
 if (stage) {
   const { scene, camera, renderer } = stage;
-  const model = await loadModel(await demoGlb(), { size: 2.6 });
+  const model = await loadModel(await demoGlb(), { size: 2.6, stage });
   scene.add(model);
   studioLights(stage, { shadows: true });
   scene.add(softGround({ y: model.userData.bottom, opacity: 0.3 }));

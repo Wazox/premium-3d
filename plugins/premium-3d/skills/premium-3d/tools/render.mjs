@@ -25,12 +25,12 @@
 //   --pause      points de la section (0 à 1) où le défilement s'arrête --pause-length secondes
 //   --still      pas de défilement : filmer la page sur place pendant N secondes (animation au temps)
 //   --tier       niveau d'appareil simulé (défaut high : le plus beau rendu)
-//   --workers    navigateurs en parallèle (défaut : 2 avec carte graphique, la moitié des cœurs sinon)
+//   --workers    navigateurs en parallèle (défaut : 2 avec carte graphique, 1 en rendu logiciel)
 //   --gpu/--cpu  forcer la carte graphique (fenêtres visibles) ou le rendu logiciel (sans écran)
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { defaultWorkers, glRenderer, gpuMode, isSoftware, launch } from "./browser.mjs";
+import { defaultWorkers, dismissCookies, glRenderer, gpuMode, isSoftware, launch } from "./browser.mjs";
 
 const args = process.argv.slice(2);
 const flag = (k) => { const i = args.indexOf(k); if (i < 0) return false; args.splice(i, 1); return true; };
@@ -104,6 +104,7 @@ async function renderChunk(k, from, to) {
     const sep = url.includes("?") ? "&" : "?";
     await page.goto(`${url}${sep}tier=${tier}`, { waitUntil: "load", timeout: 90000 });
     await page.waitForLoadState("networkidle", { timeout: 20000 }).catch(() => {});
+    if (await dismissCookies(page)) await page.waitForTimeout(400); // bannière de cookies : elle cacherait la 3D
     // scène premium-3d prête → "stage" ; aucune scène premium-3d quelques secondes après le chargement → "virtual"
     const myKind = await page
       .waitForFunction(() => {

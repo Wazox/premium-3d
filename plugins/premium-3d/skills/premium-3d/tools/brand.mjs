@@ -8,7 +8,7 @@
 // À relire avant d'utiliser : un site peut avoir des couleurs de bandeau cookies, de widget de chat,
 // ou un logo de partenaire. Les textes récupérés sont ceux du client : les garder, ne rien inventer.
 import fs from "node:fs";
-import { launch } from "./browser.mjs";
+import { dismissCookies, launch } from "./browser.mjs";
 
 const url = process.argv[2];
 const out = process.argv[3] || "./brand";
@@ -19,6 +19,7 @@ const browser = await launch("cpu");
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 await page.goto(url, { waitUntil: "networkidle", timeout: 60000 }).catch(() => page.waitForLoadState("load"));
 await page.waitForTimeout(1200);
+if (await dismissCookies(page)) await page.waitForTimeout(400); // bannière de cookies : elle cacherait la 3D
 await page.screenshot({ path: `${out}/site.png` });
 
 const data = await page.evaluate(() => {

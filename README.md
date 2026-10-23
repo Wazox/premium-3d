@@ -62,7 +62,7 @@ Or copy `plugins/premium-3d/skills/premium-3d` into `~/.claude/skills/` and use 
 | `text3d.js` | 3D text in any `.ttf/.otf/.woff` font, letter by letter |
 | `logo3d.js` | SVG logo to extruded 3D pieces in their original colors, custom pivots (petals, doors, lids), exploded view and assembly |
 | `textures.js` | Procedural wood, marble, concrete, paper (no image files) |
-| `models.js` | `.glb/.gltf` (Draco) loading, three-point studio light, soft ground shadow |
+| `models.js` | `.glb/.gltf` loading (Draco, Meshopt, KTX2 textures), three-point studio light, soft ground shadow sized per device |
 | `interact.js` | Drag to rotate with inertia, hover picking, pointer light, device tilt |
 | `fx.js` | Film grain, chromatic aberration, vignette, depth of field |
 | `icon3d.js` + `icons/` | 78 Lucide icons as neon tubes inside glass |
@@ -74,8 +74,10 @@ Plus `references/` (one-line API reference, concepts, art direction, performance
 WordPress, React/Next/Vue), `tools/brand.mjs` (pulls colors, fonts, logo and copy from a client's
 existing site), `tools/check.mjs` (desktop + real-phone screenshots, console errors, overflow,
 3D cut off at the edge or hidden under text, performance budget, title close-ups, visual report with the jury
-scores) `tools/record.mjs` (live 1920×1080 screen video of any page) and `tools/render.mjs` (frame-perfect
-video rendered frame by frame, even without a GPU, landscape or vertical for reels).
+scores, real scroll FPS when a GPU is present) `tools/record.mjs` (live 1920×1080 screen video of any page) and `tools/render.mjs` (frame-perfect
+video rendered frame by frame, even without a GPU, landscape or vertical for reels; works on any WebGL page,
+React Three Fiber included, and renders in parallel). All tools use your GPU when there is a screen
+(`--gpu` / `--cpu` to force) and close cookie banners on their own.
 
 ## Requirements
 

@@ -21,7 +21,7 @@
 // Et une 3D qui passe sous un texte visible (titre, paragraphe, bouton) : la règle est de ne jamais chevaucher.
 // Notes du jury : écrire <dossier>/jury.json (voir SKILL.md) puis relancer avec --report-only.
 import fs from "node:fs";
-import { glRenderer, gpuMode, isSoftware, launch } from "./browser.mjs";
+import { dismissCookies, glRenderer, gpuMode, isSoftware, launch } from "./browser.mjs";
 
 const args = process.argv.slice(2);
 const mode = gpuMode(args);
@@ -62,6 +62,7 @@ const runView = async (v) => {
   await page.goto(params ? url + (url.includes("?") ? "&" : "?") + params : url, { waitUntil: "load", timeout: 90000 });
   await page.waitForFunction(() => { const d = window.__demo || window.__scene; return !d || d.ready; }, null, { timeout: 120000 }).catch(() => errors.push(`[${v.name}] la 3D n'est jamais prête`));
   await page.waitForTimeout(1500);
+  if (await dismissCookies(page)) await page.waitForTimeout(400); // bannière de cookies : elle cacherait la 3D
   if (section && !(await page.evaluate((sel) => !!document.querySelector(sel), section))) {
     console.log(`ERREUR : la section « ${section} » n'existe pas dans la page (vérifier l'id). Arrêt.`); process.exit(1);
   }
@@ -135,6 +136,23 @@ const runView = async (v) => {
     } catch (e) {}
   }
   if (await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)) errors.push(`[${v.name}] débordement horizontal`);
+  /* Fluidité réelle : 3 s de défilement régulier dans la section, temps entre deux images.
+     Seulement avec une carte graphique : en rendu logiciel le chiffre ne dirait rien du site. */
+  pf.renderer = await glRenderer(page);
+  if (!isSoftware(pf.renderer)) {
+    Object.assign(pf, await page.evaluate(async (sel) => {
+      const el = sel && document.querySelector(sel), max = document.documentElement.scrollHeight - innerHeight;
+      const y0 = el ? el.getBoundingClientRect().top + scrollY : 0, y1 = el ? Math.min(max, y0 + Math.max(innerHeight, el.offsetHeight - innerHeight)) : max;
+      scrollTo(0, y0); await new Promise((r) => setTimeout(r, 400));
+      const dts = []; let last = performance.now(); const t0 = last;
+      await new Promise((done) => { const f = (t) => { dts.push(t - last); last = t; const k = Math.min(1, (t - t0) / 3000); scrollTo(0, y0 + (y1 - y0) * k); k < 1 ? requestAnimationFrame(f) : done(); }; requestAnimationFrame(f); });
+      dts.shift(); dts.sort((a, b) => a - b);
+      const med = dts[Math.floor(dts.length / 2)] || 16.7, p95 = dts[Math.floor(dts.length * 0.95)] || med;
+      return { fps: Math.round(1000 / med), p95Ms: Math.round(p95), janks: dts.filter((d) => d > 50).length };
+    }, section));
+    if (pf.fps < 50) warnings.push(`[${v.name}] ${pf.fps} images/s au défilement (bon : 55 ou plus) : baisser le pixelRatio, doser particules et bloom selon stage.tier`);
+    else if (pf.p95Ms > 33) warnings.push(`[${v.name}] à-coups au défilement (5 % des images au-delà de ${pf.p95Ms} ms) : précalculer hors de la boucle, éviter de créer des objets à chaque image`);
+  }
   Object.assign(pf, await page.evaluate(() => {
     const st = (window.__p3d && window.__p3d.stages) || [], res = performance.getEntriesByType("resource"), nav = performance.getEntriesByType("navigation")[0];
     const bytes = res.reduce((a, r) => a + (r.transferSize || r.encodedBodySize || 0), nav ? nav.transferSize || 0 : 0);
@@ -161,7 +179,7 @@ const runView = async (v) => {
 if (mode === "gpu") await Promise.all(VIEWS.map(runView)); else for (const v of VIEWS) await runView(v);
 await browser.close();
 fs.writeFileSync(`${out}/check.json`, JSON.stringify({ url, date: new Date().toISOString(), full, errors, warnings, perf, shots }, null, 2));
-for (const [k, p] of Object.entries(perf)) if (p.stages) console.log(`Perf ${k} : ${p.calls} appels/image, ${p.triangles.toLocaleString("fr-FR")} triangles, ${p.kb} Ko, 3D prête en ${p.readyMs} ms (indicatif sans carte graphique)`);
+for (const [k, p] of Object.entries(perf)) if (p.stages) console.log(`Perf ${k} : ${p.calls} appels/image, ${p.triangles.toLocaleString("fr-FR")} triangles, ${p.kb} Ko, 3D prête en ${p.readyMs} ms, ${p.fps ? p.fps + " images/s au défilement" : "fluidité non mesurée (rendu logiciel : relancer avec --gpu sur un PC)"} [${p.renderer}]`);
 console.log(errors.length ? "PROBLÈMES :\n" + errors.join("\n") : "Aucune erreur console.");
 if (warnings.length) console.log("À VÉRIFIER :\n" + warnings.join("\n"));
 }
@@ -285,9 +303,9 @@ async function settle(page) {
 
 function perfHtml(perf) {
   if (!perf || !Object.keys(perf).length) return "";
-  const rows = [["Appels de dessin / image", "calls"], ["Triangles", "triangles"], ["Particules", "points"], ["Poids téléchargé (Ko)", "kb"], ["Requêtes", "requests"], ["3D prête après (ms)", "readyMs"], ["LCP (ms)", "lcpMs"], ["CLS", "cls"], ["Shaders compilés", "programs"], ["Textures en mémoire", "textures"], ["Géométries en mémoire", "geometries"], ["Pixel ratio du rendu", "pixelRatio"], ["Niveau d'appareil", "tier"]];
+  const rows = [["Appels de dessin / image", "calls"], ["Triangles", "triangles"], ["Particules", "points"], ["Poids téléchargé (Ko)", "kb"], ["Requêtes", "requests"], ["3D prête après (ms)", "readyMs"], ["LCP (ms)", "lcpMs"], ["CLS", "cls"], ["Shaders compilés", "programs"], ["Textures en mémoire", "textures"], ["Géométries en mémoire", "geometries"], ["Pixel ratio du rendu", "pixelRatio"], ["Niveau d'appareil", "tier"], ["Images/s au défilement", "fps"], ["Image la plus lente sur 20 (ms)", "p95Ms"], ["Moteur WebGL", "renderer"]];
   const f = (x) => (typeof x === "number" ? x.toLocaleString("fr-FR") : x ?? "–");
-  return `<section><h2>Performances</h2><table class="perf"><tr><th></th><th>Ordinateur</th><th>Mobile</th></tr>${rows.map(([l, k]) => `<tr><td>${l}</td><td>${f(perf.desktop && perf.desktop[k])}</td><td>${f(perf.mobile && perf.mobile[k])}</td></tr>`).join("")}</table><p class="meta">Les temps sont indicatifs (mesurés sans carte graphique) ; appels, triangles et poids sont fiables.</p></section>`;
+  return `<section><h2>Performances</h2><table class="perf"><tr><th></th><th>Ordinateur</th><th>Mobile</th></tr>${rows.map(([l, k]) => `<tr><td>${l}</td><td>${f(perf.desktop && perf.desktop[k])}</td><td>${f(perf.mobile && perf.mobile[k])}</td></tr>`).join("")}</table><p class="meta">${perf.desktop && perf.desktop.fps ? "Fluidité mesurée avec la carte graphique." : "Les temps sont indicatifs (rendu logiciel, sans carte graphique : relancer avec --gpu sur un PC pour mesurer la fluidité)"} ; appels, triangles et poids sont fiables.</p></section>`;
 }
 
 function writeReport() {

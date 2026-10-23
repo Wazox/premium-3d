@@ -17,7 +17,7 @@
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { launch } from "./browser.mjs";
+import { dismissCookies, launch } from "./browser.mjs";
 
 const args = process.argv.slice(2);
 const flag = (k) => { const i = args.indexOf(k); if (i < 0) return false; args.splice(i, 1); return true; };
@@ -37,6 +37,8 @@ const ctx = await browser.newContext({ viewport: size, deviceScaleFactor: 1, isM
 const page = await ctx.newPage();
 await page.goto(url, { waitUntil: "load", timeout: 90000 });
 await page.waitForFunction(() => { const d = window.__demo || window.__scene; return !d || d.ready; }, null, { timeout: 120000 }).catch(() => {});
+await page.waitForTimeout(1000);
+if (await dismissCookies(page)) await page.waitForTimeout(400); // bannière de cookies : elle cacherait la 3D
 await page.addStyleTag({ content: "::-webkit-scrollbar{display:none}html{scrollbar-width:none}" });
 await page.waitForTimeout(hold * 1000);
 

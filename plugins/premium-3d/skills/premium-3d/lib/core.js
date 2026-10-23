@@ -55,6 +55,15 @@ export const easeBack = (x, c1 = 1.4) => { const c3 = c1 + 1; return 1 + c3 * Ma
 export const easeInOutCubic = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
 /** Couleur HDR (> 1) pour les éléments qui doivent briller au bloom. */
 export const hdr = (hex, k) => new THREE.Color(hex).multiplyScalar(k);
+/**
+ * Néon : couleur HDR qui brille AUTANT quelle que soit sa teinte. Le bloom trie par luminance
+ * (0,30 rouge + 0,59 vert + 0,11 bleu) : avec hdr(), un rouge ou un bleu au même k qu'un vert brille
+ * à peine. neon() règle la luminance sur `glow` (1 = au seuil du bloom par défaut, 1,6 = net, 3 = fort).
+ */
+export const neon = (hex, glow = 1.6) => {
+  const c = new THREE.Color(hex), lum = 0.299 * c.r + 0.587 * c.g + 0.114 * c.b;
+  return c.multiplyScalar(Math.min(40, glow / Math.max(lum, 0.01)));
+};
 /** Couleur en rgba() pour le dessin canvas 2D. */
 export const rgba = (hex, a) => { const c = new THREE.Color(hex); const o = {}; c.getRGB(o, THREE.SRGBColorSpace); return `rgba(${Math.round(o.r * 255)},${Math.round(o.g * 255)},${Math.round(o.b * 255)},${a})`; };
 
