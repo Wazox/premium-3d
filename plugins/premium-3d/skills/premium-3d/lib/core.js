@@ -333,12 +333,15 @@ export function createStage(canvas, {
     /**
      * Avance la scène d'exactement une image (dt secondes) et la dessine, hors de la boucle :
      * vidéo image par image (tools/render.mjs), tests. Mettre stage.paused = true avant.
+     * draw = false : avance sans dessiner (quasi gratuit), pour rejoindre vite une image lointaine :
+     * c'est ce qui permet à render.mjs de répartir une vidéo entre plusieurs navigateurs.
      */
-    step(dt = 1 / 30) {
+    step(dt = 1 / 30, draw = true) {
       if (!stage._update || !stage.ready) return;
       const d = stage.still ? 0 : dt; stage._T += d;
-      stage._update(d, stage._T, dt); render();
+      stage._update(d, stage._T, dt); if (draw) render();
     },
+    stepNoDraw: true, // marqueur lu par tools/render.mjs (les versions avant 1.8 dessinaient toujours)
     /** Libère tout (applications React/Vue/Next au démontage du composant). */
     dispose() {
       if (stopFrame) stopFrame(); ro.disconnect(); io.disconnect();

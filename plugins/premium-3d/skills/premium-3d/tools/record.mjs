@@ -14,10 +14,10 @@
 //   --pause      points (0 à 1) où le défilement marque une pause d'une seconde
 //   --headless   sans fenêtre. Par défaut une vraie fenêtre Chrome s'ouvre : la carte graphique
 //                est utilisée et la vidéo est fluide. En headless, le rendu est logiciel (saccadé).
-import { chromium } from "playwright";
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
+import { launch } from "./browser.mjs";
 
 const args = process.argv.slice(2);
 const flag = (k) => { const i = args.indexOf(k); if (i < 0) return false; args.splice(i, 1); return true; };
@@ -32,7 +32,7 @@ const out = path.resolve(args[1] || (mobile ? "video-mobile.mp4" : "video.mp4"))
 const size = mobile ? { width: 430, height: 932 } : { width: sizeArg[0], height: sizeArg[1] };
 const tmp = fs.mkdtempSync(path.join(path.dirname(out), ".rec-"));
 
-const browser = await chromium.launch({ headless, args: headless ? [] : ["--ignore-gpu-blocklist", "--enable-gpu-rasterization"] });
+const browser = await launch(headless ? "cpu" : "gpu", { headless });
 const ctx = await browser.newContext({ viewport: size, deviceScaleFactor: 1, isMobile: mobile, hasTouch: mobile, recordVideo: { dir: tmp, size } });
 const page = await ctx.newPage();
 await page.goto(url, { waitUntil: "load", timeout: 90000 });

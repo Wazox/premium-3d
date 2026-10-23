@@ -20,10 +20,11 @@
 // signalé « à vérifier », car une scène peut déborder exprès (fond plein, décor qui sort du cadre).
 // Et une 3D qui passe sous un texte visible (titre, paragraphe, bouton) : la règle est de ne jamais chevaucher.
 // Notes du jury : écrire <dossier>/jury.json (voir SKILL.md) puis relancer avec --report-only.
-import { chromium } from "playwright";
 import fs from "node:fs";
+import { glRenderer, gpuMode, isSoftware, launch } from "./browser.mjs";
 
 const args = process.argv.slice(2);
+const mode = gpuMode(args);
 const opt = (k, d) => { const i = args.indexOf(k); return i >= 0 ? args.splice(i, 2)[1] : d; };
 const full = args.includes("--full"); if (full) args.splice(args.indexOf("--full"), 1);
 const reportOnly = args.includes("--report-only"); if (reportOnly) args.splice(args.indexOf("--report-only"), 1);
@@ -39,12 +40,13 @@ fs.mkdirSync(out, { recursive: true });
 
 const shots = [];
 if (!reportOnly) {
-const browser = await chromium.launch({ args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"] });
+const browser = await launch(mode);
 const errors = [], warnings = [], perf = {};
 /* budget indicatif d'une page 3D vitrine (mobile plus strict) */
 const BUDGET = { desktop: { calls: 200, triangles: 1500000, kb: 4000 }, mobile: { calls: 100, triangles: 500000, kb: 3000 } };
 // mobile : écran haute densité (3×, comme un iPhone) et tactile, pour voir ce que voit un vrai téléphone
-for (const v of [{ name: "desktop", width: 1280, height: 720, tier: "high" }, { name: "mobile", width: 390, height: 844, mobile: true, tier: "mid" }].filter((v) => views.includes(v.name))) {
+const VIEWS = [{ name: "desktop", width: 1280, height: 720, tier: "high" }, { name: "mobile", width: 390, height: 844, mobile: true, tier: "mid" }].filter((v) => views.includes(v.name));
+const runView = async (v) => {
   const page = await browser.newPage({ viewport: { width: v.width, height: v.height }, reducedMotion: "reduce", ...(v.mobile ? { deviceScaleFactor: 3, isMobile: true, hasTouch: true } : {}) });
   page.on("pageerror", (e) => errors.push(`[${v.name}] ${e.message}`));
   await page.addInitScript(() => {
@@ -63,42 +65,72 @@ for (const v of [{ name: "desktop", width: 1280, height: 720, tier: "high" }, { 
   if (section && !(await page.evaluate((sel) => !!document.querySelector(sel), section))) {
     console.log(`ERREUR : la section « ${section} » n'existe pas dans la page (vérifier l'id). Arrêt.`); process.exit(1);
   }
-  const plan = section ? [...points, "fin"] : points;
-  for (const p of plan) {
-    if (p === "fin") { // bas de page : infos pratiques, pied de page
-      await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight)); await page.waitForTimeout(1500);
-      const f = `${v.name}-fin.png`; await page.screenshot({ path: `${out}/${f}`, timeout: 180000, scale: "css" });
-      shots.push({ view: v.name, p: "fin", file: f }); log(`[${v.name}] fin de page ok`); continue;
+  /* gros plan des titres visibles : un accent ou un caractère mal dessiné par la police se voit ici */
+  const titles = await page.evaluate(() => [...document.querySelectorAll("h1, h2")].filter((el) => { const st = getComputedStyle(el); return el.textContent.trim() && st.visibility !== "hidden" && st.display !== "none"; }).slice(0, 3).map((el, i) => { el.setAttribute("data-p3d-title", i); return { i, text: el.textContent.replace(/\s+/g, " ").trim().slice(0, 60), font: getComputedStyle(el).fontFamily.split(",")[0].replace(/["']/g, "") }; }));
+  /* Un seul parcours, toujours vers le bas : les captures et les titres sont triés par position.
+     Remonter en haut de la page après le bas pouvait coûter jusqu'à 25 s pour une image en rendu
+     logiciel (Chrome a libéré la mémoire graphique de la zone quittée). */
+  const steps = await page.evaluate(([pts, sel]) => {
+    const el = sel && document.querySelector(sel), max = document.documentElement.scrollHeight - innerHeight;
+    const yOf = (p) => (el ? el.getBoundingClientRect().top + scrollY + p * Math.max(0, el.offsetHeight - innerHeight) : p * max);
+    const list = pts.map((p) => ({ p, y: yOf(p) }));
+    document.querySelectorAll("[data-p3d-title]").forEach((t) => { const r = t.getBoundingClientRect(); list.push({ title: +t.dataset.p3dTitle, y: Math.min(max, Math.max(0, r.top + scrollY - innerHeight / 2 + r.height / 2)) }); });
+    return list.sort((a, b) => a.y - b.y);
+  }, [points, section]);
+  if (section) steps.push({ p: "fin" });
+  const titleDone = new Set();
+  const grabTitles = async () => {
+    const vis = await page.evaluate(() => [...document.querySelectorAll("[data-p3d-title]")].map((el) => {
+      const r = el.getBoundingClientRect(); let o = 1;
+      for (let e = el; e && e !== document.body; e = e.parentElement) { const st = getComputedStyle(e); if (st.visibility === "hidden" || st.display === "none") { o = 0; break; } o *= +st.opacity; }
+      return { i: +el.dataset.p3dTitle, ok: o > 0.9 && r.top >= 0 && r.bottom <= innerHeight && r.width > 2, clip: { x: Math.max(0, r.left), y: r.top, width: Math.min(innerWidth, r.right) - Math.max(0, r.left), height: r.height } };
+    }));
+    for (const t of vis) {
+      if (!t.ok || titleDone.has(t.i)) continue;
+      const meta = titles.find((x) => x.i === t.i), f = `${v.name}-titre-${t.i}.png`;
+      await shot(page, { path: `${out}/${f}`, clip: t.clip, css: false });
+      shots.push({ view: v.name, p: "titre", file: f, title: `${meta.text} · ${meta.font}` }); titleDone.add(t.i);
     }
-    await page.evaluate(([p, sel]) => {
-      const el = sel && document.querySelector(sel);
-      if (el) { const top = el.getBoundingClientRect().top + scrollY; scrollTo(0, top + p * Math.max(0, el.offsetHeight - innerHeight)); }
-      else scrollTo(0, p * (document.documentElement.scrollHeight - innerHeight));
-    }, [p, section]);
-    await page.waitForTimeout(2200);
+  };
+  for (const step of steps) {
+    const p = step.p;
+    if (step.title !== undefined) { // arrêt pour un titre : rendu visible (légende comprise), gros plan
+      if (titleDone.has(step.title)) continue;
+      await page.evaluate(([y, i]) => { scrollTo(0, y); const el = document.querySelector(`[data-p3d-title="${i}"]`); document.querySelectorAll("[data-p3d-cap]").forEach((c) => c.classList.toggle("p3d-on", c.contains(el))); }, [step.y, step.title]);
+      await settle(page); await grabTitles(); continue;
+    }
+    if (p === "fin") { // bas de page : infos pratiques, pied de page
+      await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight)); await settle(page);
+      const f = `${v.name}-fin.png`; await shot(page, { path: `${out}/${f}` });
+      shots.push({ view: v.name, p: "fin", file: f }); await grabTitles(); log(`[${v.name}] fin de page ok`); continue;
+    }
+    await page.evaluate((y) => scrollTo(0, y), step.y);
+    await settle(page);
     const file = `${v.name}-${String(Math.round(p * 100)).padStart(3, "0")}.png`;
-    await page.screenshot({ path: `${out}/${file}`, timeout: 180000, scale: "css" });
+    await shot(page, { path: `${out}/${file}` });
     const info = await page.evaluate(() => { const st = window.__p3d && window.__p3d.stages; if (!st || !st.length) return null; let calls = 0, triangles = 0, points = 0; st.forEach((s) => { const r = s.renderer.info.render; calls += r.calls; triangles += r.triangles; points += r.points; }); return { calls, triangles, points }; });
     if (info) { pf.calls = Math.max(pf.calls, info.calls); pf.triangles = Math.max(pf.triangles, info.triangles); pf.points = Math.max(pf.points, info.points); }
     const { edges: cut, overlaps } = await edgeCheck(page, section);
     if (cut.length) warnings.push(`[${v.name} ${Math.round(p * 100)} %] la 3D touche le bord ${cut.join(", ")} : objet coupé ? (${file})`);
     if (overlaps.length) warnings.push(`[${v.name} ${Math.round(p * 100)} %] la 3D passe sous le texte ${overlaps.join(", ")} : recadrer (fitZone) (${file})`);
     shots.push({ view: v.name, p, file, cut });
+    await grabTitles();
     log(`[${v.name} ${Math.round(p * 100)} %] ok`);
     if (posterPath && p === points[0]) { // seulement la zone 3D, sans les textes posés dessus ; mobile : img/poster-mobile.jpg
       await page.evaluate(() => { document.body.style.visibility = "hidden"; document.querySelector("canvas").style.visibility = "visible"; });
-      await page.locator("canvas").first().screenshot({ path: v.mobile ? posterPath.replace(/(\.\w+)$/, "-mobile$1") : posterPath, type: "jpeg", quality: 82, timeout: 180000, scale: "css" });
+      const clip = await page.evaluate(() => { const r = document.querySelector("canvas").getBoundingClientRect(); const x = Math.max(0, r.left), y = Math.max(0, r.top); return { x, y, width: Math.min(innerWidth, r.right) - x, height: Math.min(innerHeight, r.bottom) - y }; });
+      await shot(page, { clip, path: v.mobile ? posterPath.replace(/(\.\w+)$/, "-mobile$1") : posterPath, type: "jpeg", quality: 82 });
       await page.evaluate(() => { document.body.style.visibility = ""; document.querySelector("canvas").style.visibility = ""; });
     }
   }
-  /* gros plan des titres visibles : un accent ou un caractère mal dessiné par la police se voit ici */
-  const titles = await page.evaluate(() => [...document.querySelectorAll("h1, h2")].filter((el) => { const st = getComputedStyle(el); return el.textContent.trim() && st.visibility !== "hidden" && st.display !== "none"; }).slice(0, 3).map((el, i) => { el.setAttribute("data-p3d-title", i); return { i, text: el.textContent.replace(/\s+/g, " ").trim().slice(0, 60), font: getComputedStyle(el).fontFamily.split(",")[0].replace(/["']/g, "") }; }));
-  for (const t of titles) {
+  for (const t of titles.filter((t) => !titleDone.has(t.i))) { // titres jamais passés à l'écran
     const f = `${v.name}-titre-${t.i}.png`;
     try {
       await page.evaluate((i) => { const el = document.querySelector(`[data-p3d-title="${i}"]`); el.scrollIntoView({ block: "center" }); document.querySelectorAll("[data-p3d-cap]").forEach((c) => c.classList.toggle("p3d-on", c.contains(el))); }, t.i);
-      await page.waitForTimeout(900);
-      await page.locator(`[data-p3d-title="${t.i}"]`).screenshot({ path: `${out}/${f}`, timeout: 60000 });
+      await settle(page);
+      const clip = await page.evaluate((i) => { const r = document.querySelector(`[data-p3d-title="${i}"]`).getBoundingClientRect(); return { x: Math.max(0, r.left), y: Math.max(0, r.top), width: Math.min(innerWidth, r.right) - Math.max(0, r.left), height: Math.min(innerHeight, r.bottom) - Math.max(0, r.top) }; }, t.i);
+      if (clip.width < 2 || clip.height < 2) continue;
+      await shot(page, { path: `${out}/${f}`, clip, css: false });
       shots.push({ view: v.name, p: "titre", file: f, title: `${t.text} · ${t.font}` });
     } catch (e) {}
   }
@@ -124,7 +156,9 @@ for (const v of [{ name: "desktop", width: 1280, height: 720, tier: "high" }, { 
   if (pf.kb > b.kb) warnings.push(`[${v.name}] ${pf.kb} Ko téléchargés (budget ${b.kb}) : compresser les images (WebP, 1600 px max) et les modèles (Draco, Meshopt)`);
   if (pf.cls > 0.1) warnings.push(`[${v.name}] décalage de mise en page CLS ${pf.cls} (bon : 0,1 ou moins) : réserver la place du canvas et des polices`);
   await page.close();
-}
+};
+// carte graphique : les deux vues en même temps ; rendu logiciel : l'une après l'autre (le processeur est déjà plein)
+if (mode === "gpu") await Promise.all(VIEWS.map(runView)); else for (const v of VIEWS) await runView(v);
 await browser.close();
 fs.writeFileSync(`${out}/check.json`, JSON.stringify({ url, date: new Date().toISOString(), full, errors, warnings, perf, shots }, null, 2));
 for (const [k, p] of Object.entries(perf)) if (p.stages) console.log(`Perf ${k} : ${p.calls} appels/image, ${p.triangles.toLocaleString("fr-FR")} triangles, ${p.kb} Ko, 3D prête en ${p.readyMs} ms (indicatif sans carte graphique)`);
@@ -160,7 +194,10 @@ async function edgeCheck(page, sel) {
   }, sel);
   if (!ok) return { edges: [], overlaps: [] };
   let png;
-  try { png = await page.locator("canvas[data-p3d-check]").screenshot({ timeout: 180000, scale: "css" }); }
+  try {
+    const clip = await page.evaluate(() => { const r = document.querySelector("canvas[data-p3d-check]").getBoundingClientRect(); const x = Math.max(0, r.left), y = Math.max(0, r.top); return { x, y, width: Math.min(innerWidth, r.right) - x, height: Math.min(innerHeight, r.bottom) - y }; });
+    png = await shot(page, { clip });
+  }
   finally { await page.evaluate(() => { document.body.style.visibility = ""; const c = document.querySelector("canvas[data-p3d-check]"); if (c) { c.style.visibility = ""; c.removeAttribute("data-p3d-check"); } }); }
   return page.evaluate(async ([b64, texts]) => {
     const img = new Image(); img.src = "data:image/png;base64," + b64; await img.decode();
@@ -223,6 +260,27 @@ async function edgeCheck(page, sel) {
     }
     return { edges: out, overlaps };
   }, [png.toString("base64"), ok.texts]);
+}
+
+/**
+ * Capture de la fenêtre (ou d'un rectangle de la fenêtre, en px CSS). css : image à l'échelle CSS
+ * (1 px par px CSS, même sur un écran 3×), sinon en pixels réels de l'écran (gros plans des titres).
+ */
+async function shot(page, { path, clip, css = true, type = "png", quality } = {}) {
+  return page.screenshot({ path, clip, type, quality: type === "jpeg" ? quality : undefined, scale: css ? "css" : "device", timeout: 180000 });
+}
+
+/**
+ * Attendre que l'écran soit à jour après un défilement : deux images dessinées, puis la fin des
+ * transitions CSS en cours (légendes de captionSync : 250 + 600 ms), au lieu d'une attente fixe.
+ * Les captures se font en mouvement réduit : la scène suit le défilement sans lissage.
+ */
+async function settle(page) {
+  await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+  await page.evaluate(() => Promise.race([
+    Promise.all(document.getAnimations().map((a) => a.finished.catch(() => {}))),
+    new Promise((r) => setTimeout(r, 1500)),
+  ]));
 }
 
 function perfHtml(perf) {

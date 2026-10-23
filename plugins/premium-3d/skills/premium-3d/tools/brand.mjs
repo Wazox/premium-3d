@@ -7,15 +7,15 @@
 //           et <dossier>/logo.svg ou logo.png quand un logo est trouvé.
 // À relire avant d'utiliser : un site peut avoir des couleurs de bandeau cookies, de widget de chat,
 // ou un logo de partenaire. Les textes récupérés sont ceux du client : les garder, ne rien inventer.
-import { chromium } from "playwright";
 import fs from "node:fs";
+import { launch } from "./browser.mjs";
 
 const url = process.argv[2];
 const out = process.argv[3] || "./brand";
 if (!url) { console.log("Usage : node tools/brand.mjs <url> [dossier]"); process.exit(1); }
 fs.mkdirSync(out, { recursive: true });
 
-const browser = await chromium.launch();
+const browser = await launch("cpu");
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 await page.goto(url, { waitUntil: "networkidle", timeout: 60000 }).catch(() => page.waitForLoadState("load"));
 await page.waitForTimeout(1200);
