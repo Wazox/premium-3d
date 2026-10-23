@@ -112,9 +112,10 @@ const runView = async (v) => {
     await shot(page, { path: `${out}/${file}` });
     const info = await page.evaluate(() => { const st = window.__p3d && window.__p3d.stages; if (!st || !st.length) return null; let calls = 0, triangles = 0, points = 0; st.forEach((s) => { const r = s.renderer.info.render; calls += r.calls; triangles += r.triangles; points += r.points; }); return { calls, triangles, points }; });
     if (info) { pf.calls = Math.max(pf.calls, info.calls); pf.triangles = Math.max(pf.triangles, info.triangles); pf.points = Math.max(pf.points, info.points); }
-    const { edges: cut, overlaps } = await edgeCheck(page, section);
+    const { edges: cut, overlaps, fix } = await edgeCheck(page, section);
     if (cut.length) warnings.push(`[${v.name} ${Math.round(p * 100)} %] la 3D touche le bord ${cut.join(", ")} : objet coupé ? (${file})`);
-    if (overlaps.length) warnings.push(`[${v.name} ${Math.round(p * 100)} %] la 3D passe sous le texte ${overlaps.join(", ")} : recadrer (fitZone) (${file})`);
+    if (overlaps.length) warnings.push(`[${v.name} ${Math.round(p * 100)} %] la 3D passe sous le texte ${overlaps.join(", ")} (${file})`);
+    if (fix) warnings.push(`    réglage conseillé (${v.name}) : ${fix}`);
     shots.push({ view: v.name, p, file, cut });
     await grabTitles();
     log(`[${v.name} ${Math.round(p * 100)} %] ok`);
@@ -276,7 +277,31 @@ async function edgeCheck(page, sel) {
       if (!flagged && start >= 0) close(len - 1);
       if (flagged) out.push(name);
     }
-    return { edges: out, overlaps };
+    /* Réglage conseillé : où est l'objet, où est le texte, et la zone de fitZone qui les sépare.
+       Fractions de l'écran (0 = haut / gauche, 1 = bas / droite), comme les options de fitZone. */
+    let fix = null;
+    if (out.length || overlaps.length) {
+      let bx0 = w, by0 = h, bx1 = 0, by1 = 0;
+      for (let y = 0; y < h; y += 3) for (let x = 0; x < w; x += 3) if (diff(px(x, y))) { if (x < bx0) bx0 = x; if (x > bx1) bx1 = x; if (y < by0) by0 = y; if (y > by1) by1 = y; }
+      const f = (v) => Math.round(v * 100) / 100, pc = (v) => Math.round(v * 100) + " %";
+      const vis = texts.filter((t) => t.x + t.w > 0 && t.x < w && t.y + t.h > 0 && t.y < h);
+      let zone = {}, why = "";
+      if (vis.length) {
+        const tx0 = Math.min(...vis.map((t) => t.x)) / w, tx1 = Math.max(...vis.map((t) => t.x + t.w)) / w;
+        const ty0 = Math.min(...vis.map((t) => t.y)) / h, ty1 = Math.max(...vis.map((t) => t.y + t.h)) / h;
+        why = `texte x ${pc(tx0)}–${pc(tx1)}, y ${pc(ty0)}–${pc(ty1)}`;
+        const room = { left: (1 - tx1) * w, right: tx0 * w, top: ty0 * h, bottom: (1 - ty1) * h }; // place libre (px) de chaque côté du texte
+        const best = Object.entries(room).sort((a, b) => b[1] - a[1])[0][0];
+        if (best === "left") zone = { left: f(tx1 + 0.04) };          // texte à gauche : la 3D à droite
+        else if (best === "right") zone = { right: f(tx0 - 0.04) };   // texte à droite : la 3D à gauche
+        else if (best === "top") zone = { top: 0.06, bottom: f(ty0 - 0.04) }; // texte en bas : la 3D au-dessus
+        else zone = { top: f(ty1 + 0.04), bottom: 0.94 };                  // texte en haut : la 3D en dessous
+      }
+      const obj = bx1 > bx0 ? `objet x ${pc(bx0 / w)}–${pc(bx1 / w)}, y ${pc(by0 / h)}–${pc(by1 / h)}` : "";
+      /* objet coupé : la taille donnée à fitZone est sans doute plus petite que l'objet ; passer l'objet le mesure */
+      fix = `${[obj, why].filter(Boolean).join(" ; ")} → fitZone(camera, ${out.length ? "objet" : "largeur, hauteur"}, ${JSON.stringify(zone).replace(/"/g, "").replace(/,/g, ", ").replace(/:/g, ": ")})`;
+    }
+    return { edges: out, overlaps, fix };
   }, [png.toString("base64"), ok.texts]);
 }
 

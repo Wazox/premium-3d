@@ -149,8 +149,15 @@ export function fitDistance(camera, w, h, opts = 1.25) {
  *     stage.camera.lookAt(0, 0, 0);
  *   });
  * Sans zone (ou zone null), retire le décalage : plein écran.
+ * Le plus sûr : passer l'objet lui-même, mesuré (sphère englobante : reste entier en tournant) :
+ *     fitZone(stage.camera, monObjet, zone)
+ * (à appeler une fois l'objet construit, pas dans la boucle).
  */
 export function fitZone(camera, w, h, zone = null) {
+  if (w && w.isObject3D) { // fitZone(camera, objet, zone)
+    const box = new THREE.Box3().setFromObject(w), r = box.isEmpty() ? 1 : box.getBoundingSphere(new THREE.Sphere()).radius;
+    return fitZone(camera, r * 2, r * 2, h ?? null) + r; // + rayon : l'avant de l'objet est plus près de la caméra
+  }
   const { left = 0, right = 1, top = 0, bottom = 1, margin = 1.1 } = zone || {};
   const t = Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2), zw = Math.max(0.05, right - left), zh = Math.max(0.05, bottom - top);
   /* setViewOffset redéfinit camera.aspect avec les deux premiers nombres : on lui donne le vrai ratio */

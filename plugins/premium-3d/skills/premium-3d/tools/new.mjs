@@ -141,7 +141,7 @@ if (stage) {
   // cadrage : la 3D dans sa zone, le texte dans la sienne, à toutes les tailles
   stage.onResize((w) => {
     const zone = w < 860 ? { top: 0.08, bottom: 0.5 } : { left: 0.45 }; // [À CHOISIR]
-    stage.camera.position.set(0, 0, fitZone(stage.camera, 3, 3, zone)); // 3 × 3 : [À CHOISIR] la taille de l'objet
+    stage.camera.position.set(0, 0, fitZone(stage.camera, root, zone)); // mesure root : l'objet reste entier
     stage.camera.lookAt(0, 0, 0);
   });
 
