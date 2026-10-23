@@ -1,6 +1,6 @@
 ---
 name: premium-3d
-description: Ajoute de la 3D temps réel haut de gamme (verre, métal liquide, néon, particules qui changent de forme, texte en volume, modèles 3D, logo en matière, scènes pilotées par le scroll) à n'importe quel site ou page, pour n'importe quel métier et n'importe quelle stack. Le concept, le design et les textes sont inventés à partir de ce que la personne demande, sans aucun site préfait. Utiliser pour une landing 3D, une section 3D, un logo 3D, un hero animé, ou /premium-3d.
+description: Crée des sites et sections web haut de gamme avec de la 3D temps réel (verre, métal liquide, néon, particules qui changent de forme, texte en volume, modèles 3D, logo en matière, scènes pilotées par le scroll), inventés à partir de la marque, sans modèle préfait, pour n'importe quel métier et n'importe quelle stack (HTML, Symfony, WordPress, React, Next.js, React Three Fiber). Utiliser dès qu'on demande un site premium, une landing page, un hero ou une page d'accueil qui marque, un effet « waouh », une animation au scroll, un site vitrine « style Awwwards », un logo animé, du WebGL ou three.js, ou une vidéo de présentation d'un site, même sans le mot 3D. Aussi en anglais : premium website, landing page, hero section, scroll animation, WebGL, three.js. Ou /premium-3d.
 ---
 
 # Premium 3D
@@ -27,6 +27,7 @@ lib/fx.js          grain, aberration chromatique, vignette, profondeur de champ
 lib/textures.js    matières procédurales sans image : bois, marbre, béton, papier
 lib/story.js       scène en plusieurs actes : acts(), steps() à paliers, captionSync() (légendes sans superposition)
 lib/react.js       hook usePremium3D pour React / Next.js (montage, préchauffage, nettoyage)
+lib/r3f.js         composants React Three Fiber : Studio, Material, Logo3D, Text3D, Particles
 icons/             78 icônes Lucide (licence ISC, dessinées en traits) couvrant la plupart des métiers
 demos/             démos TECHNIQUES (comment appeler le code, pas des modèles de design)
 references/        api.md (toutes les fonctions en une ligne), concepts.md, art-direction.md,

@@ -89,3 +89,13 @@ formes d'un même morphing ont le même `count`.
 ## react.js
 `usePremium3D(async (stage) => (dt, t) => { … }, optionsDeCreateStage)` renvoie une `ref` à poser
 sur le `<canvas>`. Voir `integration.md`.
+
+## React Three Fiber (lib/r3f.js)
+| Composant | Rôle |
+|---|---|
+| `<Studio env accent accent2 front />` | Studio de reflets (ou `env="room"`) comme environnement de la scène. |
+| `<Material kind="glass" {...options} />` | Une matière de `materials` pour le `<mesh>` parent. |
+| `<Logo3D svg size material explode={0..1} onPieces />` | Logo SVG extrudé, éclaté / assemblé. |
+| `<Text3D font text size material splitLetters />` | Texte en volume dans la vraie police. |
+| `<Particles shapes={[() => sampleText(…), …]} value={0..n} />` | Particules qui passent d'une forme à l'autre. |
+Donner un fond à la scène (`<color attach="background" />`), sinon le verre paraît blanc.

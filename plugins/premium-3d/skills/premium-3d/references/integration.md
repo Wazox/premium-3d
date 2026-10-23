@@ -40,11 +40,16 @@ Les modules ES ne se chargent pas en `file://` : tester avec `tools/serve.py`.
 - Créer la scène dans un `useEffect` (React) / `onMounted` (Vue) avec le `ref` du canvas ;
   nettoyer au démontage avec `stage.dispose()`.
 - Next.js : composant client (`"use client"`), import dynamique sans SSR pour la scène.
-- Pas de React Three Fiber nécessaire ; s'il est déjà dans le projet, garder son `<Canvas>` et
-  reprendre de `lib/` ce qui ne dépend pas de `createStage` : `neon()` / `hdr()` (couleurs pour le
-  bloom de `@react-three/postprocessing`, qui trie aussi par luminance), `textures.js`,
-  `shaders.js` (`liquify(material)` dans un `useMemo`), les échantillonnages de `particles.js`,
-  `logoPieces` / `text3d` (géométries à poser dans un `<primitive object={…} />`).
+- Pas de React Three Fiber nécessaire. S'il est déjà dans le projet, garder son `<Canvas>` et
+  utiliser **`lib/r3f.js`** (testé avec @react-three/fiber 9.8, React 19, three 0.186, Vite) :
+  `<Studio accent front />` (reflets du verre et du métal), `<Material kind="glass" tint />` dans un
+  `<mesh>`, `<Logo3D svg explode={k} />`, `<Text3D font text />`, `<Particles shapes value={k} />`.
+  Exemple en tête du fichier. Copier aussi `core.js` et les modules qu'il importe
+  (`logo3d.js`, `text3d.js`, `particles.js`, `shaders.js`).
+  - **Donner un fond à la scène** (`<color attach="background" args={["#…"]} />`) : le verre
+    (transmission) laisse voir ce qui est derrière lui ; sur un canvas transparent il paraît blanc.
+  - Next.js : `core.js` lit la fenêtre dès son chargement : scène en import dynamique `ssr: false`.
+  - Bloom : `@react-three/postprocessing`, avec `neon()` pour les couleurs qui doivent briller.
 - Une page React Three Fiber se vérifie avec `check.mjs` (captures, erreurs, cadrage ; pas de
   compte de triangles, réservé aux scènes `lib/core.js`) et se filme avec `render.mjs` sans rien
   ajouter : il pilote le temps de la page lui-même (`references/tools.md`).
