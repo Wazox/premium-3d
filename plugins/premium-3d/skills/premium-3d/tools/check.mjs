@@ -94,12 +94,15 @@ const runView = async (v) => {
       shots.push({ view: v.name, p: "titre", file: f, title: `${meta.text} · ${meta.font}` }); titleDone.add(t.i);
     }
   };
+  /* les légendes affichées pour un gros plan de titre : remises comme la page les avait laissées,
+     sinon captionSync (qui ne touche le DOM qu'aux changements) en garde deux affichées à la fois */
+  const restoreCaps = () => page.evaluate(() => { const s = window.__p3dCapSaved; if (!s) return; document.querySelectorAll("[data-p3d-cap]").forEach((c, k) => c.classList.toggle("p3d-on", !!s[k])); delete window.__p3dCapSaved; });
   for (const step of steps) {
     const p = step.p;
     if (step.title !== undefined) { // arrêt pour un titre : rendu visible (légende comprise), gros plan
       if (titleDone.has(step.title)) continue;
-      await page.evaluate(([y, i]) => { scrollTo(0, y); const el = document.querySelector(`[data-p3d-title="${i}"]`); document.querySelectorAll("[data-p3d-cap]").forEach((c) => c.classList.toggle("p3d-on", c.contains(el))); }, [step.y, step.title]);
-      await settle(page); await grabTitles(); continue;
+      await page.evaluate(([y, i]) => { scrollTo(0, y); const el = document.querySelector(`[data-p3d-title="${i}"]`); const caps = [...document.querySelectorAll("[data-p3d-cap]")]; window.__p3dCapSaved = caps.map((c) => c.classList.contains("p3d-on")); caps.forEach((c) => c.classList.toggle("p3d-on", c.contains(el))); }, [step.y, step.title]);
+      await settle(page); await grabTitles(); await restoreCaps(); continue;
     }
     if (p === "fin") { // bas de page : infos pratiques, pied de page
       await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight)); await settle(page);
@@ -129,13 +132,14 @@ const runView = async (v) => {
   for (const t of titles.filter((t) => !titleDone.has(t.i))) { // titres jamais passés à l'écran
     const f = `${v.name}-titre-${t.i}.png`;
     try {
-      await page.evaluate((i) => { const el = document.querySelector(`[data-p3d-title="${i}"]`); el.scrollIntoView({ block: "center" }); document.querySelectorAll("[data-p3d-cap]").forEach((c) => c.classList.toggle("p3d-on", c.contains(el))); }, t.i);
+      await page.evaluate((i) => { const el = document.querySelector(`[data-p3d-title="${i}"]`); el.scrollIntoView({ block: "center" }); const caps = [...document.querySelectorAll("[data-p3d-cap]")]; window.__p3dCapSaved = caps.map((c) => c.classList.contains("p3d-on")); caps.forEach((c) => c.classList.toggle("p3d-on", c.contains(el))); }, t.i);
       await settle(page);
       const clip = await page.evaluate((i) => { const r = document.querySelector(`[data-p3d-title="${i}"]`).getBoundingClientRect(); return { x: Math.max(0, r.left), y: Math.max(0, r.top), width: Math.min(innerWidth, r.right) - Math.max(0, r.left), height: Math.min(innerHeight, r.bottom) - Math.max(0, r.top) }; }, t.i);
       if (clip.width < 2 || clip.height < 2) continue;
       await shot(page, { path: `${out}/${f}`, clip, css: false });
       shots.push({ view: v.name, p: "titre", file: f, title: `${t.text} · ${t.font}` });
     } catch (e) {}
+    await restoreCaps().catch(() => {});
   }
   const over = await page.evaluate(() => {
     if (document.documentElement.scrollWidth <= innerWidth + 1) return null;

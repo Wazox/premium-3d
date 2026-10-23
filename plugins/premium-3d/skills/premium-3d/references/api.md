@@ -11,7 +11,7 @@ Les options entre `{ }` sont toutes facultatives (valeur par défaut indiquée).
 | `stage.scene`, `stage.camera`, `stage.renderer` | Objets three.js. Caméra : `fov` 32 par défaut. |
 | `stage.tier` | `"low"` / `"mid"` / `"high"` : dose particules, subdivisions, ombres. |
 | `stage.LOW`, `stage.reduce` | Petit écran ou machine modeste ; `prefers-reduced-motion`. |
-| `stage.onResize((w, h, pr) => …)` | Appelé tout de suite puis à chaque redimensionnement : recadrer ici. |
+| `stage.onResize((w, h, pr) => …)` | Appelé **tout de suite** puis à chaque redimensionnement : recadrer ici. À placer après la déclaration des variables qu'il utilise et la construction des objets (sinon erreur « before initialization »). |
 | `await stage.warm(prepare?, restore?)` | Compile tout avant d'afficher. `prepare()` rend visible ce qui apparaîtra plus tard. |
 | `stage.start((dt, t, real) => …)` | Boucle d'animation (seulement quand la scène est proche de l'écran). `dt`, `t` : temps de l'animation, figés en pause ; `real` : temps réel, pour lisser le scroll (`1 - Math.pow(0.0005, real)`). |
 | `stage.still` | Temps figé (`t` et `dt` ne bougent plus) mais la scène suit toujours le scroll : c'est ce que fait le bouton pause. |
