@@ -1,7 +1,11 @@
 /*
  * premium-3d / models.js
- * Modèles 3D du client (.glb / .gltf, compressés Draco ou non), éclairage studio réaliste et
- * ombres douces au sol.
+ * Modèles 3D du client (.glb / .gltf, compressés Draco, Meshopt ou non, textures KTX2),
+ * éclairage studio réaliste et ombres douces au sol.
+ *
+ * Le plus léger : géométrie Meshopt + textures KTX2, en une commande (voir references/performance.md) :
+ *   npx gltf-transform optimize entree.glb sortie.glb --compress meshopt --texture-compress ktx2
+ * Passer `stage` à loadModel pour lire les textures KTX2 (il faut le renderer).
  *
  *   import { loadModel, studioLights, softGround } from "./lib/models.js";
  *   const model = await loadModel("produit.glb", { size: 3 });   // centré, mis à l'échelle
@@ -12,14 +16,23 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/addons/loaders/DRACOLoader.js";
+import { KTX2Loader } from "three/addons/loaders/KTX2Loader.js";
+import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 
-let loader = null;
-function getLoader() {
-  if (loader) return loader;
-  loader = new GLTFLoader();
-  const draco = new DRACOLoader();
-  draco.setDecoderPath("https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/libs/draco/gltf/");
-  loader.setDRACOLoader(draco);
+const LIBS = "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/libs/";
+let loader = null, ktx2Ready = false;
+function getLoader(renderer) {
+  if (!loader) {
+    loader = new GLTFLoader();
+    const draco = new DRACOLoader();
+    draco.setDecoderPath(LIBS + "draco/gltf/");
+    loader.setDRACOLoader(draco);
+    loader.setMeshoptDecoder(MeshoptDecoder);
+  }
+  if (renderer && !ktx2Ready) { // le transcodeur (~500 Ko) n'est téléchargé que si un modèle a des textures KTX2
+    loader.setKTX2Loader(new KTX2Loader().setTranscoderPath(LIBS + "basis/").detectSupport(renderer));
+    ktx2Ready = true;
+  }
   return loader;
 }
 
@@ -27,8 +40,8 @@ function getLoader() {
  * Charge, centre et met à l'échelle un modèle. `size` = plus grande dimension en unités 3D.
  * userData.bottom = hauteur du dessous du modèle (pour poser un sol), userData.animations = clips.
  */
-export async function loadModel(url, { size = 3, castShadow = true, receiveShadow = true, envIntensity = 1 } = {}) {
-  const gltf = await getLoader().loadAsync(url);
+export async function loadModel(url, { size = 3, castShadow = true, receiveShadow = true, envIntensity = 1, stage = null } = {}) {
+  const gltf = await getLoader(stage && stage.renderer).loadAsync(url);
   const root = gltf.scene;
   const box = new THREE.Box3().setFromObject(root), sz = box.getSize(new THREE.Vector3()), c = box.getCenter(new THREE.Vector3());
   const k = size / Math.max(sz.x, sz.y, sz.z);
@@ -53,7 +66,8 @@ export function studioLights(stage, { shadows = true, key = 2.2, rim = 1.4, fill
   const f = new THREE.HemisphereLight(0xffffff, 0x444444, fill);
   if (shadows) {
     renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    k.castShadow = true; k.shadow.mapSize.set(2048, 2048); k.shadow.radius = radius; k.shadow.bias = -0.0004;
+    const map = { low: 512, mid: 1024, high: 2048 }[stage.tier] || 1024; // ombre : 4 fois moins de pixels par niveau
+    k.castShadow = true; k.shadow.mapSize.set(map, map); k.shadow.radius = radius; k.shadow.bias = -0.0004;
     const s = k.shadow.camera; s.left = -5; s.right = 5; s.top = 5; s.bottom = -5; s.near = 0.5; s.far = 30;
   }
   scene.add(k, r, f);

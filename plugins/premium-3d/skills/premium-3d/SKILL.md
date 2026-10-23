@@ -21,7 +21,7 @@ lib/shaders.js     liquify (surface liquide : métal fondu, gelée, eau), dissol
 lib/particles.js   particules qui prennent la forme d'une photo, d'un logo, d'un texte ou d'un
                    objet 3D, et passent de l'une à l'autre (morphing)
 lib/text3d.js      texte en volume avec la vraie police de la marque (.ttf/.otf/.woff), lettre par lettre
-lib/models.js      modèles .glb/.gltf du client (Draco), lumière studio, ombres douces au sol
+lib/models.js      modèles .glb/.gltf du client (Draco, Meshopt, KTX2), lumière studio, ombres douces au sol
 lib/interact.js    attraper pour tourner (inertie), survol d'objets, lumière qui suit le pointeur, gyroscope
 lib/fx.js          grain, aberration chromatique, vignette, profondeur de champ
 lib/textures.js    matières procédurales sans image : bois, marbre, béton, papier
@@ -30,11 +30,12 @@ lib/react.js       hook usePremium3D pour React / Next.js (montage, préchauffag
 icons/             78 icônes Lucide (licence ISC, dessinées en traits) couvrant la plupart des métiers
 demos/             démos TECHNIQUES (comment appeler le code, pas des modèles de design)
 references/        api.md (toutes les fonctions en une ligne), concepts.md, art-direction.md,
-                   performance.md, integration.md
+                   performance.md, integration.md, tools.md
 tools/brand.mjs    extrait la marque d'un site existant : couleurs, polices, logo, textes (brand.html)
 tools/check.mjs    captures desktop + mobile, erreurs, 3D coupée, performances, rapport report.html (avec le jury)
 tools/record.mjs   vidéo de la page filmée en direct (ordinateur avec écran et carte graphique)
-tools/render.mjs   vidéo calculée image par image, parfaitement fluide, même sans carte graphique
+tools/render.mjs   vidéo calculée image par image, parfaitement fluide, de n'importe quelle page WebGL
+tools/browser.mjs  lanceur commun (carte graphique ou rendu logiciel, cookies) ; options : references/tools.md
 tools/serve.py     serveur local
 licenses/          licences tierces à livrer avec le projet
 ```
@@ -136,7 +137,7 @@ arrondis), ne vectorise pas au pixel.
 
 Comment brancher le socle (la scène elle-même est à écrire pour le projet) :
 ```js
-import { createStage, scrollTrack, materials, cameraPath, fitDistance, ss, hdr, THREE } from "./lib/core.js";
+import { createStage, scrollTrack, materials, cameraPath, fitDistance, ss, hdr, neon, THREE } from "./lib/core.js";
 const stage = createStage(canvas, { background: "#…", accent: "#…", accent2: "#…" }); // null si pas de WebGL
 if (stage) {
   // … construire les objets de la scène avec lib/ et THREE …
@@ -158,6 +159,8 @@ if (stage) {
   C'est la façon la plus simple de garder texte et 3D séparés à toutes les tailles.
 - Dose ce qui coûte cher selon `stage.tier` ("low" / "mid" / "high") : nombre de particules,
   subdivisions, ombres, profondeur de champ. Ex. `{ low: 6000, mid: 12000, high: 20000 }[stage.tier]`.
+- Néons, anneaux, flux lumineux : `neon(couleur)` plutôt que `hdr()` : un rouge ou un bleu brille
+  alors autant qu'un vert (le bloom trie par luminance).
 - Textes : en HTML (accessibles, indexables), jamais uniquement dans la 3D.
 - Animation qui tourne en continu plus de 5 secondes : bouton pause (`motionToggle`), c'est une
   règle d'accessibilité. Il fige le temps, jamais le scroll : le récit reste lisible. Scène plus bas dans la page : `whenNear()`. Fondu d'apparition : classe
@@ -174,44 +177,27 @@ au-dessus du canvas.
 
 ## Étape 6 : vérifier
 
-Copie `tools/check.mjs`, `tools/record.mjs` et `tools/serve.py` du dossier du skill dans un dossier `tools/` du projet
-(Node cherche `playwright` à côté du script ou dans un dossier parent ; si un navigateur Playwright
-est déjà installé ailleurs, `PLAYWRIGHT_BROWSERS_PATH` l'indique), puis, depuis la racine du projet
-(changer le port s'il est pris) :
+Copie `tools/browser.mjs`, `tools/check.mjs` et `tools/serve.py` dans un dossier `tools/` du projet ;
+options et détails de tous les outils : **`references/tools.md`**. Depuis la racine du projet :
 ```bash
-python3 tools/serve.py 5180 &           # sert le dossier courant
-npm i playwright                        # une fois (navigateur : npx playwright install chromium si absent)
-node tools/check.mjs http://127.0.0.1:5180/index.html ./captures --section "#ma-scene"
+python3 tools/serve.py 5180 &           # sert le dossier courant (changer le port s'il est pris)
+npm i playwright                        # une fois
+node tools/check.mjs http://127.0.0.1:5180/index.html ./captures --section "#ma-scene" --points 0,0.5,1
 node tools/check.mjs http://127.0.0.1:5180/index.html ./captures-full --section "#ma-scene" --full
 ```
-Le script affiche sa progression. Pour itérer vite : `--points 0,0.5,1` et `--views mobile` (ou
-`desktop`) ; pour conclure : la liste de points par défaut, les deux vues et `--full`. Sans carte
-graphique, la page se croirait sur une machine faible : le script force le niveau d'un vrai appareil
-(ordinateur « high », mobile « mid ») pour que tu juges ce que verra le visiteur (`--tier auto` pour
-ne rien forcer). Avec `--section`, une capture « fin de page » est ajoutée, et le rapport montre les
-titres en gros plan (vérifie les accents du nom). Sans `--full`, les captures sont faites sans post-traitement (rapide) ; avec, on voit le rendu final
-(bloom, grain…), à utiliser pour le jury. Les halos de bloom (chrome qui bave, surtout sur mobile)
-**n'apparaissent qu'avec `--full`** : passe-le au moins une fois avant de conclure. Sans carte graphique, chaque capture peut prendre du temps.
-Expose `window.__demo = { get ready() { return stage.ready; } }` pour que le script attende la 3D.
-Le script signale aussi « À VÉRIFIER » quand la 3D touche un bord de l'écran (objet sans doute
-coupé) ou passe sous un texte visible (titre, paragraphe, bouton) : regarde la capture indiquée,
-recadre avec `fitZone` si c'est une erreur. La capture mobile
-simule un vrai téléphone (écran 3×, tactile).
-Le rapport donne aussi les **performances** (appels de dessin, triangles, particules, poids
-téléchargé, LCP, CLS) avec un budget : chaque dépassement est listé dans « À VÉRIFIER » avec la piste
-de correction. Regarde **chaque** capture (desktop et 390×844) :
-- le **premier écran, avant tout scroll**, est déjà beau et plein : la scène ne commence pas
-  par un objet minuscule ou un vide (c'est ce que tout visiteur voit, même s'il ne scrolle pas) ;
-- les arêtes et reflets fins sont nets, sans scintillement ni crénelage (sinon : vérifier
-  `stage.pixelRatio`, qui doit valoir 1 ou plus sur un ordinateur correct) ;
-- la 3D est entière et cadrée à chaque point du scroll, rien n'est coupé (y compris les pièces qui
-  arrivent ou s'écartent) ;
-- le métal et le chrome ont des reflets lisibles : ni faces noires, ni taches blanches qui bavent
-  (réglages dans `references/art-direction.md`) ;
-- sur fond clair, les particules sont denses et bien lisibles, pas un voile pâle ;
-- aucun texte n'est recouvert ; contraste suffisant ;
-- pas de face noire (normales inversées) ni de pièce qui traverse une autre ;
-- la console est propre ; pas de débordement horizontal.
+Itère avec peu de points ; conclus avec les points par défaut, les deux vues et `--full` (seul à
+montrer le bloom et ses halos). La page expose `window.__demo = { get ready() { return stage.ready; } }`.
+Lis « À VÉRIFIER » (3D coupée ou sous un texte, budget dépassé, fluidité) et regarde **chaque**
+capture (desktop et 390×844) :
+- le **premier écran, avant tout scroll**, est déjà beau et plein (pas d'objet minuscule ni de vide) ;
+- arêtes et reflets nets, sans crénelage (sinon : `stage.pixelRatio` doit valoir 1 ou plus sur ordinateur) ;
+- la 3D est entière et cadrée à chaque point, y compris les pièces qui arrivent ou s'écartent ;
+- métal et chrome lisibles : ni faces noires, ni taches blanches qui bavent (`references/art-direction.md`) ;
+- un objet fin vu par la tranche disparaît : donne-lui de l'épaisseur ou tourne-le vers la caméra ;
+- sur fond clair, particules denses et lisibles, pas un voile pâle ;
+- aucun texte recouvert, contraste suffisant, titres sans caractère manquant (gros plans du rapport) ;
+- pas de face noire (normales inversées) ni de pièce qui en traverse une autre ;
+- console propre, pas de débordement horizontal.
 Corrige et recommence jusqu'à ce que tout soit propre.
 
 ## Étape 7 : le jury
@@ -243,18 +229,11 @@ capture (ce qui gêne, où, pourquoi) avant de noter, puis corrige.
 
 ## Étape 8 : livrer
 
-Si la personne veut présenter son site (réseaux sociaux, client, portfolio), propose la vidéo :
-```bash
-node tools/record.mjs http://127.0.0.1:5180/index.html video.mp4 --section "#ma-scene" --duration 12
-```
-Une vraie fenêtre Chrome s'ouvre (carte graphique utilisée, vidéo fluide), défile doucement et
-produit un .mp4 1920×1080. `--pause 0.35,0.7` marque une pause sur les moments forts. Il faut un
-écran et une carte graphique. Sans écran (serveur, cloud), ou pour une vidéo sans aucune saccade,
-utilise `tools/render.mjs` : il calcule chaque image (stage.step) puis assemble le .mp4 avec ffmpeg
-(compter 1 à 3 s de calcul par image sans carte graphique) :
+Si la personne veut présenter son site (réseaux sociaux, client, portfolio), propose la vidéo
+(`references/tools.md`) : `tools/record.mjs` la filme en direct (écran et carte graphique),
+`tools/render.mjs` la calcule image par image, sans aucune saccade, partout (`--mobile` : 1080×1920) :
 ```bash
 node tools/render.mjs http://127.0.0.1:5180/index.html video.mp4 --section "#ma-scene" --pause 0.33,0.66
-node tools/render.mjs http://127.0.0.1:5180/index.html reel.mp4 --section "#ma-scene" --mobile   # 1080×1920
 ```
 
 Donne les fichiers, explique en deux lignes ce que fait la 3D, liste les éléments à remplacer

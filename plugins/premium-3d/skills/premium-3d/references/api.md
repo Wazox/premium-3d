@@ -31,6 +31,7 @@ Les options entre `{ }` sont toutes facultatives (valeur par défaut indiquée).
 | `materials.enamel({ color })`, `materials.soft({ color, rough })` | Émail laqué, matière mate. |
 | `ss(a, b, x)`, `clamp01`, `easeBack(x, c1)`, `easeInOutCubic` | Courbes : `ss` = transition douce entre a et b. |
 | `hdr(hex, k)` | Couleur > 1 qui brille au bloom (néons, anneaux). |
+| `neon(hex, glow = 1.6)` | Comme `hdr`, mais même éclat pour toutes les teintes (un rouge ou un bleu brille autant qu'un vert). À préférer pour les néons. |
 | `rgba(hex, a)`, `THREE` | Couleur pour canvas 2D ; three.js réexporté. |
 | `studioEnvironment`, `roomEnvironment`, `tier()`, `LITE`, `LOW`, `reduceMotion` | Utilisés par `createStage`, rarement directement. |
 
@@ -70,7 +71,7 @@ formes d'un même morphing ont le même `count`.
 | `photoFrame(src, { w, h, frame })` | Photo dans un cadre (verre, métal). |
 | `pedestal({ radius, material, ring })`, `glowRing(r, color)` | Socle, anneau lumineux. |
 | `dust({ count, area, color })` (`.update(dt)`), `aurora({ colorA, colorB, base })` (`.update(t, p)`) | Poussière lumineuse, fond animé. |
-| `await loadModel(url, { size })` | Modèle .glb/.gltf centré ; `userData.bottom` pour poser un sol. |
+| `await loadModel(url, { size, stage })` | Modèle .glb/.gltf (Draco, Meshopt, textures KTX2 si `stage`) centré ; `userData.bottom` pour poser un sol. |
 | `studioLights(stage, { shadows })`, `softGround({ y, opacity, glow })` | Lumière trois points, sol qui ne montre que l'ombre. |
 | `woodMaterial`, `marbleMaterial`, `concreteMaterial`, `paperMaterial` (`{ scale, … }`) | Matières procédurales, sans image. |
 

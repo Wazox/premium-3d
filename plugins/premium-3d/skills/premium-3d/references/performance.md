@@ -39,8 +39,19 @@ déjà l'essentiel ; ce fichier dit ce qu'il fait et ce qu'il ne faut pas casser
 - Ne modifie une classe CSS que si l'état change : `classToggle()` (lib/story.js) le fait pour toi.
 - Pas de `backdrop-filter` sur des éléments posés au-dessus du canvas.
 - Photos : 1600 px de large maximum, JPEG ou WebP.
+- Modèles 3D du client : toujours les passer dans gltf-transform avant de les mettre en ligne
+  (souvent 5 à 10 fois plus légers), puis `loadModel(url, { stage })` (stage : pour lire le KTX2) :
+  `npx gltf-transform optimize entree.glb sortie.glb --compress meshopt --texture-compress ktx2 --texture-size 2048`
+  Sans `stage` ou avec Draco, ça marche aussi ; Meshopt se décode plus vite que Draco.
+- Particules, ombres, subdivisions : dosées par `stage.tier` (`{ low: 6000, mid: 12000, high: 20000 }[stage.tier]`).
+  `studioLights` le fait déjà pour la taille de l'ombre (512 / 1024 / 2048).
 - Une scène par page de préférence ; deux maximum, sur la même boucle.
 
 ## Vérifier
+`tools/check.mjs` sur un PC avec carte graphique (ou `--gpu`) mesure la fluidité réelle : 3 s de
+défilement dans la section, images/s et image la plus lente sur 20 (« Performances » dans report.html).
+Bon : 55 images/s ou plus, aucune image au-delà de 33 ms. En rendu logiciel (serveur, cloud) ce
+chiffre ne dirait rien : il n'est pas mesuré.
+
 Dans Chrome (onglet Performance), enregistre un scroll jusqu'à la scène et à travers elle :
 aucune tâche longue (> 50 ms) et aucun « Compile shader » pendant le scroll.

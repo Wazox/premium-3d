@@ -40,5 +40,11 @@ Les modules ES ne se chargent pas en `file://` : tester avec `tools/serve.py`.
 - Créer la scène dans un `useEffect` (React) / `onMounted` (Vue) avec le `ref` du canvas ;
   nettoyer au démontage avec `stage.dispose()`.
 - Next.js : composant client (`"use client"`), import dynamique sans SSR pour la scène.
-- Pas de React Three Fiber nécessaire ; s'il est déjà dans le projet, les matériaux et les
-  géométries de `lib/` restent réutilisables.
+- Pas de React Three Fiber nécessaire ; s'il est déjà dans le projet, garder son `<Canvas>` et
+  reprendre de `lib/` ce qui ne dépend pas de `createStage` : `neon()` / `hdr()` (couleurs pour le
+  bloom de `@react-three/postprocessing`, qui trie aussi par luminance), `textures.js`,
+  `shaders.js` (`liquify(material)` dans un `useMemo`), les échantillonnages de `particles.js`,
+  `logoPieces` / `text3d` (géométries à poser dans un `<primitive object={…} />`).
+- Une page React Three Fiber se vérifie avec `check.mjs` (captures, erreurs, cadrage ; pas de
+  compte de triangles, réservé aux scènes `lib/core.js`) et se filme avec `render.mjs` sans rien
+  ajouter : il pilote le temps de la page lui-même (`references/tools.md`).
