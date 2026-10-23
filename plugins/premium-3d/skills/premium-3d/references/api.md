@@ -72,6 +72,7 @@ formes d'un même morphing ont le même `count`.
 | `pedestal({ radius, material, ring })`, `glowRing(r, color)` | Socle, anneau lumineux. |
 | `dust({ count, area, color })` (`.update(dt)`), `aurora({ colorA, colorB, base })` (`.update(t, p)`) | Poussière lumineuse, fond animé. |
 | `await loadModel(url, { size, stage })` | Modèle .glb/.gltf (Draco, Meshopt, textures KTX2 si `stage`) centré ; `userData.bottom` pour poser un sol. |
+| `await loadSplat(stage, url, { size, rotate })` | Scan 3D (.spz, .ply, .splat, .sog) centré et mis à l'échelle, rendu par Spark (importmap `@sparkjsdev/spark`). Viser 5 à 15 Mo en .spz ; `bloom: false` sur un scan. |
 | `studioLights(stage, { shadows })`, `softGround({ y, opacity, glow })` | Lumière trois points, sol qui ne montre que l'ombre. |
 | `woodMaterial`, `marbleMaterial`, `concreteMaterial`, `paperMaterial` (`{ scale, … }`) | Matières procédurales, sans image. |
 

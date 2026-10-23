@@ -10,6 +10,10 @@ qu'elles prennent la couleur du texte, intègre le SVG dans la page, ou utilise 
 .ico{width:20px;height:20px;background:currentColor;-webkit-mask:url(icons/phone.svg) center/contain no-repeat;mask:url(icons/phone.svg) center/contain no-repeat}
 ```
 
+## Scans 3D (lib/splat.js)
+Ajouter Spark à l'importmap : `"@sparkjsdev/spark": "https://cdn.jsdelivr.net/npm/@sparkjsdev/spark@2.4.0/dist/spark.module.js"`
+(ou `npm i @sparkjsdev/spark`). Licence MIT (World Labs) : livrer `licenses/Spark-MIT.txt`.
+
 ## HTML statique
 Copier `lib/` (seulement les fichiers utilisés), les icônes utilisées et `licenses/`. Dans la page :
 ```html

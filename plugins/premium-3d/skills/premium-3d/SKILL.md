@@ -22,6 +22,7 @@ lib/particles.js   particules qui prennent la forme d'une photo, d'un logo, d'un
                    objet 3D, et passent de l'une à l'autre (morphing)
 lib/text3d.js      texte en volume avec la vraie police de la marque (.ttf/.otf/.woff), lettre par lettre
 lib/models.js      modèles .glb/.gltf du client (Draco, Meshopt, KTX2), lumière studio, ombres douces au sol
+lib/splat.js       scans 3D réels (Gaussian splatting .spz/.ply) : le vrai lieu ou produit, filmé au téléphone
 lib/interact.js    attraper pour tourner (inertie), survol d'objets, lumière qui suit le pointeur, gyroscope
 lib/fx.js          grain, aberration chromatique, vignette, profondeur de champ
 lib/textures.js    matières procédurales sans image : bois, marbre, béton, papier
