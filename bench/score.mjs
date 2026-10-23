@@ -46,7 +46,7 @@ for (const id of fs.readdirSync(dir).filter((d) => fs.existsSync(path.join(dir, 
     calls: d.calls ?? null, trianglesK: d.triangles != null ? Math.round(d.triangles / 1000) : null, kb: d.kb ?? null,
     readyMs: d.readyMs ?? null, lcpMs: m.lcpMs ?? d.lcpMs ?? null, cls: Math.max(d.cls || 0, m.cls || 0),
     jury: jury ? Math.round((JURY.reduce((a, k) => a + (+jury[k] || 0), 0) / JURY.length) * 10) / 10 : null,
-    juryDetail: jury, minutes: meta.minutes ?? null, tokensK: meta.tokens ? Math.round(meta.tokens / 1000) : null,
+    juryDetail: jury, minutes: meta.minutes_mesurees ?? meta.minutes ?? null, tokensK: meta.tokens ? Math.round(meta.tokens / 1000) : null,
     concept: meta.concept || "", detail: { errors: c.errors, warnings: warn },
   });
 }

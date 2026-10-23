@@ -18,6 +18,9 @@ le skill seul. Prompt, à l'identique (remplacer `<…>`) :
 > Pour finir, écris `meta.json` : `{ "section": "#id de la section 3D", "concept": "en une phrase",
 > "minutes": durée }`. Ne fais aucun commit.
 
+À la fin de chaque agent, ajouter à son `meta.json` les chiffres mesurés de la notification :
+`"tokens"` et `"minutes_mesurees"` (durée réelle, prioritaire sur l'estimation de l'agent).
+
 ## 2. Contrôler
 ```bash
 python3 plugins/premium-3d/skills/premium-3d/tools/serve.py 5180 &
