@@ -25,7 +25,7 @@ Le but : que le résultat ressemble à la marque de la personne, pas à un « si
 | Tech, précis | Space Grotesk, Sora, Manrope | Inter, IBM Plex Sans |
 | Artisan, solide | Archivo, Barlow Condensed, Oswald | Inter, Source Sans 3 |
 | Food, chaleureux | Fraunces, DM Serif Display, Playfair Display | Inter, DM Sans |
-| Luxe, mode | Cormorant Garamond, Bodoni Moda, Italiana | Jost, Montserrat |
+| Luxe, mode | Cormorant Garamond (accent du « è » mal placé en grand : tester le nom), Bodoni Moda, Italiana | Jost, Montserrat |
 | Santé, doux | Nunito, Lexend, Outfit | Nunito Sans, Lexend |
 | Sport, énergie | Anton, Bebas Neue, Archivo Black | Barlow, Inter |
 | Enfance, ludique | Fredoka, Baloo 2, Quicksand | Nunito |
