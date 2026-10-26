@@ -115,6 +115,21 @@ const runView = async (v) => {
     await shot(page, { path: `${out}/${file}` });
     const info = await page.evaluate(() => { const st = window.__p3d && window.__p3d.stages; if (!st || !st.length) return null; let calls = 0, triangles = 0, points = 0; st.forEach((s) => { const r = s.renderer.info.render; calls += r.calls; triangles += r.triangles; points += r.points; }); return { calls, triangles, points }; });
     if (info) { pf.calls = Math.max(pf.calls, info.calls); pf.triangles = Math.max(pf.triangles, info.triangles); pf.points = Math.max(pf.points, info.points); }
+    /* textes visibles posés les uns sur les autres (deux légendes à la fois, titre sur un paragraphe) */
+    const stacked = await page.evaluate(() => {
+      const op = (el) => { let o = 1; for (let e = el; e && e !== document.body; e = e.parentElement) { const st = getComputedStyle(e); if (st.visibility === "hidden" || st.display === "none") return 0; o *= +st.opacity; } return o; };
+      const els = [...document.querySelectorAll("h1,h2,h3,p,li")].filter((el) => el.textContent.trim() && op(el) > 0.35).map((el) => ({ el, r: el.getBoundingClientRect() }))
+        .filter(({ r }) => r.width > 4 && r.height > 4 && r.bottom > 0 && r.top < innerHeight);
+      const hits = [];
+      for (let i = 0; i < els.length; i++) for (let j = i + 1; j < els.length; j++) {
+        const a = els[i], b = els[j];
+        if (a.el.contains(b.el) || b.el.contains(a.el)) continue;
+        const w = Math.min(a.r.right, b.r.right) - Math.max(a.r.left, b.r.left), h = Math.min(a.r.bottom, b.r.bottom) - Math.max(a.r.top, b.r.top);
+        if (w > 0 && h > 0 && w * h > 0.3 * Math.min(a.r.width * a.r.height, b.r.width * b.r.height)) hits.push(`« ${a.el.textContent.trim().slice(0, 30)} » / « ${b.el.textContent.trim().slice(0, 30)} »`);
+      }
+      return hits.slice(0, 3);
+    });
+    if (stacked.length) warnings.push(`[${v.name} ${Math.round(p * 100)} %] textes superposés ${stacked.join(", ")} : deux légendes visibles à la fois ? (captionSync : une seule p3d-on)`);
     const { edges: cut, overlaps, fix } = await edgeCheck(page, section);
     if (cut.length) warnings.push(`[${v.name} ${Math.round(p * 100)} %] la 3D touche le bord ${cut.join(", ")} : objet coupé ? (${file})`);
     if (overlaps.length) warnings.push(`[${v.name} ${Math.round(p * 100)} %] la 3D passe sous le texte ${overlaps.join(", ")} (${file})`);

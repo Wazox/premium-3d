@@ -24,6 +24,17 @@
 **Mesurer**
 - `bench/` : banc d'essai. 5 demandes fixes, des agents à l'aveugle construisent les sites,
   `bench/score.mjs` contrôle et compare les versions, un agent juge note les captures.
+  Premier passage (`bench/runs/1.9.0/RESULTS.md`) : 0 erreur, 0,4 alerte et 6,1/10 au jury en
+  moyenne, 22 min et 208 k tokens par site. C'est la référence des versions suivantes.
+
+**Corrigé grâce au banc d'essai**
+- `check.mjs` : les légendes affichées pour un gros plan de titre sont remises comme la page les
+  avait laissées (deux légendes se superposaient) ; nouvelle alerte « textes superposés » ;
+  « débordement horizontal » nomme les éléments fautifs.
+- `neon()` garde la teinte exacte à l'écran (un vert virait au cyan).
+- Doc : un matériau par face = un appel de dessin par face ; `onResize` appelé tout de suite ;
+  `fitZone` et particules ; verre et liquide opaque ; verre teinté ; néon qui blanchit au bloom ;
+  accent du « è » de Cormorant Garamond.
 
 ## 1.8.0
 
