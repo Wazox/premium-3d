@@ -71,6 +71,12 @@ la mise au point d'un objet à l'autre au scroll, léger grain. Briques : `addDe
 lumière suit le pointeur, un élément s'allume au survol, le téléphone incliné fait bouger la scène.
 Briques : `dragRotate`, `pointerLight`, `hoverPick`, `tilt`.
 
+**Le vrai lieu, scanné.** Le client filme son atelier, sa boutique, sa salle, un plat ou un produit
+avec une application de scan (Scaniverse, Polycam, Luma) : le site montre le vrai endroit en 3D, pas
+une imitation ; la caméra y entre au scroll. Pour tout métier dont le lieu ou l'objet est la preuve
+(restaurant, artisan, salon, immobilier, hôtel). Demander le fichier .spz au client, ne jamais en
+inventer un. Brique : `loadSplat`.
+
 **À inventer.** Toute autre idée qui colle au métier : un objet emblématique du secteur extrudé
 depuis une icône, un plan du lieu en relief, une typographie en volume, etc.
 

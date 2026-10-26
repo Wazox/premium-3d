@@ -11,7 +11,7 @@ Les options entre `{ }` sont toutes facultatives (valeur par défaut indiquée).
 | `stage.scene`, `stage.camera`, `stage.renderer` | Objets three.js. Caméra : `fov` 32 par défaut. |
 | `stage.tier` | `"low"` / `"mid"` / `"high"` : dose particules, subdivisions, ombres. |
 | `stage.LOW`, `stage.reduce` | Petit écran ou machine modeste ; `prefers-reduced-motion`. |
-| `stage.onResize((w, h, pr) => …)` | Appelé tout de suite puis à chaque redimensionnement : recadrer ici. |
+| `stage.onResize((w, h, pr) => …)` | Appelé **tout de suite** puis à chaque redimensionnement : recadrer ici. À placer après la déclaration des variables qu'il utilise et la construction des objets (sinon erreur « before initialization »). |
 | `await stage.warm(prepare?, restore?)` | Compile tout avant d'afficher. `prepare()` rend visible ce qui apparaîtra plus tard. |
 | `stage.start((dt, t, real) => …)` | Boucle d'animation (seulement quand la scène est proche de l'écran). `dt`, `t` : temps de l'animation, figés en pause ; `real` : temps réel, pour lisser le scroll (`1 - Math.pow(0.0005, real)`). |
 | `stage.still` | Temps figé (`t` et `dt` ne bougent plus) mais la scène suit toujours le scroll : c'est ce que fait le bouton pause. |
@@ -20,7 +20,7 @@ Les options entre `{ }` sont toutes facultatives (valeur par défaut indiquée).
 | `?tier=high` dans l'URL | Force le niveau d'appareil (tests, captures). `?lite` : sans bloom. |
 | `createStage(…, { poster: "img/p.jpg" })` ou `{ poster: { desktop, mobile } }` | Image de secours sur un calque derrière le canvas (le fond du conteneur reste intact), retirée en fondu quand la 3D est prête. |
 | `scrollTrack(section)` | `.progress()` 0→1 dans une section haute (enfant `position: sticky`), `.goto(p)`. |
-| `fitZone(camera, w, h, { left, right, top, bottom, margin })` | **Cadrage à côté du texte** : renvoie la distance de caméra et place l'objet (resté à l'origine) dans cette zone de l'écran (fractions 0 → 1). La perspective reste de face, le sol reste sous la caméra. `fitZone(camera, w, h)` sans zone = plein écran. |
+| `fitZone(camera, w, h, { left, right, top, bottom, margin })` | **Cadrage à côté du texte** : renvoie la distance de caméra et place l'objet (resté à l'origine) dans cette zone de l'écran (fractions 0 → 1). La perspective reste de face, le sol reste sous la caméra. `fitZone(camera, w, h)` sans zone = plein écran. **`fitZone(camera, objet, zone)`** mesure l'objet (sphère englobante) : à préférer, il ne peut pas être coupé. Sauf pour des particules (`particleMorph`) : elles changent de forme, donner la largeur et la hauteur de la plus grande. Caméra en plongée : mesurer avec la caméra de face, puis la lever. |
 | `fitDistance(camera, w, h, margin \| { x, y, margin })` | Distance pour qu'un objet w × h tienne à l'écran ; `x`/`y` si on préfère déplacer l'objet soi-même. |
 | `cameraPath([[p, [x,y,z], [cible]], …])` | Trajet de caméra par plans clés : `path(P, outPos, outTarget)`. |
 | `whenNear(el, fn)` | Lance `fn` quand l'élément approche (scène plus bas dans la page). |
@@ -72,6 +72,7 @@ formes d'un même morphing ont le même `count`.
 | `pedestal({ radius, material, ring })`, `glowRing(r, color)` | Socle, anneau lumineux. |
 | `dust({ count, area, color })` (`.update(dt)`), `aurora({ colorA, colorB, base })` (`.update(t, p)`) | Poussière lumineuse, fond animé. |
 | `await loadModel(url, { size, stage })` | Modèle .glb/.gltf (Draco, Meshopt, textures KTX2 si `stage`) centré ; `userData.bottom` pour poser un sol. |
+| `await loadSplat(stage, url, { size, rotate })` | Scan 3D (.spz, .ply, .splat, .sog) centré et mis à l'échelle, rendu par Spark (importmap `@sparkjsdev/spark`). Viser 5 à 15 Mo en .spz ; `bloom: false` sur un scan. |
 | `studioLights(stage, { shadows })`, `softGround({ y, opacity, glow })` | Lumière trois points, sol qui ne montre que l'ombre. |
 | `woodMaterial`, `marbleMaterial`, `concreteMaterial`, `paperMaterial` (`{ scale, … }`) | Matières procédurales, sans image. |
 
@@ -89,3 +90,13 @@ formes d'un même morphing ont le même `count`.
 ## react.js
 `usePremium3D(async (stage) => (dt, t) => { … }, optionsDeCreateStage)` renvoie une `ref` à poser
 sur le `<canvas>`. Voir `integration.md`.
+
+## React Three Fiber (lib/r3f.js)
+| Composant | Rôle |
+|---|---|
+| `<Studio env accent accent2 front />` | Studio de reflets (ou `env="room"`) comme environnement de la scène. |
+| `<Material kind="glass" {...options} />` | Une matière de `materials` pour le `<mesh>` parent. |
+| `<Logo3D svg size material explode={0..1} onPieces />` | Logo SVG extrudé, éclaté / assemblé. |
+| `<Text3D font text size material splitLetters />` | Texte en volume dans la vraie police. |
+| `<Particles shapes={[() => sampleText(…), …]} value={0..n} />` | Particules qui passent d'une forme à l'autre. |
+Donner un fond à la scène (`<color attach="background" />`), sinon le verre paraît blanc.

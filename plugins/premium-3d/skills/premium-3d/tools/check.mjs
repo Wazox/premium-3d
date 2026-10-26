@@ -94,12 +94,15 @@ const runView = async (v) => {
       shots.push({ view: v.name, p: "titre", file: f, title: `${meta.text} · ${meta.font}` }); titleDone.add(t.i);
     }
   };
+  /* les légendes affichées pour un gros plan de titre : remises comme la page les avait laissées,
+     sinon captionSync (qui ne touche le DOM qu'aux changements) en garde deux affichées à la fois */
+  const restoreCaps = () => page.evaluate(() => { const s = window.__p3dCapSaved; if (!s) return; document.querySelectorAll("[data-p3d-cap]").forEach((c, k) => c.classList.toggle("p3d-on", !!s[k])); delete window.__p3dCapSaved; });
   for (const step of steps) {
     const p = step.p;
     if (step.title !== undefined) { // arrêt pour un titre : rendu visible (légende comprise), gros plan
       if (titleDone.has(step.title)) continue;
-      await page.evaluate(([y, i]) => { scrollTo(0, y); const el = document.querySelector(`[data-p3d-title="${i}"]`); document.querySelectorAll("[data-p3d-cap]").forEach((c) => c.classList.toggle("p3d-on", c.contains(el))); }, [step.y, step.title]);
-      await settle(page); await grabTitles(); continue;
+      await page.evaluate(([y, i]) => { scrollTo(0, y); const el = document.querySelector(`[data-p3d-title="${i}"]`); const caps = [...document.querySelectorAll("[data-p3d-cap]")]; window.__p3dCapSaved = caps.map((c) => c.classList.contains("p3d-on")); caps.forEach((c) => c.classList.toggle("p3d-on", c.contains(el))); }, [step.y, step.title]);
+      await settle(page); await grabTitles(); await restoreCaps(); continue;
     }
     if (p === "fin") { // bas de page : infos pratiques, pied de page
       await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight)); await settle(page);
@@ -112,9 +115,25 @@ const runView = async (v) => {
     await shot(page, { path: `${out}/${file}` });
     const info = await page.evaluate(() => { const st = window.__p3d && window.__p3d.stages; if (!st || !st.length) return null; let calls = 0, triangles = 0, points = 0; st.forEach((s) => { const r = s.renderer.info.render; calls += r.calls; triangles += r.triangles; points += r.points; }); return { calls, triangles, points }; });
     if (info) { pf.calls = Math.max(pf.calls, info.calls); pf.triangles = Math.max(pf.triangles, info.triangles); pf.points = Math.max(pf.points, info.points); }
-    const { edges: cut, overlaps } = await edgeCheck(page, section);
+    /* textes visibles posés les uns sur les autres (deux légendes à la fois, titre sur un paragraphe) */
+    const stacked = await page.evaluate(() => {
+      const op = (el) => { let o = 1; for (let e = el; e && e !== document.body; e = e.parentElement) { const st = getComputedStyle(e); if (st.visibility === "hidden" || st.display === "none") return 0; o *= +st.opacity; } return o; };
+      const els = [...document.querySelectorAll("h1,h2,h3,p,li")].filter((el) => el.textContent.trim() && op(el) > 0.35).map((el) => ({ el, r: el.getBoundingClientRect() }))
+        .filter(({ r }) => r.width > 4 && r.height > 4 && r.bottom > 0 && r.top < innerHeight);
+      const hits = [];
+      for (let i = 0; i < els.length; i++) for (let j = i + 1; j < els.length; j++) {
+        const a = els[i], b = els[j];
+        if (a.el.contains(b.el) || b.el.contains(a.el)) continue;
+        const w = Math.min(a.r.right, b.r.right) - Math.max(a.r.left, b.r.left), h = Math.min(a.r.bottom, b.r.bottom) - Math.max(a.r.top, b.r.top);
+        if (w > 0 && h > 0 && w * h > 0.3 * Math.min(a.r.width * a.r.height, b.r.width * b.r.height)) hits.push(`« ${a.el.textContent.trim().slice(0, 30)} » / « ${b.el.textContent.trim().slice(0, 30)} »`);
+      }
+      return hits.slice(0, 3);
+    });
+    if (stacked.length) warnings.push(`[${v.name} ${Math.round(p * 100)} %] textes superposés ${stacked.join(", ")} : deux légendes visibles à la fois ? (captionSync : une seule p3d-on)`);
+    const { edges: cut, overlaps, fix } = await edgeCheck(page, section);
     if (cut.length) warnings.push(`[${v.name} ${Math.round(p * 100)} %] la 3D touche le bord ${cut.join(", ")} : objet coupé ? (${file})`);
-    if (overlaps.length) warnings.push(`[${v.name} ${Math.round(p * 100)} %] la 3D passe sous le texte ${overlaps.join(", ")} : recadrer (fitZone) (${file})`);
+    if (overlaps.length) warnings.push(`[${v.name} ${Math.round(p * 100)} %] la 3D passe sous le texte ${overlaps.join(", ")} (${file})`);
+    if (fix) warnings.push(`    réglage conseillé (${v.name}) : ${fix}`);
     shots.push({ view: v.name, p, file, cut });
     await grabTitles();
     log(`[${v.name} ${Math.round(p * 100)} %] ok`);
@@ -128,15 +147,23 @@ const runView = async (v) => {
   for (const t of titles.filter((t) => !titleDone.has(t.i))) { // titres jamais passés à l'écran
     const f = `${v.name}-titre-${t.i}.png`;
     try {
-      await page.evaluate((i) => { const el = document.querySelector(`[data-p3d-title="${i}"]`); el.scrollIntoView({ block: "center" }); document.querySelectorAll("[data-p3d-cap]").forEach((c) => c.classList.toggle("p3d-on", c.contains(el))); }, t.i);
+      await page.evaluate((i) => { const el = document.querySelector(`[data-p3d-title="${i}"]`); el.scrollIntoView({ block: "center" }); const caps = [...document.querySelectorAll("[data-p3d-cap]")]; window.__p3dCapSaved = caps.map((c) => c.classList.contains("p3d-on")); caps.forEach((c) => c.classList.toggle("p3d-on", c.contains(el))); }, t.i);
       await settle(page);
       const clip = await page.evaluate((i) => { const r = document.querySelector(`[data-p3d-title="${i}"]`).getBoundingClientRect(); return { x: Math.max(0, r.left), y: Math.max(0, r.top), width: Math.min(innerWidth, r.right) - Math.max(0, r.left), height: Math.min(innerHeight, r.bottom) - Math.max(0, r.top) }; }, t.i);
       if (clip.width < 2 || clip.height < 2) continue;
       await shot(page, { path: `${out}/${f}`, clip, css: false });
       shots.push({ view: v.name, p: "titre", file: f, title: `${t.text} · ${t.font}` });
     } catch (e) {}
+    await restoreCaps().catch(() => {});
   }
-  if (await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)) errors.push(`[${v.name}] débordement horizontal`);
+  const over = await page.evaluate(() => {
+    if (document.documentElement.scrollWidth <= innerWidth + 1) return null;
+    /* les éléments qui dépassent à droite, les plus hauts dans l'arbre (pas leurs enfants) */
+    const name = (el) => el.tagName.toLowerCase() + (el.id ? "#" + el.id : "") + (el.classList.length ? "." + [...el.classList].slice(0, 2).join(".") : "") + (el.type ? `[type=${el.type}]` : "");
+    const out = [...document.body.querySelectorAll("*")].filter((el) => { const r = el.getBoundingClientRect(); return r.width && r.right > innerWidth + 1 && getComputedStyle(el).position !== "fixed"; });
+    return out.filter((el) => !out.includes(el.parentElement)).slice(0, 4).map((el) => `${name(el)} (+${Math.round(el.getBoundingClientRect().right - innerWidth)} px)`);
+  });
+  if (over) errors.push(`[${v.name}] débordement horizontal : ${over.join(", ") || "élément introuvable"} (souvent un élément caché en width:100% ou 100vw ; overflow-x: clip sur son parent)`);
   /* Fluidité réelle : 3 s de défilement régulier dans la section, temps entre deux images.
      Seulement avec une carte graphique : en rendu logiciel le chiffre ne dirait rien du site. */
   if (!isSoftware(pf.renderer)) {
@@ -276,7 +303,31 @@ async function edgeCheck(page, sel) {
       if (!flagged && start >= 0) close(len - 1);
       if (flagged) out.push(name);
     }
-    return { edges: out, overlaps };
+    /* Réglage conseillé : où est l'objet, où est le texte, et la zone de fitZone qui les sépare.
+       Fractions de l'écran (0 = haut / gauche, 1 = bas / droite), comme les options de fitZone. */
+    let fix = null;
+    if (out.length || overlaps.length) {
+      let bx0 = w, by0 = h, bx1 = 0, by1 = 0;
+      for (let y = 0; y < h; y += 3) for (let x = 0; x < w; x += 3) if (diff(px(x, y))) { if (x < bx0) bx0 = x; if (x > bx1) bx1 = x; if (y < by0) by0 = y; if (y > by1) by1 = y; }
+      const f = (v) => Math.round(v * 100) / 100, pc = (v) => Math.round(v * 100) + " %";
+      const vis = texts.filter((t) => t.x + t.w > 0 && t.x < w && t.y + t.h > 0 && t.y < h);
+      let zone = {}, why = "";
+      if (vis.length) {
+        const tx0 = Math.min(...vis.map((t) => t.x)) / w, tx1 = Math.max(...vis.map((t) => t.x + t.w)) / w;
+        const ty0 = Math.min(...vis.map((t) => t.y)) / h, ty1 = Math.max(...vis.map((t) => t.y + t.h)) / h;
+        why = `texte x ${pc(tx0)}–${pc(tx1)}, y ${pc(ty0)}–${pc(ty1)}`;
+        const room = { left: (1 - tx1) * w, right: tx0 * w, top: ty0 * h, bottom: (1 - ty1) * h }; // place libre (px) de chaque côté du texte
+        const best = Object.entries(room).sort((a, b) => b[1] - a[1])[0][0];
+        if (best === "left") zone = { left: f(tx1 + 0.04) };          // texte à gauche : la 3D à droite
+        else if (best === "right") zone = { right: f(tx0 - 0.04) };   // texte à droite : la 3D à gauche
+        else if (best === "top") zone = { top: 0.06, bottom: f(ty0 - 0.04) }; // texte en bas : la 3D au-dessus
+        else zone = { top: f(ty1 + 0.04), bottom: 0.94 };                  // texte en haut : la 3D en dessous
+      }
+      const obj = bx1 > bx0 ? `objet x ${pc(bx0 / w)}–${pc(bx1 / w)}, y ${pc(by0 / h)}–${pc(by1 / h)}` : "";
+      /* objet coupé : la taille donnée à fitZone est sans doute plus petite que l'objet ; passer l'objet le mesure */
+      fix = `${[obj, why].filter(Boolean).join(" ; ")} → fitZone(camera, ${out.length ? "objet" : "largeur, hauteur"}, ${JSON.stringify(zone).replace(/"/g, "").replace(/,/g, ", ").replace(/:/g, ": ")})`;
+    }
+    return { edges: out, overlaps, fix };
   }, [png.toString("base64"), ok.texts]);
 }
 

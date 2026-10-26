@@ -25,9 +25,9 @@ export function logoPieces(svg, { size = 3, depth = 0.42, bevel = 0.07, pieces =
   if (/<text[\s>]/i.test(svg)) console.warn("premium-3d : le texte <text> du SVG est ignoré (seuls les tracés sont extrudés). Pour le nom en volume : text3d(), ou vectoriser le texte dans le logiciel de dessin.");
   const hex = (p) => (p && p.color ? "#" + p.color.getHexString() : null);
   let groups, colors;
-  if (pieces) { groups = pieces.map((idx) => idx.flatMap((i) => SVGLoader.createShapes(data.paths[i]))); colors = pieces.map((idx) => hex(data.paths[idx[0]])); }
+  if (pieces) { groups = pieces.map((idx) => idx.flatMap((i) => data.paths[i].toShapes())); colors = pieces.map((idx) => hex(data.paths[idx[0]])); }
   else {
-    const kept = data.paths.map((p) => [SVGLoader.createShapes(p), hex(p)]).filter(([s]) => s.length);
+    const kept = data.paths.map((p) => [p.toShapes(), hex(p)]).filter(([s]) => s.length);
     groups = kept.map(([s]) => s); colors = kept.map(([, c]) => c);
     if (groups.length === 1 && groups[0].length > 1) { const c = colors[0]; groups = groups[0].map((s) => [s]); colors = groups.map(() => c); }
   }

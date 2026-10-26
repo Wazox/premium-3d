@@ -59,10 +59,16 @@ export const hdr = (hex, k) => new THREE.Color(hex).multiplyScalar(k);
  * Néon : couleur HDR qui brille AUTANT quelle que soit sa teinte. Le bloom trie par luminance
  * (0,30 rouge + 0,59 vert + 0,11 bleu) : avec hdr(), un rouge ou un bleu au même k qu'un vert brille
  * à peine. neon() règle la luminance sur `glow` (1 = au seuil du bloom par défaut, 1,6 = net, 3 = fort).
+ * Seul le canal dominant passe au-dessus de 1 : à l'écran (où tout est plafonné à 1) la teinte reste
+ * exacte. Multiplier les trois canaux faisait virer un vert vers le cyan, un rouge vers le rose.
  */
+const W = [0.299, 0.587, 0.114];
 export const neon = (hex, glow = 1.6) => {
-  const c = new THREE.Color(hex), lum = 0.299 * c.r + 0.587 * c.g + 0.114 * c.b;
-  return c.multiplyScalar(Math.min(40, glow / Math.max(lum, 0.01)));
+  const c = new THREE.Color(hex), v = [c.r, c.g, c.b], m = Math.max(...v, 1e-4), top = v.indexOf(m);
+  const base = v.map((x) => x / m); // la teinte, canal dominant à 1
+  const rest = base.reduce((a, x, i) => (i === top ? a : a + W[i] * x), 0);
+  base[top] = Math.min(40, Math.max(1, (glow - rest) / W[top]));
+  return new THREE.Color(base[0], base[1], base[2]);
 };
 /** Couleur en rgba() pour le dessin canvas 2D. */
 export const rgba = (hex, a) => { const c = new THREE.Color(hex); const o = {}; c.getRGB(o, THREE.SRGBColorSpace); return `rgba(${Math.round(o.r * 255)},${Math.round(o.g * 255)},${Math.round(o.b * 255)},${a})`; };
@@ -149,8 +155,17 @@ export function fitDistance(camera, w, h, opts = 1.25) {
  *     stage.camera.lookAt(0, 0, 0);
  *   });
  * Sans zone (ou zone null), retire le décalage : plein écran.
+ * Le plus sûr : passer l'objet lui-même, mesuré (sphère englobante : reste entier en tournant) :
+ *     fitZone(stage.camera, monObjet, zone)
+ * (à appeler une fois l'objet construit, pas dans la boucle).
  */
 export function fitZone(camera, w, h, zone = null) {
+  if (w && w.isObject3D) { // fitZone(camera, objet, zone)
+    const box = new THREE.Box3().setFromObject(w);
+    if (box.isEmpty()) console.warn("premium-3d : fitZone(camera, objet) sur un objet encore vide : construire (await) les objets AVANT stage.onResize.");
+    const r = box.isEmpty() ? 1 : box.getBoundingSphere(new THREE.Sphere()).radius;
+    return fitZone(camera, r * 2, r * 2, h ?? null) + r; // + rayon : l'avant de l'objet est plus près de la caméra
+  }
   const { left = 0, right = 1, top = 0, bottom = 1, margin = 1.1 } = zone || {};
   const t = Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2), zw = Math.max(0.05, right - left), zh = Math.max(0.05, bottom - top);
   /* setViewOffset redéfinit camera.aspect avec les deux premiers nombres : on lui donne le vrai ratio */
@@ -326,11 +341,11 @@ export function createStage(canvas, {
      * dt, t : temps de l'animation (figés quand stage.still) ; real : temps réel, pour lisser le scroll.
      */
     start(update) {
-      const clock = new THREE.Clock();
+      let last = null; // THREE.Clock est obsolète depuis r183 : le temps vient de requestAnimationFrame
       stage._update = update;
       if (stopFrame) stopFrame();
       stopFrame = onFrame((now) => {
-        const real = Math.min(clock.getDelta(), 0.05);
+        const real = last === null ? 0 : Math.min((now - last) / 1000, 0.05); last = now;
         if (!visible || !stage.ready || stage.paused || document.hidden) return;
         /* still : le temps est figé (bouton pause, animations réduites) : dt = 0 et t ne bouge plus.
            real = temps réellement écoulé, toujours : c'est lui qui lisse le suivi du scroll. */

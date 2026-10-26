@@ -25,7 +25,7 @@ Le but : que le résultat ressemble à la marque de la personne, pas à un « si
 | Tech, précis | Space Grotesk, Sora, Manrope | Inter, IBM Plex Sans |
 | Artisan, solide | Archivo, Barlow Condensed, Oswald | Inter, Source Sans 3 |
 | Food, chaleureux | Fraunces, DM Serif Display, Playfair Display | Inter, DM Sans |
-| Luxe, mode | Cormorant Garamond, Bodoni Moda, Italiana | Jost, Montserrat |
+| Luxe, mode | Cormorant Garamond (accent du « è » mal placé en grand : tester le nom), Bodoni Moda, Italiana | Jost, Montserrat |
 | Santé, doux | Nunito, Lexend, Outfit | Nunito Sans, Lexend |
 | Sport, énergie | Anton, Bebas Neue, Archivo Black | Barlow, Inter |
 | Enfance, ludique | Fredoka, Baloo 2, Quicksand | Nunito |
@@ -52,6 +52,13 @@ plan pour le vérifier.
   panneaux du studio se reflètent en anneaux lumineux sous les objets ronds (bol, tasse) ; monter le
   seuil du bloom au-dessus de 1 et baisser `envMapIntensity` vers 0,6.
 - Doux (`soft`) : enfance, objets du quotidien, marques accessibles.
+- **Verre et liquide** : un objet en verre (`transmission`) ne voit pas à travers lui les objets
+  transparents. Le liquide dans une coupe ou un flacon doit être **opaque** (couleur, rugosité basse)
+  pour se voir derrière le verre. Verre **teinté** (ambré, fumé) : `tint` et `dist` (plus court =
+  plus foncé) ; sur fond clair, le verre clair paraît rose-beige : le teinter franchement.
+- **Néon et bloom** : `neon(couleur)` règle l'éclat ; avec `--full`, un halo trop fort vire au blanc
+  (le cœur du tube sature). Vérifier sur les captures `--full` et baisser `glow` ou `bloom.strength`
+  plutôt que le seuil.
 
 ## Particules sur fond clair
 - `particleMorph(…, { additive: false })` : les points deviennent pleins et nets automatiquement.

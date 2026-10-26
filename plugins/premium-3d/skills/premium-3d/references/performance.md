@@ -46,6 +46,8 @@ déjà l'essentiel ; ce fichier dit ce qu'il fait et ce qu'il ne faut pas casser
 - Particules, ombres, subdivisions : dosées par `stage.tier` (`{ low: 6000, mid: 12000, high: 20000 }[stage.tier]`).
   `studioLights` le fait déjà pour la taille de l'ombre (512 / 1024 / 2048).
 - Une scène par page de préférence ; deux maximum, sur la même boucle.
+- Un mesh avec un tableau de matériaux (un par face d'une boîte) coûte un appel de dessin **par
+  matériau** : 19 feuillets × 6 faces = 114 appels. Un seul matériau par objet quand c'est possible.
 
 ## Vérifier
 `tools/check.mjs` sur un PC avec carte graphique (ou `--gpu`) mesure la fluidité réelle : 3 s de

@@ -2,3 +2,6 @@ node_modules/
 captures/
 .DS_Store
 *.log
+bench/runs/*/*/
+!bench/runs/*/results.json
+!bench/runs/*/RESULTS.md

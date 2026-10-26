@@ -5,6 +5,15 @@ Node cherche `playwright` à côté du script ou dans un dossier parent (`npm i 
 `npx playwright install chromium` si absent ; `PLAYWRIGHT_BROWSERS_PATH` ou `CHROMIUM_PATH` pour un
 navigateur déjà installé ailleurs). Serveur : `python3 tools/serve.py 5180 &` depuis la racine.
 
+## new.mjs : squelette d'une nouvelle page
+```bash
+node tools/new.mjs mon-projet --modules story,particles    # scène épinglée qui suit le scroll
+node tools/new.mjs mon-projet --hero                       # scène fixe en haut de page
+```
+Crée `index.html` (importmap, canvas, fondu, préchauffage, scroll lissé, bouton pause, `__demo`,
+cadrage `fitZone`), `lib/` (modules demandés et leurs dépendances), `tools/` (check, serve),
+`licenses/`. Aucun design : tout le visible est marqué `[À ÉCRIRE]` ou `[À CHOISIR]`.
+
 ## Carte graphique ou rendu logiciel (tous les outils)
 - `--gpu` : vraie fenêtre Chrome, la carte graphique calcule les images. Bien plus rapide.
 - `--cpu` : rendu logiciel SwiftShader, sans fenêtre. Marche partout (serveur, cloud, CI), lent.

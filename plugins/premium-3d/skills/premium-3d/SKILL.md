@@ -1,6 +1,6 @@
 ---
 name: premium-3d
-description: Ajoute de la 3D temps réel haut de gamme (verre, métal liquide, néon, particules qui changent de forme, texte en volume, modèles 3D, logo en matière, scènes pilotées par le scroll) à n'importe quel site ou page, pour n'importe quel métier et n'importe quelle stack. Le concept, le design et les textes sont inventés à partir de ce que la personne demande, sans aucun site préfait. Utiliser pour une landing 3D, une section 3D, un logo 3D, un hero animé, ou /premium-3d.
+description: Crée des sites et sections web haut de gamme avec de la 3D temps réel (verre, métal liquide, néon, particules qui changent de forme, texte en volume, modèles 3D, logo en matière, scènes pilotées par le scroll), inventés à partir de la marque, sans modèle préfait, pour n'importe quel métier et n'importe quelle stack (HTML, Symfony, WordPress, React, Next.js, React Three Fiber). Utiliser dès qu'on demande un site premium, une landing page, un hero ou une page d'accueil qui marque, un effet « waouh », une animation au scroll, un site vitrine « style Awwwards », un logo animé, du WebGL ou three.js, ou une vidéo de présentation d'un site, même sans le mot 3D. Aussi en anglais : premium website, landing page, hero section, scroll animation, WebGL, three.js. Ou /premium-3d.
 ---
 
 # Premium 3D
@@ -22,15 +22,18 @@ lib/particles.js   particules qui prennent la forme d'une photo, d'un logo, d'un
                    objet 3D, et passent de l'une à l'autre (morphing)
 lib/text3d.js      texte en volume avec la vraie police de la marque (.ttf/.otf/.woff), lettre par lettre
 lib/models.js      modèles .glb/.gltf du client (Draco, Meshopt, KTX2), lumière studio, ombres douces au sol
+lib/splat.js       scans 3D réels (Gaussian splatting .spz/.ply) : le vrai lieu ou produit, filmé au téléphone
 lib/interact.js    attraper pour tourner (inertie), survol d'objets, lumière qui suit le pointeur, gyroscope
 lib/fx.js          grain, aberration chromatique, vignette, profondeur de champ
 lib/textures.js    matières procédurales sans image : bois, marbre, béton, papier
 lib/story.js       scène en plusieurs actes : acts(), steps() à paliers, captionSync() (légendes sans superposition)
 lib/react.js       hook usePremium3D pour React / Next.js (montage, préchauffage, nettoyage)
+lib/r3f.js         composants React Three Fiber : Studio, Material, Logo3D, Text3D, Particles
 icons/             78 icônes Lucide (licence ISC, dessinées en traits) couvrant la plupart des métiers
 demos/             démos TECHNIQUES (comment appeler le code, pas des modèles de design)
 references/        api.md (toutes les fonctions en une ligne), concepts.md, art-direction.md,
                    performance.md, integration.md, tools.md
+tools/new.mjs      squelette d'une nouvelle page : toute la plomberie, aucun design
 tools/brand.mjs    extrait la marque d'un site existant : couleurs, polices, logo, textes (brand.html)
 tools/check.mjs    captures desktop + mobile, erreurs, 3D coupée, performances, rapport report.html (avec le jury)
 tools/record.mjs   vidéo de la page filmée en direct (ordinateur avec écran et carte graphique)
@@ -113,8 +116,15 @@ Lis `references/art-direction.md` et applique-le à cette marque. Points clés :
 ## Étape 4 : construire
 
 Les fichiers de ce skill (`lib/`, `icons/`, `references/`, `tools/`) sont dans le dossier du skill,
-dont le chemin est donné au chargement. Copie dans le projet **uniquement** les modules de `lib/`
-et les icônes utilisés (ils s'importent entre eux : garde-les dans le même dossier).
+dont le chemin est donné au chargement. **Pour une nouvelle page, commence par le squelette** : il
+pose toute la plomberie (importmap, canvas épinglé, fondu, préchauffage, scroll lissé, pause,
+`__demo`, cadrage `fitZone`) et copie les modules et les outils, sans aucun design :
+```bash
+node <dossier du skill>/tools/new.mjs mon-projet --modules story,particles   # --hero : scène fixe
+```
+Puis écris tout ce qui est marqué `[À ÉCRIRE]` / `[À CHOISIR]`. Pour une section dans un site
+existant, copie seulement les modules de `lib/` et les icônes utilisés (ils s'importent entre eux :
+garde-les dans le même dossier).
 
 **Lis `references/api.md`** : toutes les fonctions et leurs options, en une ligne. C'est plus
 rapide et plus sûr que de parcourir les sources de `lib/`.
@@ -150,7 +160,7 @@ if (stage) {
   });
 }
 ```
-- La page utilise une **importmap** vers `three@0.169.0` (jsdelivr), ou `npm i three@0.169.0`.
+- La page utilise une **importmap** vers `three@0.186.1` (jsdelivr), ou `npm i three@0.186.1`.
 - Lenis (scroll fluide) est optionnel : charge-le et appelle `smoothScroll()`.
 - Pour une scène en plusieurs temps : `acts()` pour nommer les actes, `steps()` pour des paliers
   lisibles, `captionSync()` pour les légendes HTML, `cameraPath()` pour la caméra.

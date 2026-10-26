@@ -19,7 +19,7 @@ import { DRACOLoader } from "three/addons/loaders/DRACOLoader.js";
 import { KTX2Loader } from "three/addons/loaders/KTX2Loader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 
-const LIBS = "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/libs/";
+const LIBS = "https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/libs/";
 let loader = null, ktx2Ready = false;
 function getLoader(renderer) {
   if (!loader) {
@@ -65,7 +65,7 @@ export function studioLights(stage, { shadows = true, key = 2.2, rim = 1.4, fill
   const r = new THREE.DirectionalLight(rimColor, rim); r.position.set(-5, 3, -4);
   const f = new THREE.HemisphereLight(0xffffff, 0x444444, fill);
   if (shadows) {
-    renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap; // PCFSoftShadowMap retiré en r18x : PCF + shadow.radius adoucit
     const map = { low: 512, mid: 1024, high: 2048 }[stage.tier] || 1024; // ombre : 4 fois moins de pixels par niveau
     k.castShadow = true; k.shadow.mapSize.set(map, map); k.shadow.radius = radius; k.shadow.bias = -0.0004;
     const s = k.shadow.camera; s.left = -5; s.right = 5; s.top = 5; s.bottom = -5; s.near = 0.5; s.far = 30;
