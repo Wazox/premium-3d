@@ -13,8 +13,10 @@ le skill seul. Prompt, à l'identique (remplacer `<…>`) :
 > Demande du client : « <brief> ».
 > Construis la page dans `bench/runs/<version>/<id>/` (index.html à la racine du dossier, tous les
 > chemins relatifs, modules de lib/ copiés dans le dossier). Un serveur sert la racine du dépôt sur
-> `http://127.0.0.1:5180/`. Machine partagée et sans carte graphique : check.mjs avec `--cpu
-> --points 0,0.5,1`, trois fois au plus. Ne fais pas le jury (un juge externe s'en charge).
+> `http://127.0.0.1:5180/`. Machine partagée et sans carte graphique : check.mjs avec `--cpu`,
+> `--points 0,0.5,1` pour itérer, puis une fois avec les points par défaut ; quatre contrôles au
+> plus. Fais le jury comme le dit le SKILL.md et copie ton `jury.json` dans `jury-auto.json` à la
+> racine de ton dossier.
 > Pour finir, écris `meta.json` : `{ "section": "#id de la section 3D", "concept": "en une phrase",
 > "minutes": durée }`. Ne fais aucun commit.
 
@@ -28,7 +30,9 @@ node bench/score.mjs bench/runs/<version> --skip-check   # tableau sans recontr�
 node bench/score.mjs bench/runs/<version>                # contrôle complet --full de chaque site
 ```
 
-## 3. Juger (un agent qui n'a rien construit)
+## 3. Juger (deux agents qui n'ont rien construit)
+Deux juges indépendants, même consigne (le second écrit `jury-2.json`) : la note du banc est leur
+moyenne, et l'écart entre eux dit si une différence d'une version à l'autre est réelle ou du bruit.
 > Tu es directeur artistique et juge d'un concours de sites. Pour chaque dossier de
 > `bench/runs/<version>/`, regarde **seulement** les captures (`captures/*.png`) et la demande
 > correspondante dans `bench/briefs.json` ; ne lis pas le code. Note sur 10 : originalite,
@@ -36,11 +40,17 @@ node bench/score.mjs bench/runs/<version>                # contrôle complet --f
 > coupés), mobile. Sois exigeant : 8 = digne d'un studio, 10 = exceptionnel. Écris
 > `<dossier>/jury.json` : `{ "originalite": n, …, "notes": "deux phrases : le meilleur, le pire" }`.
 
+`RESULTS.md` montre aussi l'**auto-jury** (la note que l'agent constructeur s'est donnée) et son
+écart avec les juges : plus d'un point d'écart veut dire que l'étape 7 du skill ne joue pas son rôle.
+
 Puis `node bench/score.mjs bench/runs/<version> --skip-check --compare bench/runs/<version précédente>`.
 
 ## 4. Lire
-`RESULTS.md` : erreurs, alertes (3D coupée, sous le texte, budget), note du jury, minutes et poids
-par site, moyenne, et « mieux / moins bien » face à la version précédente. Les erreurs qui
+`RESULTS.md` : erreurs, alertes (3D coupée, sous le texte, sauts entre captures, textes provisoires,
+budget), note du jury, minutes et poids
+par site, moyenne, et « mieux / moins bien » face à la version précédente, calculé seulement sur
+les demandes communes aux deux versions (`ebeniste-symfony`, une intégration dans un site existant,
+est arrivée en 1.10.0). Les erreurs qui
 reviennent d'un site à l'autre sont les prochaines corrections du skill.
 
 Les sites construits (`runs/`) ne sont pas versionnés : seuls `results.json` et `RESULTS.md` le sont.

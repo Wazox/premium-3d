@@ -77,6 +77,11 @@ une imitation ; la caméra y entre au scroll. Pour tout métier dont le lieu ou 
 (restaurant, artisan, salon, immobilier, hôtel). Demander le fichier .spz au client, ne jamais en
 inventer un. Brique : `loadSplat`.
 
+**La métamorphose continue.** Un seul objet qui se transforme d'un bout à l'autre du scroll (la pâte
+qui lève puis dore, le flacon qui se remplit, le trajet qui se trace) plutôt que plusieurs objets qui
+apparaissent tour à tour. Chaque capture montre le même objet un peu plus loin dans son histoire :
+aucune rupture possible. Briques : `deform` / `liquid` / `particleMorph` pilotés par `ss(…, P)`.
+
 **À inventer.** Toute autre idée qui colle au métier : un objet emblématique du secteur extrudé
 depuis une icône, un plan du lieu en relief, une typographie en volume, etc.
 

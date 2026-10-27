@@ -107,7 +107,28 @@ Choisis selon la demande. Ne mets pas systématiquement une grande section sombr
 - Parallaxe souris : très légère, ou aucune.
 - `prefers-reduced-motion` : pas de lissage ni d'animation d'attente, la scène suit le scroll.
 
+## Continuité (d'une capture à la suivante)
+Au banc d'essai, le juge a relevé des sauts que l'agent n'avait pas vus : un compteur qui recule
+(H+09 → H+01), un anneau qui passe du cyan au bleu, un halo qui s'allume puis s'éteint d'un état à
+l'autre, une pièce qui apparaît sans transition.
+- Chaque valeur animée est une **fonction lisse et croissante de `P`** (`ss(a, b, P)`), jamais un
+  `if (P > 0.6)` qui fait apparaître, changer de couleur ou allumer d'un coup.
+- Une apparition s'étale sur au moins 5 % du scroll : échelle, `dissolve`, opacité, ou l'objet qui
+  entre par le bord. Une disparition aussi.
+- **Une seule couleur d'accent** pour un même élément du début à la fin ; si elle doit changer
+  (jour → nuit), `color.lerpColors(a, b, ss(…))`.
+- Un néon ou un halo garde le même éclat d'un état à l'autre, sauf si son allumage est le propos de la
+  scène (et il s'allume alors progressivement).
+- Compteurs (heure, jours, H+…) : toujours croissants quand on descend ; un passage minuit
+  (19:00 → 02:00) est accepté par `check.mjs`.
+- `check.mjs` signale les sauts entre deux captures voisines (couverture, lumière, teinte) et les
+  compteurs qui reculent : avec les points par défaut (écart de 15 %).
+
 ## Textes
 - Concrets, dans la langue de la personne, avec ses mots à elle.
-- Ce qui manque reste en placeholder `[À REMPLACER]` et est listé à la livraison.
+- Ce qui manque reste en placeholder `[À REMPLACER]` et est listé à la livraison. Un placeholder
+  ne doit pas casser la page : jamais dans un titre, un bouton ou l'appel à l'action principal,
+  de la longueur du vrai texte (« [À REMPLACER : adresse, 2 lignes] »), et rien de ce qui est connu
+  (le brief, `brand.json`) ne reste en placeholder. `check.mjs` les liste ; `[À ÉCRIRE]` /
+  `[À CHOISIR]` du squelette visibles = erreur.
 - Pas de remplissage (« leader innovant », « solutions sur mesure de qualité »).

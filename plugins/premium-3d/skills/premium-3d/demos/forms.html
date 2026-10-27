@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Démo technique : modéliser les objets du métier</title>
+<!-- Démo de technique, volontairement sobre. Ce n'est PAS un modèle de page : elle montre comment
+     appeler lib/forms.js (profil lissé, paroi épaisse, liquide, forme organique, couleurs peintes). -->
+<style>
+body{margin:0;background:#e9e4dc;color:#2a2622;font:16px/1.5 system-ui,sans-serif}
+.wrap{height:100svh;position:relative}
+#gl{position:absolute;inset:0;width:100%;height:100%}
+p{position:absolute;left:24px;bottom:16px;margin:0;opacity:.75;font-size:14px;max-width:62ch}
+</style>
+</head>
+<body>
+<div class="wrap"><canvas id="gl" aria-hidden="true"></canvas><p>Flacon en verre ambré à paroi épaisse qui se remplit d'huile, pain déformé à la main (croûte peinte, grigne), bol en céramique faite main, planche en bois : chaque objet part d'un profil ou d'une sphère, puis d'irrégularités.</p></div>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"}}</script>
+<script type="module">
+import { createStage, materials, fitZone, THREE } from "../lib/core.js";
+import { lathe, liquid, organic, deform, tint, roundedBox } from "../lib/forms.js";
+import { woodMaterial } from "../lib/textures.js";
+import { studioLights, softGround } from "../lib/models.js";
+
+const stage = createStage(document.getElementById("gl"), { background: "#e9e4dc", env: "room", bloom: false });
+if (stage) {
+  const { scene, camera } = stage;
+  studioLights(stage, { shadows: true });
+  const all = new THREE.Group(); scene.add(all);
+
+  /* planche : boîte aux arêtes arrondies, bois procédural */
+  const board = new THREE.Mesh(roundedBox(4.6, 0.16, 1.9, { radius: 0.05 }), woodMaterial({ light: "#c9a27a", dark: "#8d6340", scale: 0.35 }));
+  board.position.y = -0.08; board.castShadow = board.receiveShadow = true; all.add(board);
+
+  /* flacon : profil lissé, paroi de 3 mm à l'échelle, verre teinté franchement (fond clair) */
+  const flacon = [[0, 0], [0.33, 0], [0.36, 0.04], [0.36, 0.86], [0.3, 1.0], [0.13, 1.08], [0.12, 1.2]];
+  const glass = new THREE.Mesh(lathe(flacon, { thickness: 0.035 }), materials.glass({ tint: "#e3a04a", dist: 1.2, irid: 0 }));
+  const oil = liquid(flacon, { thickness: 0.035, to: 0.82, material: new THREE.MeshPhysicalMaterial({ color: "#d39222", roughness: 0.06, clearcoat: 1 }) });
+  glass.add(oil.mesh); glass.position.set(-1.55, 0, 0); glass.castShadow = true; all.add(glass);
+  const cap = new THREE.Mesh(lathe([[0, 0], [0.15, 0], [0.16, 0.05], [0.15, 0.28], [0.1, 0.36], [0, 0.37]], { smooth: 6 }), materials.soft({ color: "#2b2520", rough: 0.45 }));
+  cap.position.y = 1.16; glass.add(cap);
+
+  /* pain : sphère étirée, base aplatie, entaille (grigne), bosses, croûte plus dorée sur le dessus */
+  let loaf = new THREE.SphereGeometry(1, 128, 72);
+  loaf = deform(loaf, (p) => {
+    p.set(p.x * 0.95, p.y * 0.52, p.z * 0.62);
+    if (p.y < -0.12) p.y = -0.12 + (p.y + 0.12) * 0.2;                      // posé : base plate
+    const cut = Math.exp(-Math.pow((p.z - 0.18 * Math.sin(p.x * 2.2)) / 0.07, 2)); // grigne en S
+    if (p.y > 0) p.y -= cut * 0.09 * (p.y / 0.52);
+  });
+  loaf = organic(loaf, { amp: 0.035, freq: 2.4, seed: 4 });
+  tint(loaf, (p) => {
+    const top = THREE.MathUtils.smoothstep(p.y, -0.14, 0.3), cut = Math.exp(-Math.pow((p.z - 0.18 * Math.sin(p.x * 2.2)) / 0.06, 2));
+    return new THREE.Color("#d9b27a").lerp(new THREE.Color("#7a3d12"), top).lerp(new THREE.Color("#ecd2a2"), cut * top * 0.8);
+  });
+  const bread = new THREE.Mesh(loaf, new THREE.MeshPhysicalMaterial({ vertexColors: true, roughness: 0.82, sheen: 0.15, sheenColor: new THREE.Color("#f0c890") }));
+  bread.position.set(0.15, 0.12, 0.1); bread.rotation.y = -0.3; bread.castShadow = true; all.add(bread);
+
+  /* bol : paroi épaisse, lèvre arrondie, légère irrégularité de tournage */
+  const bowl = new THREE.Mesh(organic(lathe([[0, 0], [0.22, 0], [0.26, 0.04], [0.5, 0.22], [0.62, 0.48]], { thickness: 0.04 }), { amp: 0.008, freq: 3, seed: 2 }), materials.enamel({ color: "#3d5a6b" }));
+  bowl.position.set(1.7, 0, -0.1); bowl.castShadow = true; all.add(bowl);
+
+  const ground = softGround({ y: -0.16, opacity: 0.25 }); scene.add(ground);
+  stage.onResize((w) => {
+    const zone = w < 860 ? { top: 0.15, bottom: 0.7 } : { top: 0.1, bottom: 0.82 };
+    camera.position.set(0, 1.6, fitZone(camera, 4.8, 1.8, zone)); camera.lookAt(0, 0.3, 0);
+  });
+  await stage.warm();
+  stage.start((dt, t) => { oil.set(0.25 + 0.75 * (0.5 + 0.5 * Math.sin(t * 0.6))); bread.rotation.y = -0.3 + Math.sin(t * 0.3) * 0.15; });
+  window.__demo = { get ready() { return stage.ready; } };
+}
+</script>
+</body>
+</html>
