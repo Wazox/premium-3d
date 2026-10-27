@@ -76,6 +76,18 @@ formes d'un même morphing ont le même `count`.
 | `studioLights(stage, { shadows })`, `softGround({ y, opacity, glow })` | Lumière trois points, sol qui ne montre que l'ombre. |
 | `woodMaterial`, `marbleMaterial`, `concreteMaterial`, `paperMaterial` (`{ scale, … }`) | Matières procédurales, sans image. |
 
+## forms.js : modéliser les objets du métier (voir `modeling.md`)
+| Appel | Rôle |
+|---|---|
+| `lathe(profil, { smooth: 8, thickness: 0, segments: 96 })` | Objet de révolution depuis `[[rayon, hauteur], …]` (du bas, rayon 0, vers le haut), courbe lissée. `thickness` > 0 : creux à paroi épaisse et lèvre arrondie (verre, bol, tasse). |
+| `liquid(profil, { thickness, from, to, material })` | Liquide qui épouse la paroi intérieure du même profil : `.mesh` à ajouter dans le récipient, `.set(0 → 1)` remplit sans rien recréer. Matière opaque. |
+| `radiusAt(profil, y, { thickness })` | Rayon du profil à une hauteur (poser un bouchon, une étiquette, une bague). |
+| `deform(geo, (p) => { … })` | Déforme point par point (étirer, aplatir la base, creuser une entaille) ; normales recalculées sans couture. Renvoie la nouvelle géométrie. |
+| `organic(geo, { amp: .04, freq: 2.2, octaves: 3, seed })` | Irrégularités naturelles (pain, pierre, fruit, céramique faite main). Renvoie la nouvelle géométrie. |
+| `tint(geo, (p, n) => couleur)` | Couleurs peintes sur la forme (croûte, maturité, émail) ; matériau `vertexColors: true`, `color` blanche. |
+| `roundedBox(w, h, d, { radius, segments })` | Boîte aux arêtes arrondies. |
+À la construction seulement, jamais dans la boucle. `liquid` utilise un plan de coupe (activé par `createStage`).
+
 ## shaders.js, fx.js, interact.js : effets et interactions
 | Appel | Rôle |
 |---|---|

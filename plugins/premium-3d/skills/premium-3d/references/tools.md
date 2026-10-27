@@ -37,6 +37,10 @@ node tools/check.mjs <url> ./captures-full --report-only                 # aprè
 - Mobile : vrai téléphone simulé (390×844, écran 3×, tactile).
 - « À VÉRIFIER » : 3D qui touche un bord (objet coupé), 3D sous un texte visible, budget dépassé
   (appels de dessin, triangles, poids, CLS) avec la piste de correction.
+- Entre deux captures voisines (écart ≤ 20 %) : la 3D qui apparaît ou disparaît d'un coup, la
+  lumière qui saute, la couleur dominante qui change ; un compteur visible qui recule.
+- Textes provisoires : `[À ÉCRIRE]` / `[À CHOISIR]` / lorem ipsum visibles = erreur ; `[À REMPLACER]`
+  listés (à donner à la livraison).
 - Fluidité réelle (images/s au défilement, image la plus lente sur 20) : mesurée seulement avec une
   carte graphique. En rendu logiciel elle n'est pas mesurée.
 - Carte graphique : ordinateur et mobile sont capturés en même temps.

@@ -1,5 +1,40 @@
 # Changelog
 
+## 1.10.0
+
+Tiré du banc d'essai 1.9.0 (0 erreur, mais 6,1/10 au jury externe) : les défauts restants étaient
+visuels, pas techniques.
+
+**Des objets qui ressemblent à ce qu'ils sont**
+- `lib/forms.js` : `lathe` (profil lissé, paroi épaisse et lèvre arrondie pour verre, bol, tasse),
+  `liquid` (liquide qui épouse la paroi et se remplit avec `set(0 → 1)`, sans rien recréer),
+  `deform`, `organic` (irrégularités de pain, pierre, fruit, céramique), `tint` (couleurs peintes sur
+  la forme), `roundedBox`, `radiusAt`.
+- `references/modeling.md` : d'où vient l'objet, test de la silhouette, les trois détails qui le
+  rendent vrai, proportions, profils de départ, matière crédible (verre teinté, pain, bois), particules
+  qui ne ressemblent pas à un bug.
+- `demos/forms.html` : flacon ambré qui se remplit, pain avec grigne, bol fait main, planche.
+- `createStage` active les plans de coupe (`localClippingEnabled`) pour `liquid`.
+
+**Rien qui saute d'une capture à l'autre**
+- `check.mjs` compare deux captures voisines : 3D qui apparaît d'un coup, lumière qui saute, couleur
+  dominante qui change ; et signale un compteur visible qui recule quand on descend (minuit accepté).
+- Doc « Continuité » (`art-direction.md`, SKILL.md) et piste « La métamorphose continue ».
+
+**Rien de provisoire qui casse la page**
+- `check.mjs` : `[À ÉCRIRE]` / `[À CHOISIR]` / lorem ipsum visibles = erreur ; `[À REMPLACER]` listés.
+- Règle : on ne livre pas avec une alerte sans réponse (corrigée, ou expliquée dans `jury.json`).
+
+**Un jury plus exigeant**
+- Étape 7 : chercher d'abord les défauts capture par capture (liste des défauts que relève le juge
+  externe), les écrire dans `jury.json` (`defauts`, `alertes`), puis noter avec la même échelle que le
+  juge. Le rapport les affiche.
+
+**Un banc d'essai plus fiable**
+- Deux juges externes (moyenne), auto-jury de l'agent constructeur et son écart avec les juges,
+  colonnes « Sauts » et « Provisoires », comparaison limitée aux demandes communes.
+- 6e demande : `ebeniste-symfony` (section à intégrer dans un site Symfony existant).
+
 ## 1.9.0
 
 **Plus juste**

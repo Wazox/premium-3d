@@ -19,6 +19,9 @@
 // Détecte aussi, à chaque capture, une 3D qui touche le bord de l'écran (objet probablement coupé) :
 // signalé « à vérifier », car une scène peut déborder exprès (fond plein, décor qui sort du cadre).
 // Et une 3D qui passe sous un texte visible (titre, paragraphe, bouton) : la règle est de ne jamais chevaucher.
+// Et, entre deux captures voisines, un saut brutal (la 3D apparaît d'un coup, la lumière ou la couleur
+// dominante change d'un état à l'autre) ou un compteur visible qui recule pendant qu'on descend.
+// Textes provisoires visibles : [À ÉCRIRE] / [À CHOISIR] / lorem ipsum = erreur ; [À REMPLACER] = listé.
 // Notes du jury : écrire <dossier>/jury.json (voir SKILL.md) puis relancer avec --report-only.
 import fs from "node:fs";
 import { dismissCookies, glRenderer, gpuMode, isSoftware, launch } from "./browser.mjs";
@@ -81,6 +84,8 @@ const runView = async (v) => {
   }, [points, section]);
   if (section) steps.push({ p: "fin" });
   const titleDone = new Set();
+  let prevLook = null; // aspect de la capture précédente (couverture, lumière, teinte) : sauts entre deux points
+  const numbers = new Map(); // compteurs visibles (texte court avec un nombre) : ne doivent pas reculer
   const grabTitles = async () => {
     const vis = await page.evaluate(() => [...document.querySelectorAll("[data-p3d-title]")].map((el) => {
       const r = el.getBoundingClientRect(); let o = 1;
@@ -130,7 +135,41 @@ const runView = async (v) => {
       return hits.slice(0, 3);
     });
     if (stacked.length) warnings.push(`[${v.name} ${Math.round(p * 100)} %] textes superposés ${stacked.join(", ")} : deux légendes visibles à la fois ? (captionSync : une seule p3d-on)`);
-    const { edges: cut, overlaps, fix } = await edgeCheck(page, section);
+    const { edges: cut, overlaps, fix, look } = await edgeCheck(page, section);
+    if (look && prevLook && typeof p === "number" && p - prevLook.p <= 0.2 + 1e-6) {
+      const at = `[${v.name} ${Math.round(prevLook.p * 100)} → ${Math.round(p * 100)} %]`, pc = (x) => Math.round(x * 100) + " %";
+      const a = prevLook.cover, b2 = look.cover;
+      if (Math.abs(a - b2) > 0.06 && Math.max(a, b2) / Math.max(0.005, Math.min(a, b2)) > 2.5)
+        warnings.push(`${at} la 3D passe de ${pc(a)} à ${pc(b2)} de l'écran : apparition ou disparition d'un coup ? (étaler sur plus de scroll avec ss(), échelle, dissolve)`);
+      if (Math.abs(look.lum - prevLook.lum) > 22 && Math.max(look.lum, prevLook.lum) / Math.max(1, Math.min(look.lum, prevLook.lum)) > 1.35)
+        warnings.push(`${at} la lumière saute (${Math.round(prevLook.lum)} → ${Math.round(look.lum)} sur 255) : halo ou néon qui s'allume d'un coup ? (une seule valeur, lissée par ss())`);
+      if (look.hue != null && prevLook.hue != null) {
+        const dh = Math.abs(((look.hue - prevLook.hue + 540) % 360) - 180);
+        if (dh > 35) warnings.push(`${at} la couleur dominante change (teinte ${Math.round(prevLook.hue)}° → ${Math.round(look.hue)}°) : voulu ? Sinon une seule couleur de marque, ou un passage lissé (Color.lerp)`);
+      }
+    }
+    if (look && typeof p === "number") prevLook = { ...look, p };
+    /* compteurs (heure, année, H+09, 24 h…) : en descendant, ils ne reculent pas */
+    const nums = await page.evaluate(() => {
+      const out = [];
+      document.querySelectorAll("body *").forEach((el) => {
+        if (el.children.length || el.closest("script,style,[aria-hidden=true]")) return;
+        const txt = el.textContent.trim(); if (!txt || txt.length > 24 || !/\d/.test(txt)) return;
+        const r = el.getBoundingClientRect(); if (r.width < 2 || r.bottom < 0 || r.top > innerHeight) return;
+        let o = 1; for (let e = el; e && e !== document.body; e = e.parentElement) { const st = getComputedStyle(e); if (st.visibility === "hidden" || st.display === "none") { o = 0; break; } o *= +st.opacity; }
+        if (o < 0.5) return;
+        if (!el.dataset.p3dNum) el.dataset.p3dNum = String(Math.random()).slice(2, 10);
+        const t = txt.match(/(\d{1,2})\s*[:h]\s*(\d{2})/), n = txt.match(/-?\d+(?:[.,]\d+)?/);
+        out.push({ id: el.dataset.p3dNum, txt, time: t ? +t[1] * 60 + +t[2] : null, n: n ? parseFloat(n[0].replace(",", ".")) : null });
+      });
+      return out;
+    });
+    for (const q of nums) {
+      const was = numbers.get(q.id); numbers.set(q.id, q); if (was && was.warned) q.warned = true;
+      if (!was || was.txt === q.txt || typeof p !== "number") continue;
+      const back = q.time != null && was.time != null ? (q.time - was.time + 1440) % 1440 > 720 : q.n != null && was.n != null && q.n < was.n;
+      if (back && !was.warned) q.warned = true, warnings.push(`[${v.name} ${Math.round(p * 100)} %] le compteur recule : « ${was.txt} » → « ${q.txt} » alors qu'on descend (le calculer comme une fonction croissante de P)`);
+    }
     if (cut.length) warnings.push(`[${v.name} ${Math.round(p * 100)} %] la 3D touche le bord ${cut.join(", ")} : objet coupé ? (${file})`);
     if (overlaps.length) warnings.push(`[${v.name} ${Math.round(p * 100)} %] la 3D passe sous le texte ${overlaps.join(", ")} (${file})`);
     if (fix) warnings.push(`    réglage conseillé (${v.name}) : ${fix}`);
@@ -156,6 +195,21 @@ const runView = async (v) => {
     } catch (e) {}
     await restoreCaps().catch(() => {});
   }
+  /* textes provisoires visibles : le squelette (À ÉCRIRE, À CHOISIR) ne doit jamais rester ;
+     les [À REMPLACER] (infos que seule la personne a) sont listés pour la livraison */
+  const todo = await page.evaluate(() => {
+    const found = { skeleton: [], replace: [] }, w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    for (let n; (n = w.nextNode()); ) {
+      const el = n.parentElement, txt = n.textContent.replace(/\s+/g, " ").trim(); if (!txt || el.closest("script,style,template,noscript")) continue;
+      const st = getComputedStyle(el); if (st.display === "none" || st.visibility === "hidden" || !el.getClientRects().length) continue;
+      if (/\[À (ÉCRIRE|CHOISIR)|lorem ipsum/i.test(txt)) found.skeleton.push(txt.slice(0, 60));
+      else if (/\[À REMPLACER/i.test(txt)) found.replace.push(txt.slice(0, 60));
+    }
+    const lbl = (s) => [...new Set(s)].slice(0, 6).map((t) => `« ${t} »`).join(", ");
+    return { skeleton: found.skeleton.length ? lbl(found.skeleton) : null, replace: found.replace.length ? lbl(found.replace) : null, nReplace: new Set(found.replace).size };
+  });
+  if (todo.skeleton) errors.push(`[${v.name}] texte du squelette encore visible : ${todo.skeleton} (à écrire avant de livrer)`);
+  if (todo.replace && v.name === VIEWS[0].name) warnings.push(`[${v.name}] ${todo.nReplace} texte(s) provisoire(s) visible(s) : ${todo.replace} : à lister à la livraison ; jamais dans un titre ou un bouton, et de la longueur du vrai texte`);
   const over = await page.evaluate(() => {
     if (document.documentElement.scrollWidth <= innerWidth + 1) return null;
     /* les éléments qui dépassent à droite, les plus hauts dans l'arbre (pas leurs enfants) */
@@ -262,7 +316,20 @@ async function edgeCheck(page, sel) {
     const bg = bk.split(",").map((v) => v * 16 + 8);
     const dist = (a, b) => Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) + Math.abs(a[2] - b[2]);
     const diff = (c) => dist(c, bg) > 160; // seuil haut : halos de bloom, grain et ombres légères ne comptent pas
-    if (all.filter(diff).length / all.length > 0.6) return { edges: [], overlaps: [] }; // scène plein cadre : rien à signaler
+    /* aspect général de l'image (comparé d'une capture à l'autre) : part de l'écran occupée par la 3D,
+       luminosité moyenne, teinte dominante des pixels vifs (néons, accents) */
+    let cov = 0, lum = 0, cnt = 0, hx = 0, hy = 0, hw = 0;
+    for (let y = 0; y < h; y += 4) for (let x = 0; x < w; x += 4) {
+      const c = px(x, y); cnt++; lum += 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; if (diff(c)) cov++;
+      const mx = Math.max(...c), mn = Math.min(...c), sat = mx ? (mx - mn) / mx : 0;
+      if (sat > 0.35 && mx > 90) {
+        let hh; const dd = mx - mn;
+        if (mx === c[0]) hh = ((c[1] - c[2]) / dd) % 6; else if (mx === c[1]) hh = (c[2] - c[0]) / dd + 2; else hh = (c[0] - c[1]) / dd + 4;
+        const a = (hh * 60 * Math.PI) / 180, wt = sat * mx; hx += Math.cos(a) * wt; hy += Math.sin(a) * wt; hw += wt;
+      }
+    }
+    const look = { cover: cov / cnt, lum: lum / cnt, hue: hw > cnt * 6 ? ((Math.atan2(hy, hx) * 180) / Math.PI + 360) % 360 : null };
+    if (all.filter(diff).length / all.length > 0.6) return { edges: [], overlaps: [], look }; // scène plein cadre : rien à signaler
     /* chevauchement : part des pixels de la 3D (différents du fond) sous chaque bloc de texte */
     const overlaps = [], agg = {};
     for (const t of texts) {
@@ -327,7 +394,7 @@ async function edgeCheck(page, sel) {
       /* objet coupé : la taille donnée à fitZone est sans doute plus petite que l'objet ; passer l'objet le mesure */
       fix = `${[obj, why].filter(Boolean).join(" ; ")} → fitZone(camera, ${out.length ? "objet" : "largeur, hauteur"}, ${JSON.stringify(zone).replace(/"/g, "").replace(/,/g, ", ").replace(/:/g, ": ")})`;
     }
-    return { edges: out, overlaps, fix };
+    return { edges: out, overlaps, fix, look };
   }, [png.toString("base64"), ok.texts]);
 }
 
@@ -369,7 +436,7 @@ function writeReport() {
     const tl = meta.shots.filter((s) => s.view === v && s.p === "titre");
     return `<h2>${v === "desktop" ? "Ordinateur" : "Mobile"}</h2><div class="g ${v}">${list.map((s) => `<figure><img src="${s.file}" loading="lazy"${s.cut && s.cut.length ? ' class="cut"' : ""}><figcaption>${s.p === "fin" ? "fin de page" : Math.round(s.p * 100) + " %"}${s.cut && s.cut.length ? " · bord " + s.cut.join(", ") + " ?" : ""}</figcaption></figure>`).join("")}</div>${tl.length ? `<h3>Titres en gros plan (accents du nom ?)</h3><div class="titles">${tl.map((s) => `<figure><img src="${s.file}"><figcaption>${esc(s.title)}</figcaption></figure>`).join("")}</div>` : ""}`;
   }).join("");
-  const juryHtml = jury ? `<section class="jury"><h2>Jury</h2>${crit.map(([k, l]) => { const n = +jury[k] || 0; return `<div class="row"><span>${l}</span><i><b style="width:${n * 10}%" class="${n >= 8 ? "ok" : "ko"}"></b></i><em>${n}/10</em></div>`; }).join("")}${jury.notes ? `<p>${esc(jury.notes)}</p>` : ""}</section>` : `<section class="jury"><h2>Jury</h2><p>Pas encore noté : écrire jury.json puis relancer avec --report-only.</p></section>`;
+  const juryHtml = jury ? `<section class="jury"><h2>Jury</h2>${crit.map(([k, l]) => { const n = +jury[k] || 0; return `<div class="row"><span>${l}</span><i><b style="width:${n * 10}%" class="${n >= 8 ? "ok" : "ko"}"></b></i><em>${n}/10</em></div>`; }).join("")}${jury.notes ? `<p>${esc(jury.notes)}</p>` : ""}${Array.isArray(jury.defauts) && jury.defauts.length ? `<h3>Défauts relevés</h3><ul>${jury.defauts.map((d) => `<li>${esc(d)}</li>`).join("")}</ul>` : ""}${jury.alertes ? `<h3>Alertes voulues</h3><p>${esc(jury.alertes)}</p>` : ""}</section>` : `<section class="jury"><h2>Jury</h2><p>Pas encore noté : écrire jury.json puis relancer avec --report-only.</p></section>`;
   const html = `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Rapport premium-3d</title>
 <style>body{margin:0;background:#0c0c0d;color:#f2f0ec;font:15px/1.5 system-ui,sans-serif;padding:28px}h1{font-size:26px;margin:0 0 4px}h2{font-size:15px;text-transform:uppercase;letter-spacing:.14em;color:#9b9790;margin:30px 0 12px}
 .meta{color:#9b9790}.err{color:#ff8f8f}.warn{color:#f5c26b}.okk{color:#7ddf9a}.g{display:grid;gap:12px}.g.desktop{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}.g.mobile{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}

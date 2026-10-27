@@ -261,6 +261,7 @@ export function createStage(canvas, {
     renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: background === null, powerPreference: "high-performance" });
     if (!renderer.capabilities.isWebGL2) throw 0;
   } catch (e) { document.documentElement.classList.add("no-gl"); return null; }
+  renderer.localClippingEnabled = true; // liquide qui se remplit (forms.js : liquid)
   renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = exposure;
   if (background === null) renderer.setClearColor(0x000000, 0);
   const scene = new THREE.Scene();

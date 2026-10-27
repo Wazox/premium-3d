@@ -26,13 +26,15 @@ lib/splat.js       scans 3D réels (Gaussian splatting .spz/.ply) : le vrai lieu
 lib/interact.js    attraper pour tourner (inertie), survol d'objets, lumière qui suit le pointeur, gyroscope
 lib/fx.js          grain, aberration chromatique, vignette, profondeur de champ
 lib/textures.js    matières procédurales sans image : bois, marbre, béton, papier
+lib/forms.js       modéliser les objets du métier : profil lissé (flacon, verre, bol), paroi épaisse,
+                   liquide qui se remplit, formes organiques (pain, pierre, fruit), couleurs peintes
 lib/story.js       scène en plusieurs actes : acts(), steps() à paliers, captionSync() (légendes sans superposition)
 lib/react.js       hook usePremium3D pour React / Next.js (montage, préchauffage, nettoyage)
 lib/r3f.js         composants React Three Fiber : Studio, Material, Logo3D, Text3D, Particles
 icons/             78 icônes Lucide (licence ISC, dessinées en traits) couvrant la plupart des métiers
 demos/             démos TECHNIQUES (comment appeler le code, pas des modèles de design)
 references/        api.md (toutes les fonctions en une ligne), concepts.md, art-direction.md,
-                   performance.md, integration.md, tools.md
+                   modeling.md, performance.md, integration.md, tools.md
 tools/new.mjs      squelette d'une nouvelle page : toute la plomberie, aucun design
 tools/brand.mjs    extrait la marque d'un site existant : couleurs, polices, logo, textes (brand.html)
 tools/check.mjs    captures desktop + mobile, erreurs, 3D coupée, performances, rapport report.html (avec le jury)
@@ -129,9 +131,13 @@ garde-les dans le même dossier).
 **Lis `references/api.md`** : toutes les fonctions et leurs options, en une ligne. C'est plus
 rapide et plus sûr que de parcourir les sources de `lib/`.
 
-La scène peut (et souvent doit) contenir des objets construits pour le projet avec `THREE`
-(une jante, un flacon, un comptoir à partir de cylindres, de `Shape` extrudées, de `LatheGeometry`) :
-`lib/` fournit le rendu, les matières, le scroll et les effets, pas les objets du métier.
+La scène peut (et souvent doit) contenir des objets construits pour le projet (une jante, un flacon,
+un pain, un comptoir) : `lib/` fournit le rendu, les matières, le scroll et les effets, pas les objets
+du métier. **Lis `references/modeling.md` avant de modéliser** : c'est le défaut n° 1 relevé par le
+juge du banc d'essai (pain en « galet », flacon « en plastique », bois « en sable »). Outils :
+`lib/forms.js` (`lathe` creux, `liquid`, `deform`, `organic`, `tint`, `roundedBox`). Un objet doit se
+reconnaître à sa silhouette seule, avec au moins trois détails vrais (bords arrondis, épaisseur,
+irrégularité, variation de couleur, pièce secondaire, ombre au sol).
 Pour des particules qui dessinent une forme qui n'est ni une image, ni un SVG, ni un texte (une
 mèche, une vague, un plan), écris-la avec `shape()`.
 
@@ -164,6 +170,9 @@ if (stage) {
 - Lenis (scroll fluide) est optionnel : charge-le et appelle `smoothScroll()`.
 - Pour une scène en plusieurs temps : `acts()` pour nommer les actes, `steps()` pour des paliers
   lisibles, `captionSync()` pour les légendes HTML, `cameraPath()` pour la caméra.
+- **Continuité** : chaque valeur animée (position, couleur, éclat, compteur) est une fonction lisse et
+  croissante de `P` (`ss()`), jamais un `if (P > x)` qui fait apparaître, changer de couleur ou
+  allumer d'un coup ; une même couleur d'accent du début à la fin (`references/art-direction.md`).
 - Cadrage : `fitZone(camera, largeur, hauteur, zone)` place l'objet dans la zone de l'écran qui lui
   revient (ex. mobile `{ top: 0.1, bottom: 0.52 }`, ordinateur `{ left: 0.45 }`) sans le déplacer.
   C'est la façon la plus simple de garder texte et 3D séparés à toutes les tailles.
@@ -173,9 +182,10 @@ if (stage) {
   alors autant qu'un vert (le bloom trie par luminance).
 - Textes : en HTML (accessibles, indexables), jamais uniquement dans la 3D.
 - Animation qui tourne en continu plus de 5 secondes : bouton pause (`motionToggle`), c'est une
-  règle d'accessibilité. Il fige le temps, jamais le scroll : le récit reste lisible. Scène plus bas dans la page : `whenNear()`. Fondu d'apparition : classe
-  `p3d-ready` (voir `references/performance.md`). Image de secours : option `poster` de `createStage`,
-  générée à la fin avec `check.mjs --poster`.
+  règle d'accessibilité. Il fige le temps, jamais le scroll : le récit reste lisible.
+- Scène plus bas dans la page : `whenNear()`. Fondu d'apparition : classe `p3d-ready`
+  (`references/performance.md`).
+- Image de secours : option `poster` de `createStage`, générée à la fin avec `check.mjs --poster`.
 
 ## Étape 5 : performances (obligatoire)
 
@@ -197,8 +207,11 @@ node tools/check.mjs http://127.0.0.1:5180/index.html ./captures-full --section 
 ```
 Itère avec peu de points ; conclus avec les points par défaut, les deux vues et `--full` (seul à
 montrer le bloom et ses halos). La page expose `window.__demo = { get ready() { return stage.ready; } }`.
-Lis « À VÉRIFIER » (3D coupée ou sous un texte, budget dépassé, fluidité) et regarde **chaque**
-capture (desktop et 390×844) :
+Lis « À VÉRIFIER » (3D coupée ou sous un texte, textes superposés, saut entre deux captures,
+compteur qui recule, textes provisoires, budget, fluidité). **Chaque alerte se corrige** ; si elle
+est voulue (un décor qui sort exprès du cadre), écris pourquoi dans `jury.json` (`"alertes"`). On ne
+livre pas avec une alerte sans réponse, ni avec une erreur. Puis regarde **chaque** capture (desktop
+et 390×844) :
 - le **premier écran, avant tout scroll**, est déjà beau et plein (pas d'objet minuscule ni de vide) ;
 - arêtes et reflets nets, sans crénelage (sinon : `stage.pixelRatio` doit valoir 1 ou plus sur ordinateur) ;
 - la 3D est entière et cadrée à chaque point, y compris les pièces qui arrivent ou s'écartent ;
@@ -207,13 +220,24 @@ capture (desktop et 390×844) :
 - sur fond clair, particules denses et lisibles, pas un voile pâle ;
 - aucun texte recouvert, contraste suffisant, titres sans caractère manquant (gros plans du rapport) ;
 - pas de face noire (normales inversées) ni de pièce qui en traverse une autre ;
+- l'objet central passe le test de la silhouette (`references/modeling.md`) et sa matière est la bonne ;
+- d'une capture à la suivante, rien ne saute (couleur, éclat, compteur, objet qui surgit) ;
 - console propre, pas de débordement horizontal.
 Corrige et recommence jusqu'à ce que tout soit propre.
 
 ## Étape 7 : le jury
 
-Avant de livrer, note le résultat sur 10 pour chaque critère, en regardant les captures (pas le
-code) :
+Avant de livrer, **cherche d'abord les défauts**, capture par capture, en regardant les images (pas
+le code) et en te demandant ce qu'un directeur artistique exigeant dirait. Ceux que le juge du banc
+d'essai relève le plus souvent :
+- un objet qu'on ne reconnaît pas ou qui a l'air faux (galet, plastique, sable, cylindres empilés) ;
+- une matière qui n'est pas la bonne (verre opaque, bois sans fil, métal noir ou blanc qui bave) ;
+- un saut entre deux captures (couleur, halo, compteur, apparition sans transition) ;
+- un nuage de particules qui ne dessine rien et ressemble à un bug ;
+- un texte superposé, illisible, ou un placeholder qui casse la page ;
+- un vide : premier écran pauvre, objet minuscule, fin de scène sans rien.
+Écris chaque défaut trouvé (capture, quoi, pourquoi) dans `"defauts"`, corrige, recontrôle. Ensuite
+seulement, note sur 10 chaque critère :
 | Critère | Question |
 |---|---|
 | Originalité | Est-ce qu'on a déjà vu cette scène ailleurs ? La signature se voit-elle tout de suite ? |
@@ -225,12 +249,17 @@ code) :
 Écris les notes dans `captures-full/jury.json` :
 ```json
 { "originalite": 8, "pertinence": 9, "finition": 8, "lisibilite": 9, "fluidite": 8, "mobile": 8,
+  "defauts": ["desktop-045 : le flacon paraît opaque → verre teinté plus clair, corrigé"],
+  "alertes": "desktop 90 % bord droit : le comptoir sort exprès du cadre",
   "notes": "Ce qui marche, ce qui reste à améliorer, en deux phrases." }
 ```
 puis `node tools/check.mjs <url> ./captures-full --report-only` : le rapport `report.html` réunit
 captures, erreurs et notes. Montre-le à la personne à la livraison.
-**Moins de 8 sur un critère : améliore et repasse le jury.** Note honnêtement : un 10 partout au
-premier essai veut dire que tu n'as pas assez regardé.
+**Moins de 8 sur un critère : améliore et repasse le jury.** Note avec la même exigence que le juge
+externe du banc d'essai (8 = digne d'un studio, 10 = exceptionnel) : il a donné 6,1 en moyenne aux
+sites de la version 1.9.0. Un 8 se justifie par une capture précise ; un 10 partout au premier essai
+veut dire que tu n'as pas assez regardé. Après trois tours d'amélioration, livre en disant
+franchement ce qui reste sous 8 et pourquoi.
 
 Si l'outil Agent est disponible et que la personne veut le meilleur résultat, fais aussi noter
 les captures par un agent qui n'a pas vu le travail (donne-lui seulement les captures, la demande
