@@ -7,7 +7,7 @@ Liquid metal, morphing particles, 3D type in the brand's own font, procedural wo
 product models with studio light, neon glass icons, scroll-driven scenes. No templates: every
 scene starts from the brand, and two sites made with it should never look alike.
 
-[Page de test](https://wazox.github.io/premium-3d) | [Version française](#version-française)
+[Page de test](https://wazox.github.io/premium-3d) | [On Agensi](https://www.agensi.io/skills/premium-3d-websites) | [Version française](#version-française)
 
 ![Particles that turn green coffee beans into a cup, then into the brand name](docs/gallery/cafe.gif)
 
@@ -51,6 +51,8 @@ claude plugin install premium-3d@premium-3d
 Then in Claude Code: `/premium-3d:premium-3d a landing page for my hair salon with my logo in 3D`.
 
 Or copy `plugins/premium-3d/skills/premium-3d` into `~/.claude/skills/` and use `/premium-3d`.
+
+Also available on [Agensi](https://www.agensi.io/skills/premium-3d-websites), security-scanned and installable in any SKILL.md agent (Claude Code, Codex CLI, Cursor, Gemini CLI…).
 
 ## What's inside
 
@@ -125,6 +127,8 @@ claude plugin install premium-3d@premium-3d
 
 Puis dans Claude Code : `/premium-3d:premium-3d une landing pour mon salon de coiffure avec mon logo en 3D`.
 Ou copiez `plugins/premium-3d/skills/premium-3d` dans `~/.claude/skills/` et utilisez `/premium-3d`.
+
+Aussi disponible sur [Agensi](https://www.agensi.io/skills/premium-3d-websites), vérifié par leur scan de sécurité et installable dans tout agent compatible SKILL.md (Claude Code, Codex CLI, Cursor, Gemini CLI…).
 
 Guide complet en français : [docs/GUIDE-FR.md](docs/GUIDE-FR.md).
 
