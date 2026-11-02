@@ -91,18 +91,25 @@ export function ribbon(path, { width = 0.15, taper = 0.6, twist = 0, tube = fals
 /**
  * Trajet de rues : segments droits reliés par des virages arrondis de rayon `radius` (une courbe
  * lissée passerait à travers les pâtés de maisons). À donner à ribbon().
+ * path.turns : [{ u, point, side: "gauche" | "droite", out }] pour la flèche du prochain virage.
  *   const r = ribbon(route([[0, 0, 0], [0, 0, 4], [3, 0, 4]], 0.4), { width: 0.1, up: [0, 1, 0] });
  */
 export function route(points, radius = 0.3) {
-  const P = points.map((p) => new THREE.Vector3(...p)), path = new THREE.CurvePath();
+  const P = points.map((p) => new THREE.Vector3(...p)), path = new THREE.CurvePath(), corners = [];
   let from = P[0].clone();
   for (let i = 1; i < P.length - 1; i++) {
     const a = P[i - 1], c = P[i], b = P[i + 1];
     const din = c.clone().sub(a), dout = b.clone().sub(c);
     const r = Math.min(radius, din.length() / 2, dout.length() / 2);
+    const turn = new THREE.Vector3().crossVectors(din, dout).y; // > 0 : à gauche (vu du dessus, y vers le haut)
     const p1 = c.clone().addScaledVector(din.normalize(), -r), p2 = c.clone().addScaledVector(dout.normalize(), r);
     path.add(new THREE.LineCurve3(from, p1)); path.add(new THREE.QuadraticBezierCurve3(p1, c.clone(), p2)); from = p2;
+    corners.push({ curve: path.curves.length - 1, point: c.clone(), side: Math.abs(turn) < 1e-6 ? "droit" : turn > 0 ? "gauche" : "droite", out: dout.clone() });
   }
   path.add(new THREE.LineCurve3(from, P[P.length - 1]));
+  /* virages : position sur le trajet (u de 0 à 1, au milieu du virage), côté, direction de sortie.
+     Pour une flèche de navigation ou une consigne « à droite dans 300 m ». */
+  const cum = path.getCurveLengths(), total = path.getLength();
+  path.turns = corners.map((t) => ({ u: (cum[t.curve] - path.curves[t.curve].getLength() / 2) / total, point: t.point, side: t.side, out: t.out }));
   return path;
 }

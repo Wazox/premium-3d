@@ -105,6 +105,13 @@ formes d'un même morphing ont le même `count`.
 | `ribbon(…, { up: [0, 1, 0] })` | Ruban posé à plat sur un sol (sentier, route) au lieu de suivre les repères de la courbe. |
 | `route(points, rayon)` (ribbon.js) | Trajet de rues : lignes droites et virages arrondis (une courbe lissée couperait les pâtés de maisons). À donner à `ribbon`. Scène complète : `demos/gps.html` (ville, trajet prévu pâle + trajet parcouru en néon, voiture qui suit, caméra vue d'ensemble → poursuite → vue d'ensemble, compteurs km et minutes). |
 
+## daylight.js : l'heure qui passe
+| Appel | Rôle |
+|---|---|
+| `daylight(stage, { from, to, sunFrom, sunTo })` | Fait glisser toute la scène d'une ambiance à une autre (jour → nuit, nuit → aube) : fond, brouillard, soleil et ambiance (créés : `.sun`, `.ambient`), reflets (`env`), exposition. `from` / `to` : `{ background, sun: [couleur, intensité], ambient: [couleur, intensité], env, exposure }`. |
+| `.material(m, couleurDébut, couleurFin)`, `.glow(m, de, à)`, `.set(k)` | Couleurs de matériaux qui suivent l'heure ; ce qui s'allume à la nuit (phares, fenêtres, enseigne) ; `k` 0 → 1 (lissé par `ss()`, jamais de bascule). |
+| `route(points, rayon).turns` | Virages du trajet `[{ u, point, side: "gauche" \| "droite", out }]` : flèche du prochain virage et consigne « à droite dans 300 m » (voir `demos/gps.html`). Un compte à rebours voulu : `data-p3d-countdown` sur son conteneur (`check.mjs` ne le signale pas). |
+
 ## shaders.js, fx.js, interact.js : effets et interactions
 | Appel | Rôle |
 |---|---|

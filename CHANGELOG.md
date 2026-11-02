@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.13.0
+
+- `lib/daylight.js` : **l'heure qui passe** au scroll (jour → nuit, nuit → aube) : fond,
+  brouillard, soleil, ambiance, reflets, couleurs des matériaux et lumières qui s'allument, ensemble
+  et en douceur. Nouvelle piste « L'heure qui passe » dans `concepts.md`.
+- `route().turns` : les virages du trajet (position, côté, direction de sortie).
+- `demos/gps.html` : **flèche du prochain virage** posée sur la chaussée, consigne « à droite dans
+  450 m » ; **de la fin d'après-midi à la nuit** pendant le trajet, phares et feux qui s'allument ;
+  compteurs sur fond sombre, lisibles de jour comme de nuit.
+- `check.mjs` : un compte à rebours voulu (`data-p3d-countdown`) n'est plus signalé comme un
+  compteur qui recule.
+
 ## 1.12.0
 
 **Encore d'autres langages visuels**

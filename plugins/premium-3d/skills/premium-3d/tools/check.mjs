@@ -153,7 +153,7 @@ const runView = async (v) => {
     const nums = await page.evaluate(() => {
       const out = [];
       document.querySelectorAll("body *").forEach((el) => {
-        if (el.children.length || el.closest("script,style,[aria-hidden=true]")) return;
+        if (el.children.length || el.closest("script,style,[aria-hidden=true],[data-p3d-countdown]")) return; // data-p3d-countdown : compte à rebours voulu
         const txt = el.textContent.trim(); if (!txt || txt.length > 24 || !/\d/.test(txt)) return;
         const r = el.getBoundingClientRect(); if (r.width < 2 || r.bottom < 0 || r.top > innerHeight) return;
         let o = 1; for (let e = el; e && e !== document.body; e = e.parentElement) { const st = getComputedStyle(e); if (st.visibility === "hidden" || st.display === "none") { o = 0; break; } o *= +st.opacity; }

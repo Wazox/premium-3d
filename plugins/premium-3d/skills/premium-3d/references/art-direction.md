@@ -126,7 +126,8 @@ l'autre, une pièce qui apparaît sans transition.
 - Un néon ou un halo garde le même éclat d'un état à l'autre, sauf si son allumage est le propos de la
   scène (et il s'allume alors progressivement).
 - Compteurs (heure, jours, H+…) : toujours croissants quand on descend ; un passage minuit
-  (19:00 → 02:00) est accepté par `check.mjs`.
+  (19:00 → 02:00) est accepté par `check.mjs`. Un compte à rebours voulu (« virage dans 300 m »,
+  « plus que 3 places ») : `data-p3d-countdown` sur son conteneur.
 - `check.mjs` signale les sauts entre deux captures voisines (couverture, lumière, teinte) et les
   compteurs qui reculent : avec les points par défaut (écart de 15 %).
 

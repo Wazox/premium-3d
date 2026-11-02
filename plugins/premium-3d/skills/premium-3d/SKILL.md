@@ -33,6 +33,7 @@ lib/ribbon.js      ruban ou fil qui se dessine au scroll (trajet GPS, signature,
 lib/ink.js         style illustré : aplats de couleur et contour encré
 lib/terrain.js     relief qui sort du plat, lignes de niveau (carte, montagne, vignoble, quartier)
 lib/cloth.js       tissu qui ondule et s'enroule pour dévoiler un objet
+lib/daylight.js    l'heure qui passe au scroll : jour → nuit, nuit → aube (fond, lumières, matières)
 lib/story.js       scène en plusieurs actes : acts(), steps() à paliers, captionSync() (légendes sans superposition)
 lib/react.js       hook usePremium3D pour React / Next.js (montage, préchauffage, nettoyage)
 lib/r3f.js         composants React Three Fiber : Studio, Material, Logo3D, Text3D, Particles

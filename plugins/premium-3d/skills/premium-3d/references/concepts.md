@@ -109,6 +109,10 @@ produit puis s'enroule pour le révéler au scroll, comme une inauguration. Briq
 **La fonte.** La matière du métier fond sous les yeux : glace, chocolat, cire de bougie, beurre,
 métal coulé. Puis se reforme, ou laisse la place au produit. Briques : `melt`, `liquify`.
 
+**L'heure qui passe.** Le scroll fait passer la journée du métier : le fournil de la nuit à l'aube,
+le bar du coucher de soleil à minuit, le VTC du soir à la nuit (phares qui s'allument), la terrasse
+de midi au crépuscule. Tout glisse ensemble, sans bascule. Brique : `daylight`.
+
 **À inventer.** Toute autre idée qui colle au métier : un objet emblématique du secteur extrudé
 depuis une icône, un plan du lieu en relief, une typographie en volume, etc.
 
