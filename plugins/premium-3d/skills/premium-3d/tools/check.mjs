@@ -153,7 +153,7 @@ const runView = async (v) => {
     const nums = await page.evaluate(() => {
       const out = [];
       document.querySelectorAll("body *").forEach((el) => {
-        if (el.children.length || el.closest("script,style,[aria-hidden=true]")) return;
+        if (el.children.length || el.closest("script,style,[aria-hidden=true],[data-p3d-countdown]")) return; // data-p3d-countdown : compte à rebours voulu
         const txt = el.textContent.trim(); if (!txt || txt.length > 24 || !/\d/.test(txt)) return;
         const r = el.getBoundingClientRect(); if (r.width < 2 || r.bottom < 0 || r.top > innerHeight) return;
         let o = 1; for (let e = el; e && e !== document.body; e = e.parentElement) { const st = getComputedStyle(e); if (st.visibility === "hidden" || st.display === "none") { o = 0; break; } o *= +st.opacity; }
@@ -258,6 +258,7 @@ const runView = async (v) => {
 };
 // carte graphique : les deux vues en même temps ; rendu logiciel : l'une après l'autre (le processeur est déjà plein)
 if (mode === "gpu") await Promise.all(VIEWS.map(runView)); else for (const v of VIEWS) await runView(v);
+await makeSheets(browser);
 await browser.close();
 fs.writeFileSync(`${out}/check.json`, JSON.stringify({ url, date: new Date().toISOString(), full, errors, warnings, perf, shots }, null, 2));
 for (const [k, p] of Object.entries(perf)) if (p.stages) console.log(`Perf ${k} : ${p.calls} appels/image, ${p.triangles.toLocaleString("fr-FR")} triangles, ${p.kb} Ko, 3D prête en ${p.readyMs} ms, ${p.fps ? p.fps + " images/s au défilement" : "fluidité non mesurée (rendu logiciel : relancer avec --gpu sur un PC)"} [${p.renderer}]`);
@@ -265,7 +266,7 @@ console.log(errors.length ? "PROBLÈMES :\n" + errors.join("\n") : "Aucune erreu
 if (warnings.length) console.log("À VÉRIFIER :\n" + warnings.join("\n"));
 }
 writeReport();
-console.log(`Captures et rapport dans ${out} (report.html) : regarde chaque capture.`);
+console.log(`Captures et rapport dans ${out} (report.html). Regarde d'abord ${["desktop", "mobile"].filter((v) => fs.existsSync(`${out}/planche-${v}.png`)).map((v) => `planche-${v}.png`).join(" et ") || "les captures"} (toutes les captures sur une image), puis une capture en grand seulement pour un détail.`);
 
 /*
  * La 3D touche-t-elle un bord ? Capture du canvas seul (textes cachés), couleur de fond = couleur la
@@ -396,6 +397,25 @@ async function edgeCheck(page, sel) {
     }
     return { edges: out, overlaps, fix, look };
   }, [png.toString("base64"), ok.texts]);
+}
+
+/**
+ * Planches : toutes les captures d'une vue réduites sur une seule image (planche-desktop.png,
+ * planche-mobile.png). Une planche coûte autant à regarder qu'une capture, au lieu de 8 : on
+ * repère les problèmes sur la planche, et on n'ouvre une capture en grand que pour un détail.
+ */
+async function makeSheets(browser) {
+  for (const view of ["desktop", "mobile"]) {
+    const list = shots.filter((x) => x.view === view && x.p !== "titre");
+    if (!list.length) continue;
+    const mobile = view === "mobile", w = mobile ? 180 : 400, cols = mobile ? Math.min(8, list.length) : Math.min(4, list.length);
+    const cells = list.map((x) => `<figure><img src="data:image/png;base64,${fs.readFileSync(`${out}/${x.file}`).toString("base64")}"><figcaption>${x.p === "fin" ? "fin" : Math.round(x.p * 100) + " %"}${x.cut && x.cut.length ? " · bord ?" : ""}</figcaption></figure>`).join("");
+    const page = await browser.newPage({ viewport: { width: cols * (w + 8) + 8, height: 20 } });
+    await page.setContent(`<style>body{margin:0;padding:4px;background:#222;display:grid;grid-template-columns:repeat(${cols},${w}px);gap:8px 8px;font:13px system-ui;color:#ddd}figure{margin:0}img{width:${w}px;display:block}figcaption{padding:2px 0}</style>${cells}`);
+    await page.evaluate(() => Promise.all([...document.images].map((i) => i.decode().catch(() => {}))));
+    await page.screenshot({ path: `${out}/planche-${view}.png`, fullPage: true });
+    await page.close();
+  }
 }
 
 /**

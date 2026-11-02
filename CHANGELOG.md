@@ -1,5 +1,62 @@
 # Changelog
 
+## 1.13.0
+
+- `lib/daylight.js` : **l'heure qui passe** au scroll (jour → nuit, nuit → aube) : fond,
+  brouillard, soleil, ambiance, reflets, couleurs des matériaux et lumières qui s'allument, ensemble
+  et en douceur. Nouvelle piste « L'heure qui passe » dans `concepts.md`.
+- `route().turns` : les virages du trajet (position, côté, direction de sortie).
+- `demos/gps.html` : **flèche du prochain virage** posée sur la chaussée, consigne « à droite dans
+  450 m » ; **de la fin d'après-midi à la nuit** pendant le trajet, phares et feux qui s'allument ;
+  compteurs sur fond sombre, lisibles de jour comme de nuit.
+- `check.mjs` : un compte à rebours voulu (`data-p3d-countdown`) n'est plus signalé comme un
+  compteur qui recule.
+
+## 1.12.0
+
+**Encore d'autres langages visuels**
+- `lib/terrain.js` : **relief** qui sort du plat (fonction ou image en niveaux de gris), lignes de
+  niveau façon carte IGN, `heightAt()` pour poser un sentier dessus.
+- `lib/cloth.js` : **tissu** qui ondule au vent et s'enroule pour dévoiler un objet (`fabric()` :
+  velours, lin).
+- `melt()` (shaders.js) : la matière **fond**, coule et s'étale en flaque (glace, chocolat, cire).
+- `demos/styles-2.html`.
+
+**Le trajet GPS**
+- `route(points, rayon)` (ribbon.js) : rues droites et virages arrondis ; `ribbon(…, { up })` pose
+  le ruban à plat sur le sol.
+- `demos/gps.html` : scène de navigation complète au scroll : ville, trajet prévu et trajet
+  parcouru, voiture à l'échelle des rues avec phares et feux, caméra vue d'ensemble → poursuite →
+  vue d'ensemble, compteurs km et minutes qui ne reculent jamais, repères de départ et d'arrivée.
+
+## 1.11.0
+
+**Plus léger et plus sobre dans le navigateur**
+- three.js **minifié** (`three.module.min.js`) partout : 194 Ko compressés au lieu de 341 Ko, et
+  2,5 fois moins de code à analyser. Le squelette précharge three.js et `lib/core.js`
+  (`modulepreload`) : plus de chargement en cascade.
+- **Rendu à la demande** : une scène au repos ne redessine plus la même image (pause, animations
+  réduites, ou `update()` qui renvoie `false`) ; mesuré : 0 image dessinée au repos au lieu de
+  60 par seconde. `stage.invalidate()`, `stage.sleeping`.
+- **Contexte WebGL perdu** (mobile en arrière-plan) : l'image de secours revient au lieu d'un
+  canvas noir, la scène repart toute seule.
+
+**Plus juste en couleur**
+- `createStage({ tone })` : `"neutral"` (Khronos PBR Neutral) garde la couleur exacte de la marque,
+  `"agx"` pour les néons très lumineux ; `"aces"` reste le défaut.
+
+**Moins de tokens**
+- `check.mjs` produit `planche-desktop.png` et `planche-mobile.png` : toutes les captures d'une vue
+  sur une image. L'agent regarde 2 images au lieu d'une quinzaine à chaque contrôle.
+
+**Nouveaux langages visuels** (pour que deux sites ne se ressemblent pas)
+- `lib/swarm.js` : nuée de vrais petits objets 3D (grains, pétales, pièces) qui écrivent un nom ou
+  un logo, un seul appel de dessin.
+- `lib/ribbon.js` : ruban ou fil qui se dessine au scroll, avec un objet qui le suit (trajet GPS,
+  signature, mèche, couture, vapeur).
+- `lib/ink.js` : style illustré, aplats de couleur et contour encré.
+- `demos/styles.html` ; trois nouvelles pistes dans `concepts.md` (la nuée, le trajet, l'illustration).
+
 ## 1.10.0
 
 Tiré du banc d'essai 1.9.0 (0 erreur, mais 6,1/10 au jury externe) : les défauts restants étaient

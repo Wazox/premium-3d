@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Démo technique : relief, tissu, fonte</title>
+<!-- Démo de technique, volontairement sobre. Ce n'est PAS un modèle de page : elle montre comment
+     appeler lib/terrain.js, lib/cloth.js et melt() de lib/shaders.js. -->
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.min.js" crossorigin>
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.core.min.js" crossorigin>
+<style>
+body{margin:0;font:15px/1.5 system-ui,sans-serif;background:#111;color:#ddd}
+.row{display:grid;grid-template-columns:repeat(3,1fr);height:100svh}
+.cell{position:relative;overflow:hidden}
+.cell canvas{position:absolute;inset:0;width:100%;height:100%}
+.cell p{position:absolute;left:16px;bottom:12px;margin:0;font-size:13px;opacity:.75;max-width:34ch}
+@media (max-width:860px){.row{grid-template-columns:1fr;height:auto}.cell{height:80svh}}
+</style>
+</head>
+<body>
+<div class="row">
+  <div class="cell" style="background:#ece6da;color:#3d3427"><canvas id="a" aria-hidden="true"></canvas><p>relief : le terrain sort du plat, lignes de niveau, un trajet posé dessus (heightAt).</p></div>
+  <div class="cell" style="background:#141012"><canvas id="b" aria-hidden="true"></canvas><p>cloth : un velours qui ondule puis s'enroule pour dévoiler l'objet.</p></div>
+  <div class="cell" style="background:#f3e2d6;color:#4a2a1d"><canvas id="c" aria-hidden="true"></canvas><p>melt : la boule de glace fond, coule et s'étale en flaque.</p></div>
+</div>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.min.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"}}</script>
+<script type="module">
+import { createStage, fitZone, ss, materials, THREE } from "../lib/core.js";
+import { relief } from "../lib/terrain.js";
+import { cloth, fabric } from "../lib/cloth.js";
+import { melt } from "../lib/shaders.js";
+import { ribbon } from "../lib/ribbon.js";
+import { lathe, organic } from "../lib/forms.js";
+import { studioLights, softGround } from "../lib/models.js";
+
+const stages = [];
+const frame = (stage, w, h, y = 0) => stage.onResize(() => { stage.camera.position.set(0, y, fitZone(stage.camera, w, h)); stage.camera.lookAt(0, 0, 0); });
+
+/* 1. relief : trois sommets et une vallée, lignes de niveau, un sentier posé sur le terrain */
+{
+  const stage = createStage(document.getElementById("a"), { background: null, env: "room", bloom: false, tone: "neutral" });
+  const peak = (x, z, cx, cz, r) => Math.exp(-((x - cx) ** 2 + (z - cz) ** 2) / r);
+  const fn = (x, z) => Math.min(1, 0.9 * peak(x, z, -0.6, -0.4, 1.1) + 0.6 * peak(x, z, 1.1, 0.5, 0.7) + 0.45 * peak(x, z, -1.3, 1.2, 0.5) + 0.05 * Math.sin(x * 3) * Math.cos(z * 2.5));
+  const r = await relief({ fn, size: 4.4, height: 1.3, color: "#e2d7c2", lines: "#7a6247", step: 0.09, segments: { low: 96, mid: 128, high: 180 }[stage.tier] });
+  const trail = ribbon([[-2, 0, 1.7], [-1.2, 0, 0.9], [-0.7, 0, 0.1], [0.2, 0, -0.3], [0.9, 0, 0.3], [1.7, 0, -1.2]], { width: 0.06, taper: 0, up: [0, 1, 0], material: new THREE.MeshBasicMaterial({ color: "#c2410c" }) });
+  const g = new THREE.Group(); g.add(r.mesh, trail.mesh); g.rotation.x = 0.55; g.rotation.y = -0.5; stage.scene.add(g);
+  stage.scene.environmentIntensity = 0.35; // l'éclairage vient du soleil rasant : les pentes se lisent
+  const sun = new THREE.DirectionalLight("#fff3df", 3); sun.position.set(-4, 2.5, 1); stage.scene.add(sun);
+  /* le sentier suit le relief : chaque point posé à la hauteur du terrain (recalculé quand il monte) */
+  const tp = trail.mesh.geometry.attributes.position, base = tp.array.slice();
+  const drape = () => { for (let i = 0; i < tp.count; i++) tp.array[i * 3 + 1] = r.heightAt(base[i * 3], base[i * 3 + 2]) + 0.03; tp.needsUpdate = true; };
+  frame(stage, 5.4, 3.8, 0.2);
+  await stage.warm();
+  stage.start((dt, t) => { const k = (t * 0.1) % 1; r.rise(ss(0.02, 0.4, k)); drape(); trail.reveal(ss(0.35, 0.8, k)); });
+  stages.push(stage);
+}
+
+/* 2. tissu : un velours bordeaux devant un vase, qui s'enroule vers le haut */
+{
+  const stage = createStage(document.getElementById("b"), { background: "#141012", accent: "#ffd9b0", accent2: "#a0b4ff", bloom: false, front: 1 });
+  const vase = new THREE.Mesh(organic(lathe([[0, 0], [0.4, 0], [0.55, 0.5], [0.5, 1.1], [0.28, 1.6], [0.32, 1.9]], { thickness: 0.04 }), { amp: 0.006, seed: 3 }), materials.enamel({ color: "#1f5f4a" }));
+  vase.position.y = -1.3; stage.scene.add(vase);
+  const c = cloth({ width: 2.6, height: 3, material: fabric({ color: "#6e1427", sheen: "#ff9db0" }) });
+  c.mesh.position.set(0, 0.1, 0.9); stage.scene.add(c.mesh);
+  studioLights(stage, { shadows: false });
+  frame(stage, 3.2, 4.2);
+  await stage.warm();
+  stage.start((dt, t) => { const k = (t * 0.1) % 1; c.update(t, { wind: 1.6 - ss(0.3, 0.6, k), lift: ss(0.3, 0.75, k) }); });
+  stages.push(stage);
+}
+
+/* 3. fonte : une boule de glace sur une assiette, qui fond et coule */
+{
+  const stage = createStage(document.getElementById("c"), { background: null, env: "room", bloom: false, tone: "neutral" });
+  const ice = new THREE.MeshPhysicalMaterial({ color: "#f19cb0", roughness: 0.35, clearcoat: 0.6, clearcoatRoughness: 0.3, sheen: 0.4, sheenColor: new THREE.Color("#fff") });
+  const u = melt(ice, { bottom: -0.75, top: 0.75, floor: -0.69 }); // sol = fond de l'assiette, en coordonnées de la boule
+  const scoop = new THREE.Mesh(organic(new THREE.SphereGeometry(0.75, 160, 120), { amp: 0.05, freq: 2.6, seed: 7 }), ice);
+  scoop.position.y = 0.05; stage.scene.add(scoop);
+  const plate = new THREE.Mesh(lathe([[0, 0], [1.5, 0.02], [1.75, 0.1], [1.8, 0.14]], { thickness: 0.04 }), materials.enamel({ color: "#fbf7f2" }));
+  plate.position.y = -0.7; stage.scene.add(plate);
+  const sun = new THREE.DirectionalLight("#ffffff", 1.6); sun.position.set(2, 4, 3); stage.scene.add(sun);
+  stage.scene.add(softGround({ y: -0.7, opacity: 0.18 }));
+  frame(stage, 3.8, 2.4, 1.4);
+  await stage.warm();
+  stage.start((dt, t) => { u.uMelt.value = ss(0.1, 0.75, (t * 0.1) % 1); });
+  stages.push(stage);
+}
+window.__demo = { get ready() { return stages.length === 3 && stages.every((s) => s.ready); } };
+</script>
+</body>
+</html>

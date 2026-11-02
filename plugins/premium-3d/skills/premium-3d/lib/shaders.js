@@ -4,6 +4,7 @@
  * les reflets et la transmission) :
  *   liquify(material, opts)   la surface ondule comme du métal fondu, de la gélatine, de l'eau
  *   dissolve(material, opts)  l'objet apparaît / disparaît en se consumant, avec un bord lumineux
+ *   melt(material, opts)      l'objet fond : il s'affaisse, coule en gouttes et s'étale en flaque
  *   blobGeometry(), discGeometry()  sphère et disque très subdivisés, prêts pour liquify
  * Chaque fonction renvoie les uniforms à animer dans la boucle.
  *
@@ -131,4 +132,35 @@ export function discGeometry(radius = 1, rings = 48, segments = 96) {
   g.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
   g.setIndex(idx); g.computeVertexNormals();
   return g;
+}
+
+/**
+ * Fonte : l'objet s'affaisse, coule en coulures irrégulières et s'étale en flaque sur le sol
+ * (chocolat, cire de bougie, glace, beurre, métal en fusion, savon). En coordonnées de l'objet :
+ * bottom et top = bas et haut de l'objet, floor = hauteur du sol (souvent bottom).
+ * L'objet doit être assez subdivisé (blobGeometry, lathe, text3d avec curveSegments élevé…).
+ *   const u = melt(mat, { bottom: -1, top: 1 });   u.uMelt.value = ss(0.2, 0.8, P);   // 0 → 1
+ * @returns uniforms { uMelt, uSpread }
+ */
+export function melt(material, { bottom = -1, top = 1, floor = null, spread = 1.2, drips = 1.6 } = {}) {
+  const u = { uMelt: { value: 0 }, uSpread: { value: spread } };
+  material.userData.p3dKey = (material.userData.p3dKey || "") + "melt";
+  chain(material, (sh) => {
+    Object.assign(sh.uniforms, u);
+    sh.vertexShader = sh.vertexShader
+      .replace("#include <common>", `#include <common>
+uniform float uMelt, uSpread;
+${NOISE}`)
+      .replace("#include <begin_vertex>", `vec3 transformed = position;
+{ float B = float(${bottom.toFixed(4)}), T = float(${top.toFixed(4)}), F = float(${(floor ?? bottom).toFixed(4)});
+  float h = clamp((position.y - B) / (T - B), 0., 1.), k = uMelt;
+  float col = snoise(vec3(position.xz * float(${drips.toFixed(3)}), 3.1)) * .5 + .5;   // coulures : certaines colonnes descendent plus vite
+  float down = k * (T - B) * pow(h, .75) * (.92 + .22 * col);     // à 1, tout a rejoint le sol
+  transformed.y -= down;
+  transformed.xz *= 1. + k * .3 * (1. - h);                       // le bas s'évase
+  float under = F - transformed.y;
+  if (under > 0.) { transformed.y = F + .025 * k * (1. - smoothstep(0., .5, under)); transformed.xz *= 1. + under * uSpread; }   // flaque bombée
+}`);
+  });
+  return u;
 }

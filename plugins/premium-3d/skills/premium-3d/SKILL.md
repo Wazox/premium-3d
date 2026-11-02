@@ -17,7 +17,7 @@ lib/logo3d.js      logo SVG → objet 3D extrudé (une pièce par path) ; explod
 lib/icon3d.js      icône SVG (traits) → néon sous verre
 lib/objects3d.js   photoFrame, pedestal, glowRing, dust, aurora
 lib/shaders.js     liquify (surface liquide : métal fondu, gelée, eau), dissolve (apparition en
-                   se consumant avec un bord lumineux), blobGeometry
+                   se consumant avec un bord lumineux), melt (fond et coule en flaque), blobGeometry
 lib/particles.js   particules qui prennent la forme d'une photo, d'un logo, d'un texte ou d'un
                    objet 3D, et passent de l'une à l'autre (morphing)
 lib/text3d.js      texte en volume avec la vraie police de la marque (.ttf/.otf/.woff), lettre par lettre
@@ -28,6 +28,12 @@ lib/fx.js          grain, aberration chromatique, vignette, profondeur de champ
 lib/textures.js    matières procédurales sans image : bois, marbre, béton, papier
 lib/forms.js       modéliser les objets du métier : profil lissé (flacon, verre, bol), paroi épaisse,
                    liquide qui se remplit, formes organiques (pain, pierre, fruit), couleurs peintes
+lib/swarm.js       nuée de vrais petits objets 3D (grains, pétales, pièces) qui écrivent un nom ou un logo
+lib/ribbon.js      ruban ou fil qui se dessine au scroll (trajet GPS, signature, mèche) ; un objet le suit
+lib/ink.js         style illustré : aplats de couleur et contour encré
+lib/terrain.js     relief qui sort du plat, lignes de niveau (carte, montagne, vignoble, quartier)
+lib/cloth.js       tissu qui ondule et s'enroule pour dévoiler un objet
+lib/daylight.js    l'heure qui passe au scroll : jour → nuit, nuit → aube (fond, lumières, matières)
 lib/story.js       scène en plusieurs actes : acts(), steps() à paliers, captionSync() (légendes sans superposition)
 lib/react.js       hook usePremium3D pour React / Next.js (montage, préchauffage, nettoyage)
 lib/r3f.js         composants React Three Fiber : Studio, Material, Logo3D, Text3D, Particles
@@ -210,8 +216,9 @@ montrer le bloom et ses halos). La page expose `window.__demo = { get ready() { 
 Lis « À VÉRIFIER » (3D coupée ou sous un texte, textes superposés, saut entre deux captures,
 compteur qui recule, textes provisoires, budget, fluidité). **Chaque alerte se corrige** ; si elle
 est voulue (un décor qui sort exprès du cadre), écris pourquoi dans `jury.json` (`"alertes"`). On ne
-livre pas avec une alerte sans réponse, ni avec une erreur. Puis regarde **chaque** capture (desktop
-et 390×844) :
+livre pas avec une alerte sans réponse, ni avec une erreur. Puis regarde **`planche-desktop.png` et
+`planche-mobile.png`** (toutes les captures d'une vue sur une seule image : bien moins de tokens que
+capture par capture) ; n'ouvre une capture en grand que pour vérifier un détail :
 - le **premier écran, avant tout scroll**, est déjà beau et plein (pas d'objet minuscule ni de vide) ;
 - arêtes et reflets nets, sans crénelage (sinon : `stage.pixelRatio` doit valoir 1 ou plus sur ordinateur) ;
 - la 3D est entière et cadrée à chaque point, y compris les pièces qui arrivent ou s'écartent ;

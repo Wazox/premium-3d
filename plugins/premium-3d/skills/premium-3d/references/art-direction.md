@@ -10,6 +10,12 @@ Le but : que le résultat ressemble à la marque de la personne, pas à un « si
 - Teintes du verre (`tint`) : variations de la palette, plus claires que l'accent.
 - Vérifie le contraste des textes (4.5:1 minimum pour le corps de texte).
 
+## Couleurs exactes : le rendu des tons
+`createStage` rend par défaut en `tone: "aces"` (contraste de cinéma) : il éclaircit et décale un peu
+les couleurs vives (un orange tire vers le jaune, un rouge vers l'orange). Quand la **couleur exacte de
+la marque** compte (logo, produit, fond clair, aplats), passer `tone: "neutral"`. Pour des néons et
+un bloom très forts sur fond sombre : `tone: "agx"`.
+
 ## Fond clair ou sombre
 - **Sombre** : néon, verre lumineux, bloom, ambiance nuit (bars, tech, événementiel, luxe).
 - **Clair** : émail, métal, matières douces, ombres (artisans, santé, enfance, food de jour, mode claire).
@@ -120,7 +126,8 @@ l'autre, une pièce qui apparaît sans transition.
 - Un néon ou un halo garde le même éclat d'un état à l'autre, sauf si son allumage est le propos de la
   scène (et il s'allume alors progressivement).
 - Compteurs (heure, jours, H+…) : toujours croissants quand on descend ; un passage minuit
-  (19:00 → 02:00) est accepté par `check.mjs`.
+  (19:00 → 02:00) est accepté par `check.mjs`. Un compte à rebours voulu (« virage dans 300 m »,
+  « plus que 3 places ») : `data-p3d-countdown` sur son conteneur.
 - `check.mjs` signale les sauts entre deux captures voisines (couverture, lumière, teinte) et les
   compteurs qui reculent : avec les points par défaut (écart de 15 %).
 

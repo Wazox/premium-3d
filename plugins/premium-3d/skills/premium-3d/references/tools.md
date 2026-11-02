@@ -41,6 +41,8 @@ node tools/check.mjs <url> ./captures-full --report-only                 # aprè
   lumière qui saute, la couleur dominante qui change ; un compteur visible qui recule.
 - Textes provisoires : `[À ÉCRIRE]` / `[À CHOISIR]` / lorem ipsum visibles = erreur ; `[À REMPLACER]`
   listés (à donner à la livraison).
+- Planches `planche-desktop.png` et `planche-mobile.png` : toutes les captures d'une vue sur une image,
+  à regarder en premier (beaucoup moins de tokens que capture par capture).
 - Fluidité réelle (images/s au défilement, image la plus lente sur 20) : mesurée seulement avec une
   carte graphique. En rendu logiciel elle n'est pas mesurée.
 - Carte graphique : ordinateur et mobile sont capturés en même temps.

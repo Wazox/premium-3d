@@ -241,7 +241,7 @@ export const materials = {
  */
 export function createStage(canvas, {
   background = null, accent = "#ffffff", accent2 = "#88aaff", fov = 32, env = "studio", front = 0,
-  bloom = { strength: 0.55, radius: 0.5, threshold: 0.9 }, exposure = 1, maxPixelRatio = 1.25, poster = null,
+  bloom = { strength: 0.55, radius: 0.5, threshold: 0.9 }, exposure = 1, maxPixelRatio = 1.25, poster = null, tone = "aces",
 } = {}) {
   /* image de secours : visible pendant le chargement, et à la place de la 3D si WebGL manque */
   /* poster : "img/poster.jpg" ou { desktop: "img/poster.jpg", mobile: "img/poster-mobile.jpg" }.
@@ -262,7 +262,11 @@ export function createStage(canvas, {
     if (!renderer.capabilities.isWebGL2) throw 0;
   } catch (e) { document.documentElement.classList.add("no-gl"); return null; }
   renderer.localClippingEnabled = true; // liquide qui se remplit (forms.js : liquid)
-  renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = exposure;
+  /* tone : "aces" (contraste de cinéma, désature et décale un peu les couleurs vives), "neutral"
+     (Khronos PBR Neutral : la couleur exacte de la marque, idéal fond clair, logo, produit),
+     "agx" (doux, très lumineux sans brûler : néons, bloom fort) */
+  renderer.toneMapping = { neutral: THREE.NeutralToneMapping, agx: THREE.AgXToneMapping }[tone] || THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = exposure;
   if (background === null) renderer.setClearColor(0x000000, 0);
   const scene = new THREE.Scene();
   if (background !== null) scene.background = new THREE.Color(background);
@@ -289,6 +293,13 @@ export function createStage(canvas, {
     resizeFns.forEach((f) => f(w, h, pr));
   }
   const ro = new ResizeObserver(layout); ro.observe(box); layout();
+  /* contexte WebGL perdu (onglet en arrière-plan sur mobile, pilote qui redémarre) : sans ça,
+     le canvas reste noir. On réaffiche l'image de secours et on attend que le navigateur le rende. */
+  let lost = false, dirty = true;
+  canvas.addEventListener("webglcontextlost", (e) => { e.preventDefault(); lost = true; if (posterEl) posterEl.style.opacity = "1"; });
+  canvas.addEventListener("webglcontextrestored", () => { lost = false; dirty = true; if (posterEl) posterEl.style.opacity = "0"; });
+  /* le pointeur réveille une scène endormie (lumière qui suit, survol, attraper) */
+  box.addEventListener("pointermove", () => { dirty = true; }, { passive: true });
   let visible = false;
   const io = new IntersectionObserver((es) => { visible = es[0].isIntersecting; }, { rootMargin: "100% 0px" }); io.observe(box);
   let stopFrame = null;
@@ -335,7 +346,7 @@ export function createStage(canvas, {
       if (restore) restore();
       stage.ready = true; stage.readyAt = performance.now();
       box.classList.add("p3d-ready"); // CSS : .p3d-ready canvas { opacity: 1 } pour un fondu d'apparition
-      if (posterEl) { posterEl.style.opacity = "0"; setTimeout(() => posterEl.remove(), 900); }
+      if (posterEl) posterEl.style.opacity = "0"; // gardée (invisible) : réaffichée si le contexte WebGL est perdu
     },
     /**
      * Lance la boucle : update(dt, t, real) n'est appelé que si la section est proche de l'écran.
@@ -343,6 +354,13 @@ export function createStage(canvas, {
      */
     start(update) {
       let last = null; // THREE.Clock est obsolète depuis r183 : le temps vient de requestAnimationFrame
+      /* Rendu à la demande : une image identique à la précédente n'est pas redessinée (batterie,
+         chauffe, ventilateur). Une scène s'endort quand :
+         - update() renvoie false (« rien n'a bougé ») ;
+         - ou le temps est figé (pause, animations réduites) et ni le scroll, ni la taille, ni le
+           pointeur n'ont changé depuis 1 s (le temps que le suivi lissé du scroll se pose).
+         stage.invalidate() force l'image suivante. */
+      let sig = "", calmSince = 0;
       stage._update = update;
       if (stopFrame) stopFrame();
       stopFrame = onFrame((now) => {
@@ -350,11 +368,20 @@ export function createStage(canvas, {
         if (!visible || !stage.ready || stage.paused || document.hidden) return;
         /* still : le temps est figé (bouton pause, animations réduites) : dt = 0 et t ne bouge plus.
            real = temps réellement écoulé, toujours : c'est lui qui lisse le suivi du scroll. */
+        if (lost) return;
         const dt = stage.still ? 0 : real; stage._T += dt;
-        update(dt, stage._T, real); render(); adapt(now);
+        const moved = update(dt, stage._T, real);
+        const s = scrollY + "|" + box.clientWidth + "x" + box.clientHeight + "|" + pr;
+        const quiet = s === sig && !dirty && (stage.still || moved === false); sig = s;
+        if (!quiet) calmSince = now; // 1 s de calme (en temps réel : une machine lente fait moins d'images)
+        if (quiet && (moved === false || now - calmSince > 1000)) { last = null; stage.sleeping = true; return; }
+        stage.sleeping = false; dirty = false; render(); adapt(now);
       });
     },
     _T: 0,
+    /** Redessine à l'image suivante une scène endormie (rendu à la demande), après un changement fait hors de update(). */
+    invalidate() { dirty = true; },
+    sleeping: false,
     /**
      * Avance la scène d'exactement une image (dt secondes) et la dessine, hors de la boucle :
      * vidéo image par image (tools/render.mjs), tests. Mettre stage.paused = true avant.
