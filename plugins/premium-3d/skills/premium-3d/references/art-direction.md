@@ -10,6 +10,12 @@ Le but : que le résultat ressemble à la marque de la personne, pas à un « si
 - Teintes du verre (`tint`) : variations de la palette, plus claires que l'accent.
 - Vérifie le contraste des textes (4.5:1 minimum pour le corps de texte).
 
+## Couleurs exactes : le rendu des tons
+`createStage` rend par défaut en `tone: "aces"` (contraste de cinéma) : il éclaircit et décale un peu
+les couleurs vives (un orange tire vers le jaune, un rouge vers l'orange). Quand la **couleur exacte de
+la marque** compte (logo, produit, fond clair, aplats), passer `tone: "neutral"`. Pour des néons et
+un bloom très forts sur fond sombre : `tone: "agx"`.
+
 ## Fond clair ou sombre
 - **Sombre** : néon, verre lumineux, bloom, ambiance nuit (bars, tech, événementiel, luxe).
 - **Clair** : émail, métal, matières douces, ombres (artisans, santé, enfance, food de jour, mode claire).

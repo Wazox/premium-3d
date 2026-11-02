@@ -62,6 +62,9 @@ Or copy `plugins/premium-3d/skills/premium-3d` into `~/.claude/skills/` and use 
 | `text3d.js` | 3D text in any `.ttf/.otf/.woff` font, letter by letter |
 | `logo3d.js` | SVG logo to extruded 3D pieces in their original colors, custom pivots (petals, doors, lids), exploded view and assembly |
 | `textures.js` | Procedural wood, marble, concrete, paper (no image files) |
+| `swarm.js` | Thousands of real little 3D objects (coffee beans, petals, coins) that fly into a word, a logo or an image |
+| `ribbon.js` | A ribbon or thread that draws itself on scroll (GPS route, signature, hair strand); an object can ride it |
+| `ink.js` | Illustrated style: flat color bands and inked outlines |
 | `forms.js` | Modeling helpers for real-world objects: smoothed lathe profiles, thick glass walls, liquid that fills up, organic shapes (bread, stone, fruit), painted vertex colors |
 | `models.js` | `.glb/.gltf` loading (Draco, Meshopt, KTX2 textures), three-point studio light, soft ground shadow sized per device |
 | `interact.js` | Drag to rotate with inertia, hover picking, pointer light, device tilt |

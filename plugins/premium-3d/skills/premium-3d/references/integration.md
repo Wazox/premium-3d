@@ -17,7 +17,9 @@ Ajouter Spark à l'importmap : `"@sparkjsdev/spark": "https://cdn.jsdelivr.net/n
 ## HTML statique
 Copier `lib/` (seulement les fichiers utilisés), les icônes utilisées et `licenses/`. Dans la page :
 ```html
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"}}</script>
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.min.js" crossorigin>
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.core.min.js" crossorigin>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.min.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"}}</script>
 <script type="module" src="js/ma-scene.js"></script>
 ```
 Les modules ES ne se chargent pas en `file://` : tester avec `tools/serve.py`.

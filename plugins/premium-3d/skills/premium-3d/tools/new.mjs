@@ -17,7 +17,7 @@ import { fileURLToPath } from "node:url";
 
 const SKILL = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const THREE_VERSION = "0.186.1";
-const DEPS = { particles: ["shaders"], story: [], react: [] }; // core.js est toujours copié
+const DEPS = { particles: ["shaders"], swarm: ["particles"], story: [], react: [] }; // core.js est toujours copié
 
 const args = process.argv.slice(2);
 const flag = (k) => { const i = args.indexOf(k); if (i < 0) return false; args.splice(i, 1); return true; };
@@ -111,6 +111,10 @@ const html = `<!doctype html>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>[À ÉCRIRE]</title>
 <meta name="description" content="[À ÉCRIRE]">
+<!-- three.js préchargé en parallèle (sinon : page → core.js → three → three.core, l'un après l'autre) -->
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@${THREE_VERSION}/build/three.module.min.js" crossorigin>
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@${THREE_VERSION}/build/three.core.min.js" crossorigin>
+<link rel="modulepreload" href="lib/core.js">
 <!-- polices : [À CHOISIR] (references/art-direction.md), avec display=swap -->
 <style>
 ${css}
@@ -121,7 +125,7 @@ ${css}
 ${scene}
 <!-- [À ÉCRIRE] le reste de la page, en HTML -->
 </main>
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@${THREE_VERSION}/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@${THREE_VERSION}/examples/jsm/"}}</script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@${THREE_VERSION}/build/three.module.min.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@${THREE_VERSION}/examples/jsm/"}}</script>
 <script type="module">
 ${imports.join("\n")}
 

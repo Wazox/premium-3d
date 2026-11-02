@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Démo technique : nuée d'objets, trajet qui se dessine, style illustré</title>
+<!-- Démo de technique, volontairement sobre. Ce n'est PAS un modèle de page : elle montre comment
+     appeler lib/swarm.js, lib/ribbon.js et lib/ink.js. -->
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.min.js" crossorigin>
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.core.min.js" crossorigin>
+<style>
+body{margin:0;font:15px/1.5 system-ui,sans-serif;background:#111;color:#ddd}
+.row{display:grid;grid-template-columns:repeat(3,1fr);height:100svh}
+.cell{position:relative;overflow:hidden}
+.cell canvas{position:absolute;inset:0;width:100%;height:100%}
+.cell p{position:absolute;left:16px;bottom:12px;margin:0;font-size:13px;opacity:.75;max-width:34ch}
+@media (max-width:860px){.row{grid-template-columns:1fr;height:auto}.cell{height:80svh}}
+</style>
+</head>
+<body>
+<div class="row">
+  <div class="cell" style="background:#efe6d8;color:#3b2a1d"><canvas id="a" aria-hidden="true"></canvas><p>swarm : 1 700 grains de café en 3D qui s'envolent et écrivent un mot (un seul appel de dessin).</p></div>
+  <div class="cell" style="background:#0b0f0e"><canvas id="b" aria-hidden="true"></canvas><p>ribbon : un trajet qui se dessine, une voiture qui le suit (pointAt, tangentAt).</p></div>
+  <div class="cell" style="background:#f6e7c8;color:#2a1f14"><canvas id="c" aria-hidden="true"></canvas><p>ink : aplats de couleur et contour encré, un style dessiné.</p></div>
+</div>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.min.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"}}</script>
+<script type="module">
+import { createStage, fitZone, ss, neon, materials, THREE } from "../lib/core.js";
+import { sampleText, scatter, shape } from "../lib/particles.js";
+import { swarm } from "../lib/swarm.js";
+import { ribbon } from "../lib/ribbon.js";
+import { toon, outline } from "../lib/ink.js";
+import { lathe, deform, roundedBox } from "../lib/forms.js";
+
+const stages = [];
+const frame = (stage, w, h) => stage.onResize(() => { stage.camera.position.set(0, 0, fitZone(stage.camera, w, h)); stage.camera.lookAt(0, 0, 0); });
+
+/* 1. nuée de grains de café : un grain = une sphère aplatie avec sa fente */
+{
+  const stage = createStage(document.getElementById("a"), { background: null, env: "room", bloom: false, tone: "neutral" });
+  const N = { low: 900, mid: 1300, high: 1700 }[stage.tier]; // assez peu pour que chaque grain se lise
+  const bean = deform(new THREE.SphereGeometry(0.06, 16, 12), (p) => {
+    p.set(p.x, p.y * 0.72, p.z * 0.6);
+    if (p.z > 0) p.z -= 0.022 * Math.exp(-Math.pow(p.x / 0.008, 2)) * (1 - Math.abs(p.y) / 0.045); // la fente
+  });
+  const word = await sampleText("GRAIN", { count: N, width: 3.8, font: "900 200px system-ui", depth: 0.3 });
+  const heap = shape(N, (i, u, o) => { const r = Math.sqrt(Math.random()) * 1.6, a = Math.random() * 6.283; o.x = Math.cos(a) * r; o.z = Math.sin(a) * r * 0.6; o.y = -1.2 + (1.6 - r) * 0.35 * Math.random(); });
+  const s = swarm(bean, new THREE.MeshStandardMaterial({ color: "#4a2c17", roughness: 0.38, metalness: 0.05 }), [heap, word, scatter(N, 2.2)], { spin: 1, arc: 0.8 });
+  stage.scene.add(s.mesh);
+  const key = new THREE.DirectionalLight("#fff4e0", 2.2); key.position.set(2, 3, 4); stage.scene.add(key);
+  frame(stage, 3.8, 3.2);
+  await stage.warm();
+  stage.start((dt, t) => { const k = (t * 0.12) % 1; s.set(ss(0.05, 0.35, k) - ss(0.7, 0.95, k)); s.update(t); });
+  stages.push(stage);
+}
+
+/* 2. trajet GPS : rues en fils fins, itinéraire en néon qui se dessine, voiture qui le suit */
+{
+  const stage = createStage(document.getElementById("b"), { background: "#0b0f0e", accent: "#22e07a", bloom: { strength: 0.4, radius: 0.45, threshold: 1 } });
+  const city = new THREE.Group(); city.rotation.x = -1.05; stage.scene.add(city);
+  const street = new THREE.MeshBasicMaterial({ color: "#1f2b28" });
+  for (let i = -6; i <= 6; i++) {
+    const a = ribbon([[-3.2, i * 0.45 + Math.sin(i) * 0.1, 0], [0, i * 0.45, 0], [3.2, i * 0.45 - Math.cos(i) * 0.12, 0]], { width: 0.025, taper: 0, material: street }); city.add(a.mesh);
+    const b = ribbon([[i * 0.5, -3, 0], [i * 0.5 + Math.sin(i * 2) * 0.15, 0, 0], [i * 0.5, 3, 0]], { width: 0.025, taper: 0, material: street }); city.add(b.mesh);
+  }
+  const route = ribbon([[-2.4, -2.2, 0.02], [-1.6, -1.1, 0.02], [-0.4, -1.3, 0.02], [0.2, -0.2, 0.02], [1.3, 0.3, 0.02], [1.1, 1.4, 0.02], [2.2, 2.1, 0.02]],
+    { width: 0.07, taper: 0, material: new THREE.MeshBasicMaterial({ color: neon("#22e07a", 1.15), toneMapped: false }) });
+  city.add(route.mesh);
+  const car = new THREE.Mesh(roundedBox(0.36, 0.18, 0.12, { radius: 0.05 }), materials.enamel({ color: "#e9eef0" }));
+  car.add(new THREE.Mesh(roundedBox(0.19, 0.15, 0.07, { radius: 0.03 }).translate(-0.02, 0, 0.08), materials.glass({ tint: "#9fd" })));
+  city.add(car);
+  frame(stage, 6.6, 4.4);
+  const tan = new THREE.Vector3();
+  await stage.warm();
+  stage.start((dt, t) => {
+    const k = ss(0, 0.8, (t * 0.1) % 1);
+    route.reveal(k);
+    route.pointAt(k, car.position); car.position.z = 0.1;
+    route.tangentAt(k, tan); car.rotation.z = Math.atan2(tan.y, tan.x);
+  });
+  stages.push(stage);
+}
+
+/* 3. style illustré : tasse et soucoupe en aplats, contour encré */
+{
+  const stage = createStage(document.getElementById("c"), { background: null, bloom: false, tone: "neutral" });
+  stage.scene.environment = null;
+  stage.scene.add(new THREE.AmbientLight("#ffffff", 0.6));
+  const sun = new THREE.DirectionalLight("#ffffff", 2.4); sun.position.set(3, 4, 5); stage.scene.add(sun);
+  const cupGeo = lathe([[0, 0], [0.42, 0], [0.48, 0.05], [0.56, 0.5], [0.64, 0.9]], { thickness: 0.05 });
+  const cup = new THREE.Mesh(cupGeo, toon({ color: "#e4572e", steps: 3, shadow: 0.5 }));
+  cup.add(outline(cup, { thickness: 0.022, color: "#2a1f14" }));
+  const handle = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.05, 16, 40, Math.PI * 1.25), cup.material);
+  handle.position.set(0.66, 0.5, 0); handle.rotation.z = -Math.PI * 0.62; handle.add(outline(handle, { thickness: 0.018, color: "#2a1f14" })); cup.add(handle);
+  const plate = new THREE.Mesh(lathe([[0, 0], [0.9, 0.02], [1.05, 0.08], [1.1, 0.11]], { thickness: 0.035 }), toon({ color: "#f3d36b", steps: 3, shadow: 0.55 }));
+  plate.add(outline(plate, { thickness: 0.02, color: "#2a1f14" })); plate.position.y = -0.04;
+  const g = new THREE.Group(); g.add(plate, cup); g.position.y = -0.45; g.rotation.x = 0.35; stage.scene.add(g);
+  frame(stage, 2.6, 2.4);
+  await stage.warm();
+  stage.start((dt, t) => { g.rotation.y = -0.5 + Math.sin(t * 0.5) * 0.45; }); // l'anse reste visible, côté droit
+  stages.push(stage);
+}
+window.__demo = { get ready() { return stages.length === 3 && stages.every((s) => s.ready); } };
+</script>
+</body>
+</html>

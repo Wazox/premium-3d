@@ -82,6 +82,19 @@ qui lève puis dore, le flacon qui se remplit, le trajet qui se trace) plutôt q
 apparaissent tour à tour. Chaque capture montre le même objet un peu plus loin dans son histoire :
 aucune rupture possible. Briques : `deform` / `liquid` / `particleMorph` pilotés par `ss(…, P)`.
 
+**La nuée.** Des milliers de vrais petits objets du métier (grains de café, pétales, vis, pilules,
+pièces, feuilles, perles) qui s'envolent et écrivent le nom, dessinent le logo ou le produit, puis
+retombent. Plus concret que des particules : chaque objet a son volume et sa lumière. Brique :
+`swarm` (+ une forme de particles.js).
+
+**Le trajet.** Un ruban qui se dessine au scroll : l'itinéraire d'un VTC ou d'un livreur sur un
+plan, le fil d'une couturière, la signature d'un artisan, la vapeur d'un café, une mèche qui se
+boucle. Un objet le suit (voiture, aiguille, plume). Brique : `ribbon`.
+
+**L'illustration.** La scène en aplats de couleur et contours encrés, comme une affiche ou un
+dessin animé : enfance, food, artisans, marques au style dessiné. Change complètement de la 3D
+« verre et chrome ». Briques : `toon`, `outline`, `lathe`, `roundedBox`.
+
 **À inventer.** Toute autre idée qui colle au métier : un objet emblématique du secteur extrudé
 depuis une icône, un plan du lieu en relief, une typographie en volume, etc.
 

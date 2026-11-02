@@ -7,7 +7,7 @@ Les options entre `{ }` sont toutes facultatives (valeur par défaut indiquée).
 ## core.js : le socle
 | Appel | Rôle |
 |---|---|
-| `createStage(canvas, { background, accent, accent2, env, front, bloom, fov, exposure, maxPixelRatio, poster })` | Crée la scène. `background: null` = transparent. `env: "studio"` (sombre, reflets contrastés) ou `"room"` (clair). `front: 1` = lumière douce côté caméra pour les faces plates de métal vues de face (0 par défaut). `bloom: false` ou `{ strength: .55, radius: .5, threshold: .9 }`. Renvoie `null` sans WebGL 2. |
+| `createStage(canvas, { background, accent, accent2, env, front, bloom, fov, exposure, maxPixelRatio, poster, tone })` | Crée la scène. `tone` : `"aces"` (défaut, contraste de cinéma, décale un peu les couleurs vives), `"neutral"` (couleur exacte de la marque : fond clair, logo, produit), `"agx"` (néons et bloom forts sans brûler). `background: null` = transparent. `env: "studio"` (sombre, reflets contrastés) ou `"room"` (clair). `front: 1` = lumière douce côté caméra pour les faces plates de métal vues de face (0 par défaut). `bloom: false` ou `{ strength: .55, radius: .5, threshold: .9 }`. Renvoie `null` sans WebGL 2. |
 | `stage.scene`, `stage.camera`, `stage.renderer` | Objets three.js. Caméra : `fov` 32 par défaut. |
 | `stage.tier` | `"low"` / `"mid"` / `"high"` : dose particules, subdivisions, ombres. |
 | `stage.LOW`, `stage.reduce` | Petit écran ou machine modeste ; `prefers-reduced-motion`. |
@@ -16,6 +16,7 @@ Les options entre `{ }` sont toutes facultatives (valeur par défaut indiquée).
 | `stage.start((dt, t, real) => …)` | Boucle d'animation (seulement quand la scène est proche de l'écran). `dt`, `t` : temps de l'animation, figés en pause ; `real` : temps réel, pour lisser le scroll (`1 - Math.pow(0.0005, real)`). |
 | `stage.still` | Temps figé (`t` et `dt` ne bougent plus) mais la scène suit toujours le scroll : c'est ce que fait le bouton pause. |
 | `stage.step(dt)` | Avance la scène d'exactement une image et la dessine (avec `stage.paused = true`) : vidéo image par image (`tools/render.mjs`), tests. |
+| `stage.invalidate()`, `stage.sleeping` | **Rendu à la demande** : la scène ne redessine plus une image identique (temps figé et ni scroll, ni taille, ni pointeur depuis 1 s ; ou `update()` qui renvoie `false`). `invalidate()` force l'image suivante après un changement fait hors de la boucle. |
 | `stage.paused`, `stage.ready`, `stage.dispose()` | Arrêt complet du rendu (rare), état, nettoyage (React/Vue). |
 | `?tier=high` dans l'URL | Force le niveau d'appareil (tests, captures). `?lite` : sans bloom. |
 | `createStage(…, { poster: "img/p.jpg" })` ou `{ poster: { desktop, mobile } }` | Image de secours sur un calque derrière le canvas (le fond du conteneur reste intact), retirée en fondu quand la 3D est prête. |
@@ -87,6 +88,13 @@ formes d'un même morphing ont le même `count`.
 | `tint(geo, (p, n) => couleur)` | Couleurs peintes sur la forme (croûte, maturité, émail) ; matériau `vertexColors: true`, `color` blanche. |
 | `roundedBox(w, h, d, { radius, segments })` | Boîte aux arêtes arrondies. |
 À la construction seulement, jamais dans la boucle. `liquid` utilise un plan de coupe (activé par `createStage`).
+
+## swarm.js, ribbon.js, ink.js : autres langages visuels
+| Appel | Rôle |
+|---|---|
+| `swarm(geometrie, materiau, formes, { spin, drift, jitter, arc, tint })` | **Nuée de vrais petits objets 3D** (grains, pétales, pilules, pièces) qui prennent les formes de particles.js et volent de l'une à l'autre : `.mesh`, `.set(v)`, `.update(t)`. Un seul appel de dessin ; compter 800 à 5 000 objets, assez peu pour que chacun se lise. Pas d'ombre portée. |
+| `ribbon(points \| courbe, { width, taper, twist, tube, material })` | **Ruban ou fil qui se dessine** : `.reveal(0 → 1)`, `.wave(t, amp)` (tissu, fumée), `.pointAt(u)` et `.tangentAt(u)` pour poser un objet qui le tire (voiture sur un trajet, aiguille, plume). Trajet GPS, signature, mèche, couture, vapeur. |
+| `toon({ color, steps, shadow })`, `outline(mesh, { thickness, color })` | **Style illustré** : aplats de 2 à 4 tons et contour encré (à ajouter en enfant de l'objet). Lumière directionnelle franche, `bloom: false`, `tone: "neutral"`, `scene.environment = null`. |
 
 ## shaders.js, fx.js, interact.js : effets et interactions
 | Appel | Rôle |

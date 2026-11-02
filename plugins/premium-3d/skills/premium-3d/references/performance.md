@@ -18,6 +18,7 @@ déjà l'essentiel ; ce fichier dit ce qu'il fait et ce qu'il ne faut pas casser
    jamais pendant le scroll.
 7. `?lite` dans l'URL : pas de bloom (captures, vieux GPU).
 
+
 8. **Chargement différé** : si la scène est plus bas dans la page, créer la scène avec
    `whenNear(section, () => …)` pour ne pas ralentir le premier affichage (LCP).
 9. **Fondu d'apparition** : le conteneur reçoit la classe `p3d-ready` quand tout est compilé.
@@ -29,6 +30,18 @@ déjà l'essentiel ; ce fichier dit ce qu'il fait et ce qu'il ne faut pas casser
    WebGL manque ; le fond CSS du conteneur reste intact. Générer l'image avec
    `node tools/check.mjs <url> ./captures-full --full --poster img/poster.jpg` (1re capture : ordinateur
    dans `poster.jpg`, mobile dans `poster-mobile.jpg` ; la page doit donc être finie). Utile aussi comme image de partage (og:image).
+
+11. **Rendu à la demande** : une image identique n'est pas redessinée. Quand le temps est figé (bouton
+   pause, animations réduites) et que ni le scroll, ni la taille, ni le pointeur n'ont bougé depuis
+   1 s, la scène s'endort (`stage.sleeping`) : 0 % de carte graphique, batterie et ventilateur
+   épargnés. Une scène qui ne bouge qu'au scroll peut aussi faire renvoyer `false` à `update()`
+   quand rien n'a changé. Après un changement fait hors de la boucle : `stage.invalidate()`.
+12. **Contexte WebGL perdu** (onglet en arrière-plan sur mobile, pilote qui redémarre) : l'image de
+   secours revient au lieu d'un canvas noir, et la scène repart quand le navigateur rend le contexte.
+13. **three.js minifié et préchargé** : l'importmap pointe vers `three.module.min.js` (194 Ko
+   compressés au lieu de 341 Ko, analysés bien plus vite), et le squelette (`new.mjs`) ajoute des
+   `<link rel="modulepreload">` pour three.js et `lib/core.js` : tout part en parallèle au lieu de
+   s'enchaîner. À garder dans une page écrite à la main.
 
 ## Règles à respecter dans ton code
 - Ne crée **aucun** matériau, géométrie ou texture pendant l'animation : tout au chargement.

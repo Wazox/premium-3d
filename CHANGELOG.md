@@ -1,5 +1,33 @@
 # Changelog
 
+## 1.11.0
+
+**Plus léger et plus sobre dans le navigateur**
+- three.js **minifié** (`three.module.min.js`) partout : 194 Ko compressés au lieu de 341 Ko, et
+  2,5 fois moins de code à analyser. Le squelette précharge three.js et `lib/core.js`
+  (`modulepreload`) : plus de chargement en cascade.
+- **Rendu à la demande** : une scène au repos ne redessine plus la même image (pause, animations
+  réduites, ou `update()` qui renvoie `false`) ; mesuré : 0 image dessinée au repos au lieu de
+  60 par seconde. `stage.invalidate()`, `stage.sleeping`.
+- **Contexte WebGL perdu** (mobile en arrière-plan) : l'image de secours revient au lieu d'un
+  canvas noir, la scène repart toute seule.
+
+**Plus juste en couleur**
+- `createStage({ tone })` : `"neutral"` (Khronos PBR Neutral) garde la couleur exacte de la marque,
+  `"agx"` pour les néons très lumineux ; `"aces"` reste le défaut.
+
+**Moins de tokens**
+- `check.mjs` produit `planche-desktop.png` et `planche-mobile.png` : toutes les captures d'une vue
+  sur une image. L'agent regarde 2 images au lieu d'une quinzaine à chaque contrôle.
+
+**Nouveaux langages visuels** (pour que deux sites ne se ressemblent pas)
+- `lib/swarm.js` : nuée de vrais petits objets 3D (grains, pétales, pièces) qui écrivent un nom ou
+  un logo, un seul appel de dessin.
+- `lib/ribbon.js` : ruban ou fil qui se dessine au scroll, avec un objet qui le suit (trajet GPS,
+  signature, mèche, couture, vapeur).
+- `lib/ink.js` : style illustré, aplats de couleur et contour encré.
+- `demos/styles.html` ; trois nouvelles pistes dans `concepts.md` (la nuée, le trajet, l'illustration).
+
 ## 1.10.0
 
 Tiré du banc d'essai 1.9.0 (0 erreur, mais 6,1/10 au jury externe) : les défauts restants étaient

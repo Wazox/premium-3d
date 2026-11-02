@@ -28,6 +28,9 @@ lib/fx.js          grain, aberration chromatique, vignette, profondeur de champ
 lib/textures.js    matières procédurales sans image : bois, marbre, béton, papier
 lib/forms.js       modéliser les objets du métier : profil lissé (flacon, verre, bol), paroi épaisse,
                    liquide qui se remplit, formes organiques (pain, pierre, fruit), couleurs peintes
+lib/swarm.js       nuée de vrais petits objets 3D (grains, pétales, pièces) qui écrivent un nom ou un logo
+lib/ribbon.js      ruban ou fil qui se dessine au scroll (trajet GPS, signature, mèche) ; un objet le suit
+lib/ink.js         style illustré : aplats de couleur et contour encré
 lib/story.js       scène en plusieurs actes : acts(), steps() à paliers, captionSync() (légendes sans superposition)
 lib/react.js       hook usePremium3D pour React / Next.js (montage, préchauffage, nettoyage)
 lib/r3f.js         composants React Three Fiber : Studio, Material, Logo3D, Text3D, Particles
@@ -210,8 +213,9 @@ montrer le bloom et ses halos). La page expose `window.__demo = { get ready() { 
 Lis « À VÉRIFIER » (3D coupée ou sous un texte, textes superposés, saut entre deux captures,
 compteur qui recule, textes provisoires, budget, fluidité). **Chaque alerte se corrige** ; si elle
 est voulue (un décor qui sort exprès du cadre), écris pourquoi dans `jury.json` (`"alertes"`). On ne
-livre pas avec une alerte sans réponse, ni avec une erreur. Puis regarde **chaque** capture (desktop
-et 390×844) :
+livre pas avec une alerte sans réponse, ni avec une erreur. Puis regarde **`planche-desktop.png` et
+`planche-mobile.png`** (toutes les captures d'une vue sur une seule image : bien moins de tokens que
+capture par capture) ; n'ouvre une capture en grand que pour vérifier un détail :
 - le **premier écran, avant tout scroll**, est déjà beau et plein (pas d'objet minuscule ni de vide) ;
 - arêtes et reflets nets, sans crénelage (sinon : `stage.pixelRatio` doit valoir 1 ou plus sur ordinateur) ;
 - la 3D est entière et cadrée à chaque point, y compris les pièces qui arrivent ou s'écartent ;
