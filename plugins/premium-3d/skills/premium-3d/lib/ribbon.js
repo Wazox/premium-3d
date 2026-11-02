@@ -12,7 +12,8 @@
  *   r.reveal(ss(0.1, 0.6, P));          // 0 = rien, 1 = tout le ruban
  *   r.wave(t, 0.08);                    // ondulation lente (optionnel, tissu ou fumée)
  *
- * Le trajet : des points [x, y, z] (courbe lissée qui passe par chacun), ou une THREE.Curve.
+ * Le trajet : des points [x, y, z] (courbe lissée qui passe par chacun), une THREE.Curve, ou
+ * route(points, rayon) : lignes droites et virages arrondis, comme des rues (trajet GPS).
  */
 import * as THREE from "three";
 
@@ -22,17 +23,19 @@ import * as THREE from "three";
  * @param taper     amincit les extrémités (0 = droit, 1 = pointes fines, comme un trait de pinceau)
  * @param twist     tours sur lui-même le long du trajet (ruban)
  * @param segments  finesse le long du trajet (par défaut : 60 par unité de longueur, plafonné à 1200)
+ * @param up        ruban posé à plat sur un plan : la normale de ce plan ([0, 1, 0] sur un sol, [0, 0, 1]
+ *                  sur un plan vertical) ; sans, le ruban suit les repères de Frenet de la courbe
  * @param material  matériau (DoubleSide imposé pour le ruban plat)
  */
-export function ribbon(path, { width = 0.15, taper = 0.6, twist = 0, tube = false, segments = 0, radial = 10, material, closed = false } = {}) {
-  const curve = path.isCurve ? path : new THREE.CatmullRomCurve3(path.map((p) => new THREE.Vector3(...p)), closed, "centripetal");
+export function ribbon(path, { width = 0.15, taper = 0.6, twist = 0, tube = false, segments = 0, radial = 10, material, closed = false, up = null } = {}) {
+  const curve = path.getPoint ? path : new THREE.CatmullRomCurve3(path.map((p) => new THREE.Vector3(...p)), closed, "centripetal");
   const len = curve.getLength(), N = segments || Math.min(1200, Math.max(64, Math.round(len * 60)));
   const frames = curve.computeFrenetFrames(N, closed);
   const pts = curve.getSpacedPoints(N);
   const sides = tube ? radial : 1, ring = tube ? radial + 1 : 2;
   const pos = new Float32Array((N + 1) * ring * 3), nor = new Float32Array((N + 1) * ring * 3), uv = new Float32Array((N + 1) * ring * 2);
   const off = new Float32Array((N + 1) * ring * 3); // direction de l'ondulation de chaque sommet
-  const n = new THREE.Vector3(), b = new THREE.Vector3(), v = new THREE.Vector3();
+  const n = new THREE.Vector3(), b = new THREE.Vector3(), v = new THREE.Vector3(), UP = up ? new THREE.Vector3(...up) : null;
   for (let i = 0; i <= N; i++) {
     const u = i / N, w = width * (1 - taper * Math.pow(Math.abs(u * 2 - 1), 3)), a = u * twist * Math.PI * 2;
     const T = frames.tangents[i], Nn = frames.normals[i], Bn = frames.binormals[i], P = pts[i];
@@ -43,7 +46,8 @@ export function ribbon(path, { width = 0.15, taper = 0.6, twist = 0, tube = fals
         v.copy(Nn).multiplyScalar(Math.cos(t)).addScaledVector(Bn, Math.sin(t));
         nor.set([v.x, v.y, v.z], k); v.multiplyScalar(w / 2);
       } else {
-        n.copy(Nn).multiplyScalar(Math.cos(a)).addScaledVector(Bn, Math.sin(a)); // largeur, tournée de a
+        if (up) { n.crossVectors(UP, T).normalize(); if (a) n.applyAxisAngle(T, a); } // à plat sur le plan
+        else n.copy(Nn).multiplyScalar(Math.cos(a)).addScaledVector(Bn, Math.sin(a)); // largeur, tournée de a
         b.crossVectors(T, n).normalize();
         nor.set([b.x, b.y, b.z], k); v.copy(n).multiplyScalar((j ? 0.5 : -0.5) * w);
       }
@@ -82,4 +86,23 @@ export function ribbon(path, { width = 0.15, taper = 0.6, twist = 0, tube = fals
     pointAt(u, target = new THREE.Vector3()) { return curve.getPointAt(Math.min(1, Math.max(0, u)), target); },
     tangentAt(u, target = new THREE.Vector3()) { return curve.getTangentAt(Math.min(1, Math.max(0, u)), target); },
   };
+}
+
+/**
+ * Trajet de rues : segments droits reliés par des virages arrondis de rayon `radius` (une courbe
+ * lissée passerait à travers les pâtés de maisons). À donner à ribbon().
+ *   const r = ribbon(route([[0, 0, 0], [0, 0, 4], [3, 0, 4]], 0.4), { width: 0.1, up: [0, 1, 0] });
+ */
+export function route(points, radius = 0.3) {
+  const P = points.map((p) => new THREE.Vector3(...p)), path = new THREE.CurvePath();
+  let from = P[0].clone();
+  for (let i = 1; i < P.length - 1; i++) {
+    const a = P[i - 1], c = P[i], b = P[i + 1];
+    const din = c.clone().sub(a), dout = b.clone().sub(c);
+    const r = Math.min(radius, din.length() / 2, dout.length() / 2);
+    const p1 = c.clone().addScaledVector(din.normalize(), -r), p2 = c.clone().addScaledVector(dout.normalize(), r);
+    path.add(new THREE.LineCurve3(from, p1)); path.add(new THREE.QuadraticBezierCurve3(p1, c.clone(), p2)); from = p2;
+  }
+  path.add(new THREE.LineCurve3(from, P[P.length - 1]));
+  return path;
 }

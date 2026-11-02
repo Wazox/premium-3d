@@ -89,11 +89,25 @@ retombent. Plus concret que des particules : chaque objet a son volume et sa lum
 
 **Le trajet.** Un ruban qui se dessine au scroll : l'itinéraire d'un VTC ou d'un livreur sur un
 plan, le fil d'une couturière, la signature d'un artisan, la vapeur d'un café, une mèche qui se
-boucle. Un objet le suit (voiture, aiguille, plume). Brique : `ribbon`.
+boucle. Un objet le suit (voiture, aiguille, plume). Briques : `ribbon`, `route`. Pour un trajet en
+ville (VTC, livraison, taxi, déménageur, auto-école), `demos/gps.html` montre la mécanique : trajet
+prévu pâle et trajet parcouru en néon, voiture à l'échelle des rues, caméra de navigation au-dessus
+d'elle, compteurs qui ne reculent jamais. Les vraies rues du client : dessiner `route` à partir d'un
+plan simplifié (grandes artères seulement), jamais un fond de carte copié d'un service en ligne.
 
 **L'illustration.** La scène en aplats de couleur et contours encrés, comme une affiche ou un
 dessin animé : enfance, food, artisans, marques au style dessiné. Change complètement de la 3D
 « verre et chrome ». Briques : `toon`, `outline`, `lathe`, `roundedBox`.
+
+**Le relief.** Le pays du client sort du plat : la montagne d'un guide, le vignoble d'un domaine, la
+côte d'une école de voile, le quartier d'un agent immobilier, avec ses lignes de niveau. Un sentier
+ou un trajet se dessine dessus. Briques : `relief`, `ribbon` (`up`), `heightAt`.
+
+**Le dévoilement.** Un tissu (velours, lin, drap d'atelier, serviette de barbier) ondule devant le
+produit puis s'enroule pour le révéler au scroll, comme une inauguration. Briques : `cloth`, `fabric`.
+
+**La fonte.** La matière du métier fond sous les yeux : glace, chocolat, cire de bougie, beurre,
+métal coulé. Puis se reforme, ou laisse la place au produit. Briques : `melt`, `liquify`.
 
 **À inventer.** Toute autre idée qui colle au métier : un objet emblématique du secteur extrudé
 depuis une icône, un plan du lieu en relief, une typographie en volume, etc.

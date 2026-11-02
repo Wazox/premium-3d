@@ -96,6 +96,15 @@ formes d'un même morphing ont le même `count`.
 | `ribbon(points \| courbe, { width, taper, twist, tube, material })` | **Ruban ou fil qui se dessine** : `.reveal(0 → 1)`, `.wave(t, amp)` (tissu, fumée), `.pointAt(u)` et `.tangentAt(u)` pour poser un objet qui le tire (voiture sur un trajet, aiguille, plume). Trajet GPS, signature, mèche, couture, vapeur. |
 | `toon({ color, steps, shadow })`, `outline(mesh, { thickness, color })` | **Style illustré** : aplats de 2 à 4 tons et contour encré (à ajouter en enfant de l'objet). Lumière directionnelle franche, `bloom: false`, `tone: "neutral"`, `scene.environment = null`. |
 
+## terrain.js, cloth.js, melt : relief, tissu, fonte
+| Appel | Rôle |
+|---|---|
+| `await relief({ fn \| image, size, height, color, lines, step, segments })` | **Relief** (montagne, vignoble, côte, carte d'une région) depuis une fonction `fn(x, z) → 0..1` ou une image en niveaux de gris, avec **lignes de niveau** façon carte IGN : `.mesh`, `.rise(0 → 1)` (sort du plat), `.heightAt(x, z)` pour poser un trajet ou un repère dessus. |
+| `cloth({ width, height, material })` + `fabric({ color, sheen })` | **Tissu** accroché par le haut qui ondule et **s'enroule pour dévoiler** : `.update(t, { wind, lift })` (lift 0 → 1). Drap d'atelier, rideau, store, bannière, serviette. |
+| `melt(materiau, { bottom, top, floor, spread, drips })` (shaders.js) | **Fonte** : l'objet s'affaisse, coule et s'étale en flaque : `u.uMelt.value` 0 → 1. Glace, chocolat, cire, beurre, métal en fusion. Objet bien subdivisé ; `floor` = surface où il coule, en coordonnées de l'objet. |
+| `ribbon(…, { up: [0, 1, 0] })` | Ruban posé à plat sur un sol (sentier, route) au lieu de suivre les repères de la courbe. |
+| `route(points, rayon)` (ribbon.js) | Trajet de rues : lignes droites et virages arrondis (une courbe lissée couperait les pâtés de maisons). À donner à `ribbon`. Scène complète : `demos/gps.html` (ville, trajet prévu pâle + trajet parcouru en néon, voiture qui suit, caméra vue d'ensemble → poursuite → vue d'ensemble, compteurs km et minutes). |
+
 ## shaders.js, fx.js, interact.js : effets et interactions
 | Appel | Rôle |
 |---|---|

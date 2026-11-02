@@ -17,7 +17,7 @@ lib/logo3d.js      logo SVG → objet 3D extrudé (une pièce par path) ; explod
 lib/icon3d.js      icône SVG (traits) → néon sous verre
 lib/objects3d.js   photoFrame, pedestal, glowRing, dust, aurora
 lib/shaders.js     liquify (surface liquide : métal fondu, gelée, eau), dissolve (apparition en
-                   se consumant avec un bord lumineux), blobGeometry
+                   se consumant avec un bord lumineux), melt (fond et coule en flaque), blobGeometry
 lib/particles.js   particules qui prennent la forme d'une photo, d'un logo, d'un texte ou d'un
                    objet 3D, et passent de l'une à l'autre (morphing)
 lib/text3d.js      texte en volume avec la vraie police de la marque (.ttf/.otf/.woff), lettre par lettre
@@ -31,6 +31,8 @@ lib/forms.js       modéliser les objets du métier : profil lissé (flacon, ver
 lib/swarm.js       nuée de vrais petits objets 3D (grains, pétales, pièces) qui écrivent un nom ou un logo
 lib/ribbon.js      ruban ou fil qui se dessine au scroll (trajet GPS, signature, mèche) ; un objet le suit
 lib/ink.js         style illustré : aplats de couleur et contour encré
+lib/terrain.js     relief qui sort du plat, lignes de niveau (carte, montagne, vignoble, quartier)
+lib/cloth.js       tissu qui ondule et s'enroule pour dévoiler un objet
 lib/story.js       scène en plusieurs actes : acts(), steps() à paliers, captionSync() (légendes sans superposition)
 lib/react.js       hook usePremium3D pour React / Next.js (montage, préchauffage, nettoyage)
 lib/r3f.js         composants React Three Fiber : Studio, Material, Logo3D, Text3D, Particles

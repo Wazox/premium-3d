@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.12.0
+
+**Encore d'autres langages visuels**
+- `lib/terrain.js` : **relief** qui sort du plat (fonction ou image en niveaux de gris), lignes de
+  niveau façon carte IGN, `heightAt()` pour poser un sentier dessus.
+- `lib/cloth.js` : **tissu** qui ondule au vent et s'enroule pour dévoiler un objet (`fabric()` :
+  velours, lin).
+- `melt()` (shaders.js) : la matière **fond**, coule et s'étale en flaque (glace, chocolat, cire).
+- `demos/styles-2.html`.
+
+**Le trajet GPS**
+- `route(points, rayon)` (ribbon.js) : rues droites et virages arrondis ; `ribbon(…, { up })` pose
+  le ruban à plat sur le sol.
+- `demos/gps.html` : scène de navigation complète au scroll : ville, trajet prévu et trajet
+  parcouru, voiture à l'échelle des rues avec phares et feux, caméra vue d'ensemble → poursuite →
+  vue d'ensemble, compteurs km et minutes qui ne reculent jamais, repères de départ et d'arrivée.
+
 ## 1.11.0
 
 **Plus léger et plus sobre dans le navigateur**

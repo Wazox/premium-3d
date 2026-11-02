@@ -65,6 +65,8 @@ Or copy `plugins/premium-3d/skills/premium-3d` into `~/.claude/skills/` and use 
 | `swarm.js` | Thousands of real little 3D objects (coffee beans, petals, coins) that fly into a word, a logo or an image |
 | `ribbon.js` | A ribbon or thread that draws itself on scroll (GPS route, signature, hair strand); an object can ride it |
 | `ink.js` | Illustrated style: flat color bands and inked outlines |
+| `terrain.js` | Terrain rising from flat with topographic contour lines (map, mountain, vineyard, district) |
+| `cloth.js` | Fabric that waves and rolls up to unveil an object |
 | `forms.js` | Modeling helpers for real-world objects: smoothed lathe profiles, thick glass walls, liquid that fills up, organic shapes (bread, stone, fruit), painted vertex colors |
 | `models.js` | `.glb/.gltf` loading (Draco, Meshopt, KTX2 textures), three-point studio light, soft ground shadow sized per device |
 | `interact.js` | Drag to rotate with inertia, hover picking, pointer light, device tilt |
