@@ -7,6 +7,7 @@
 <!-- Démo de technique, volontairement sobre. Ce n'est PAS un modèle de page : elle montre comment
      construire une scène « trajet » : ville, itinéraire qui se trace (ribbon + route), voiture qui
      le suit (pointAt, tangentAt), caméra qui passe de la vue d'ensemble à la poursuite. -->
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.min.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"}}</script>
 <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.min.js" crossorigin>
 <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.core.min.js" crossorigin>
 <style>
@@ -49,7 +50,6 @@ body{margin:0;font:16px/1.5 system-ui,sans-serif;color:#e8f0ee}
   </div>
 </section>
 <div class="after">Fin de la démo.</div>
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.min.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"}}</script>
 <script type="module">
 import { createStage, scrollTrack, ss, neon, materials, THREE } from "../lib/core.js";
 import { steps, captionSync } from "../lib/story.js";

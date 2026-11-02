@@ -6,6 +6,7 @@
 <title>Démo technique : relief, tissu, fonte</title>
 <!-- Démo de technique, volontairement sobre. Ce n'est PAS un modèle de page : elle montre comment
      appeler lib/terrain.js, lib/cloth.js et melt() de lib/shaders.js. -->
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.min.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"}}</script>
 <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.min.js" crossorigin>
 <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.core.min.js" crossorigin>
 <style>
@@ -23,7 +24,6 @@ body{margin:0;font:15px/1.5 system-ui,sans-serif;background:#111;color:#ddd}
   <div class="cell" style="background:#141012"><canvas id="b" aria-hidden="true"></canvas><p>cloth : un velours qui ondule puis s'enroule pour dévoiler l'objet.</p></div>
   <div class="cell" style="background:#f3e2d6;color:#4a2a1d"><canvas id="c" aria-hidden="true"></canvas><p>melt : la boule de glace fond, coule et s'étale en flaque.</p></div>
 </div>
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.min.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"}}</script>
 <script type="module">
 import { createStage, fitZone, ss, materials, THREE } from "../lib/core.js";
 import { relief } from "../lib/terrain.js";

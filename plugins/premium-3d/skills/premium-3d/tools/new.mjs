@@ -111,6 +111,8 @@ const html = `<!doctype html>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>[À ÉCRIRE]</title>
 <meta name="description" content="[À ÉCRIRE]">
+<!-- importmap AVANT tout module et tout préchargement : sinon « three » ne se résout pas et la 3D ne charge pas -->
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@${THREE_VERSION}/build/three.module.min.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@${THREE_VERSION}/examples/jsm/"}}</script>
 <!-- three.js préchargé en parallèle (sinon : page → core.js → three → three.core, l'un après l'autre) -->
 <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@${THREE_VERSION}/build/three.module.min.js" crossorigin>
 <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@${THREE_VERSION}/build/three.core.min.js" crossorigin>
@@ -125,7 +127,6 @@ ${css}
 ${scene}
 <!-- [À ÉCRIRE] le reste de la page, en HTML -->
 </main>
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@${THREE_VERSION}/build/three.module.min.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@${THREE_VERSION}/examples/jsm/"}}</script>
 <script type="module">
 ${imports.join("\n")}
 

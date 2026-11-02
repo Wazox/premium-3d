@@ -6,6 +6,7 @@
 <title>Démo technique : nuée d'objets, trajet qui se dessine, style illustré</title>
 <!-- Démo de technique, volontairement sobre. Ce n'est PAS un modèle de page : elle montre comment
      appeler lib/swarm.js, lib/ribbon.js et lib/ink.js. -->
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.min.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"}}</script>
 <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.min.js" crossorigin>
 <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.core.min.js" crossorigin>
 <style>
@@ -23,7 +24,6 @@ body{margin:0;font:15px/1.5 system-ui,sans-serif;background:#111;color:#ddd}
   <div class="cell" style="background:#0b0f0e"><canvas id="b" aria-hidden="true"></canvas><p>ribbon : un trajet qui se dessine, une voiture qui le suit (pointAt, tangentAt).</p></div>
   <div class="cell" style="background:#f6e7c8;color:#2a1f14"><canvas id="c" aria-hidden="true"></canvas><p>ink : aplats de couleur et contour encré, un style dessiné.</p></div>
 </div>
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.min.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"}}</script>
 <script type="module">
 import { createStage, fitZone, ss, neon, materials, THREE } from "../lib/core.js";
 import { sampleText, scatter, shape } from "../lib/particles.js";
