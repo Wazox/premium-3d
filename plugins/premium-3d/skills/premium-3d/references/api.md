@@ -89,6 +89,19 @@ formes d'un même morphing ont le même `count`.
 | `roundedBox(w, h, d, { radius, segments })` | Boîte aux arêtes arrondies. |
 À la construction seulement, jamais dans la boucle. `liquid` utilise un plan de coupe (activé par `createStage`).
 
+## props.js : objets du métier réglables (démo : `demos/props.html`, `?only=bread`)
+Pièces détachées qui passent le test de la silhouette, à régler pour la marque (couleurs, matières,
+proportions) : pas une scène. Chaque appel renvoie `{ group, parts, … }`, `group` posé sur y = 0,
+`group.userData.size = { w, h, d }`.
+| Appel | Rôle |
+|---|---|
+| `serumBottle({ height, tint, dist, liquid, level, collar, collarMetal, bulb, label })` | Flacon de sérum à pipette : verre teinté épais, liquide, bague, poire nervurée, tube. `.fill(0 → 1)` ; `parts.dropper` se soulève. |
+| `wineBottle({ height, shoulder: "bordeaux" \| "bourgogne", tint, dist, label, capsule, wine })` | Bouteille de 75 cl aux vraies proportions, piqûre, bague, étiquette, capsule. `.fill(0 → 1)`. |
+| `cup({ size, color, coffee, crema, saucer, handmade })` | Tasse émaillée, anse en D, café avec crème au bord, soucoupe. `parts.handle`, `parts.saucer`. |
+| `bread({ kind: "boule" \| "batard", size, scores, ear, crust, crumb, flour })` | Pain au levain : grignes courbes dont la mie ressort, bord caramélisé, farine en nappes. `.bake(0 → 1)` : pâte crue → cuit (couleur et levée), sans rien recréer. |
+| `wheel({ diameter, spokes, split, nuts, rim, rimRough, tire, caliper, disc })` | Roue vue de face (plan XY) : pneu sculpté, jante à branches creusées, écrous six pans (`parts.nuts`, serrage en étoile), disque, étrier. `.spin(angle)`. Scène en `front: 1`. |
+| `flower({ petals, layers, color, edge, heart, shape: "round" \| "pointed", size, stem, tilt })` | Fleur : pétales incurvés (bord plus clair), couronnes, cœur, tige et feuille. `.open(0 → 1)` : bouton → épanouie, couronne extérieure d'abord. |
+
 ## swarm.js, ribbon.js, ink.js : autres langages visuels
 | Appel | Rôle |
 |---|---|

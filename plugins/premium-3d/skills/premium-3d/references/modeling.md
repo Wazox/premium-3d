@@ -13,7 +13,11 @@ la forme avant les effets.
 1. **Le modèle du client** (.glb, .gltf) : `loadModel` (`references/api.md`), allégé avec gltf-transform.
 2. **Un modèle libre de droits** si l'objet est générique (bouteille, chaise, plante) : Poly Haven
    (CC0, sans attribution). Noter la source dans `licenses/`. Jamais un modèle sans licence claire.
-3. **Construit pour le projet** avec `lib/forms.js` et `THREE` : c'est le cas le plus courant.
+3. **Un objet de `lib/props.js`** s'il existe (flacon à pipette, bouteille de vin, tasse, pain,
+   roue, fleur) : il a déjà ses vraies proportions et ses détails. **Règle-le pour la marque**
+   (couleurs, matière, nombre de grignes, de branches, de pétales) et ajoute la pièce qui le rend
+   unique (gravure, étiquette au logo, forme de jante) : tel quel, deux sites se ressembleraient.
+4. **Construit pour le projet** avec `lib/forms.js` et `THREE` : c'est le cas le plus courant.
    - objet **de révolution** (flacon, verre, bol, tasse, vase, bouteille, pot, bouchon, lampe) :
      `lathe(profil, { thickness })` ;
    - objet **organique** (pain, fruit, galet, pierre, nuage, goutte, pâte) : sphère bien subdivisée →
