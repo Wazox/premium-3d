@@ -1,0 +1,36 @@
+<!doctype html><meta charset="utf-8"><title>test cycle de vie</title>
+<!-- Lancé par tests/browser.mjs. Résultat dans window.__result : chaque clé doit valoir true. -->
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.min.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"}}</script>
+<div id="box" style="position:relative;width:400px;height:300px"><canvas id="c"></canvas></div>
+<script type="module">
+import { createStage, materials, THREE } from "../plugins/premium-3d/skills/premium-3d/lib/core.js";
+const R = {}, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+const box = document.getElementById("box");
+const mount = (canvas) => {
+  const s = createStage(canvas, { background: null, poster: "data:image/gif;base64,R0lGODlhAQABAAAAACw=" });
+  s.scene.add(new THREE.Mesh(new THREE.SphereGeometry(1, 32, 16), materials.metal({})));
+  return s;
+};
+try {
+  /* 1. contexte perdu puis rendu : les reflets (PMREM) doivent être recalculés */
+  const s = mount(document.getElementById("c"));
+  await s.warm(); s.start(() => {});
+  const env0 = s.scene.environment;
+  const lose = s.renderer.getContext().getExtension("WEBGL_lose_context");
+  const restored = new Promise((r) => s.renderer.domElement.addEventListener("webglcontextrestored", () => setTimeout(r, 50), { once: true }));
+  lose.loseContext(); await wait(100); lose.restoreContext(); await restored;
+  R.refletsRecalcules = !!s.scene.environment && s.scene.environment !== env0;
+  R.posterCacheApresRestore = box.querySelector(".p3d-poster").style.opacity === "0";
+  s.dispose();
+
+  /* 2. double montage sur le même canvas (React StrictMode), puis démontage */
+  const c2 = document.createElement("canvas"); box.appendChild(c2);
+  const a = mount(c2); a.dispose();
+  const b = mount(c2); await b.warm(); b.start(() => {});
+  R.remontageMemeCanvas = !b.renderer.getContext().isContextLost();
+  b.dispose();
+  R.aucuneImageDeSecoursRestante = box.querySelectorAll(".p3d-poster").length === 0;
+  R.aucuneSceneRestante = window.__p3d.stages.length === 0;
+} catch (e) { R.exception = String(e && e.stack || e); }
+window.__result = R;
+</script>
