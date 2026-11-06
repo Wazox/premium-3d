@@ -97,12 +97,15 @@ export const scrollTo = (y, duration = 1.4) => (lenis ? lenis.scrollTo(y, { dura
 export function scrollTrack(el) {
   const m = { top: 0, h: 1 };
   const measure = () => { m.top = el.getBoundingClientRect().top + scrollY; m.h = Math.max(1, el.offsetHeight - innerHeight); };
-  measure(); addEventListener("resize", measure); new ResizeObserver(measure).observe(document.body); document.fonts && document.fonts.ready.then(measure);
+  const ac = new AbortController(), ro = new ResizeObserver(measure);
+  measure(); addEventListener("resize", measure, { signal: ac.signal }); ro.observe(document.body); document.fonts && document.fonts.ready.then(measure);
   return {
     progress: () => clamp01((scrollY - m.top) / m.h),
     inside: (margin = 0) => scrollY + margin > m.top && scrollY + margin < m.top + m.h + innerHeight,
     goto: (p, d) => scrollTo(m.top + clamp01(p) * m.h, d),
     measure,
+    /** retire l'écoute du redimensionnement (démontage d'un composant) */
+    dispose() { ac.abort(); ro.disconnect(); },
   };
 }
 

@@ -13,19 +13,22 @@ import * as THREE from "three";
 export function dragRotate(el, object, { speed = 0.006, damping = 4, returnHome = false, homeStrength = 1.2, limitX = 0.6 } = {}) {
   const vel = { x: 0, y: 0 }, base = { x: object.rotation.x, y: object.rotation.y };
   let down = false, lx = 0, ly = 0, idle = 0;
+  const ac = new AbortController(), on = { signal: ac.signal };
   el.style.touchAction = "pan-y";
   el.style.cursor = "grab";
-  el.addEventListener("pointerdown", (e) => { down = true; lx = e.clientX; ly = e.clientY; el.setPointerCapture(e.pointerId); el.style.cursor = "grabbing"; });
+  el.addEventListener("pointerdown", (e) => { down = true; lx = e.clientX; ly = e.clientY; el.setPointerCapture(e.pointerId); el.style.cursor = "grabbing"; }, on);
   el.addEventListener("pointermove", (e) => {
     if (!down) return;
     const dx = e.clientX - lx, dy = e.clientY - ly; lx = e.clientX; ly = e.clientY;
     object.rotation.y += dx * speed; object.rotation.x = THREE.MathUtils.clamp(object.rotation.x + dy * speed, base.x - limitX, base.x + limitX);
     vel.y = dx * speed * 60; vel.x = dy * speed * 60; idle = 0;
-  });
+  }, on);
   const up = () => { down = false; el.style.cursor = "grab"; };
-  el.addEventListener("pointerup", up); el.addEventListener("pointercancel", up);
+  el.addEventListener("pointerup", up, on); el.addEventListener("pointercancel", up, on);
   return {
     get dragging() { return down; },
+    /** retire les écouteurs (démontage d'un composant React/Vue) */
+    dispose() { ac.abort(); el.style.cursor = ""; },
     update(dt) {
       if (down) return;
       object.rotation.y += vel.y * dt; object.rotation.x = THREE.MathUtils.clamp(object.rotation.x + vel.x * dt, base.x - limitX, base.x + limitX);
@@ -45,17 +48,17 @@ export function dragRotate(el, object, { speed = 0.006, damping = 4, returnHome 
  */
 export function hoverPick(stage, targets, { onEnter, onLeave, onClick } = {}) {
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(); let current = null, pending = false;
-  const el = stage.renderer.domElement;
+  const el = stage.renderer.domElement, ac = new AbortController(), on = { signal: ac.signal };
   const top = (o) => { while (o && !targets.includes(o)) o = o.parent; return o; };
   const pick = () => {
     pending = false; ray.setFromCamera(ndc, stage.camera);
     const hit = ray.intersectObjects(targets, true)[0]; const o = hit ? top(hit.object) : null;
     if (o !== current) { if (current && onLeave) onLeave(current); current = o; if (o && onEnter) onEnter(o); el.style.cursor = o && onClick ? "pointer" : ""; }
   };
-  el.addEventListener("pointermove", (e) => { const r = el.getBoundingClientRect(); ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); if (!pending) { pending = true; setTimeout(pick, 33); } });
-  el.addEventListener("pointerleave", () => { if (current && onLeave) onLeave(current); current = null; });
-  if (onClick) el.addEventListener("click", () => current && onClick(current));
-  return { get current() { return current; } };
+  el.addEventListener("pointermove", (e) => { const r = el.getBoundingClientRect(); ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); if (!pending) { pending = true; setTimeout(pick, 33); } }, on);
+  el.addEventListener("pointerleave", () => { if (current && onLeave) onLeave(current); current = null; }, on);
+  if (onClick) el.addEventListener("click", () => current && onClick(current), on);
+  return { get current() { return current; }, dispose() { ac.abort(); el.style.cursor = ""; } };
 }
 
 /**
@@ -64,18 +67,21 @@ export function hoverPick(stage, targets, { onEnter, onLeave, onClick } = {}) {
  */
 export function pointerLight(stage, { color = 0xffffff, intensity = 20, distance = 12, z = 3, range = [4, 2.5] } = {}) {
   const light = new THREE.PointLight(color, intensity, distance, 2); light.position.set(0, 0, z); stage.scene.add(light);
-  const target = { x: 0, y: 0 };
-  addEventListener("pointermove", (e) => { target.x = (e.clientX / innerWidth - 0.5) * 2 * range[0]; target.y = -(e.clientY / innerHeight - 0.5) * 2 * range[1]; }, { passive: true });
-  return { light, update(dt) { const k = 1 - Math.exp(-6 * dt); light.position.x += (target.x - light.position.x) * k; light.position.y += (target.y - light.position.y) * k; } };
+  const target = { x: 0, y: 0 }, ac = new AbortController();
+  addEventListener("pointermove", (e) => { target.x = (e.clientX / innerWidth - 0.5) * 2 * range[0]; target.y = -(e.clientY / innerHeight - 0.5) * 2 * range[1]; }, { passive: true, signal: ac.signal });
+  return { light, update(dt) { const k = 1 - Math.exp(-6 * dt); light.position.x += (target.x - light.position.x) * k; light.position.y += (target.y - light.position.y) * k; },
+    dispose() { ac.abort(); light.removeFromParent(); light.dispose(); } };
 }
 
 /** Inclinaison au gyroscope (mobile). iOS demande une autorisation : appeler request() sur un clic. */
 export function tilt({ max = 0.25 } = {}) {
   const v = { x: 0, y: 0 };
   const on = (e) => { v.x = THREE.MathUtils.clamp((e.beta - 45) / 45, -1, 1) * max; v.y = THREE.MathUtils.clamp(e.gamma / 45, -1, 1) * max; };
-  addEventListener("deviceorientation", on);
+  const ac = new AbortController();
+  addEventListener("deviceorientation", on, { signal: ac.signal });
   return {
     value: v,
+    dispose() { ac.abort(); },
     async request() { if (typeof DeviceOrientationEvent !== "undefined" && DeviceOrientationEvent.requestPermission) { try { await DeviceOrientationEvent.requestPermission(); } catch (e) {} } },
   };
 }

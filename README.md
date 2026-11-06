@@ -9,17 +9,17 @@ scene starts from the brand, and two sites made with it should never look alike.
 
 [Page de test](https://wazox.github.io/premium-3d) | [On Agensi](https://www.agensi.io/skills/premium-3d-websites) | [Version française](#version-française)
 
-![Particles that turn green coffee beans into a cup, then into the brand name](docs/gallery/cafe.gif)
+![Particles that turn green coffee beans into a cup, then into the brand name](docs/gallery/cafe.webp)
 
 | Coffee roaster | Natural oils | Carpenter |
 |---|---|---|
-| ![](docs/gallery/cafe-1.png) | ![](docs/gallery/cosme.png) | ![](docs/gallery/bois.png) |
+| ![](docs/gallery/cafe-1.webp) | ![](docs/gallery/cosme.webp) | ![](docs/gallery/bois.webp) |
 | Green beans roast into a cup, then the name | An oil drop that warps the name behind it | Wooden planks of the logo slide into place |
 | **Hair salon** | **Garage** | **Florist** |
-| [![](docs/gallery/coiffeur.png)](examples/coiffeur/) | [![](docs/gallery/garage.png)](examples/garage/) | [![](docs/gallery/fleuriste.png)](examples/fleuriste/) |
+| [![](docs/gallery/coiffeur.webp)](examples/coiffeur/) | [![](docs/gallery/garage.webp)](examples/garage/) | [![](docs/gallery/fleuriste.webp)](examples/fleuriste/) |
 | A lock of hair in particles gets cut, falls, becomes the scissors, then the initials | Chrome wheel nuts screw in star order, 1-3-5-2-4, like a real mechanic | The client's own SVG logo blooms: a closed bud whose petals open from their base |
 | **Ramen bar** | | |
-| [![](docs/gallery/ramen.png)](examples/ramen/) | | |
+| [![](docs/gallery/ramen.webp)](examples/ramen/) | | |
 | Steam from the bowl draws the house's three numbers: 18 hours of broth, hand-made noodles, 24 seats. Built by a fresh agent that had never seen the skill (blind test) | | |
 
 *Examples generated with the skill for fictional businesses.*
