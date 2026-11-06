@@ -70,26 +70,49 @@ if (vendor) {
   /* décodeurs des modèles compressés (Draco, KTX2), chargés par models.js à côté des addons */
   if (mods.has("models")) ["draco/gltf/draco_decoder.js", "draco/gltf/draco_wasm_wrapper.js", "draco/gltf/draco_decoder.wasm",
     "basis/basis_transcoder.js", "basis/basis_transcoder.wasm"].forEach((x) => files.add(`examples/jsm/libs/${x}`));
-  const done = new Set(), queue = [...files];
+  /* file : { url, local } ; local = chemin sous vendor/ (three/… pour three.js, ext/npm/… pour une
+     dépendance d'un addon chargée par URL, ex. TTFLoader → opentype.js sur jsdelivr) */
+  const VENDOR = path.resolve(dir, "vendor"), JSD = "https://cdn.jsdelivr.net";
+  const extLocal = (url) => { const p = new URL(url).pathname.replace(/^\/+/, ""); return `ext/${p}${/\.(m?js|wasm)$/.test(p) ? "" : ".js"}`; }; // « +esm » → « +esm.js »
+  const done = new Set(), queue = [...files].map((r) => ({ url: CDN + r, local: `three/${r}` }));
+  const extra = new Set();
   while (queue.length) {
-    const rel = queue.shift(); if (done.has(rel)) continue;
-    /* un fichier téléchargé ne décide jamais où l'on écrit : rien hors de vendor/three/, ni du paquet three */
-    const VENDOR = path.resolve(dir, "vendor/three");
-    if (path.posix.isAbsolute(rel) || rel.split("/").includes("..") || !/^(build|examples\/jsm)\//.test(rel) || !path.resolve(VENDOR, rel).startsWith(VENDOR + path.sep)) {
-      console.log(`ERREUR : chemin refusé dans three.js (${rel}) : copie arrêtée.`); process.exit(1);
+    const { url, local } = queue.shift(); if (done.has(local)) continue;
+    /* un fichier téléchargé ne décide jamais où l'on écrit : rien hors de vendor/three/ et vendor/ext/npm/ */
+    if (path.posix.isAbsolute(local) || local.split("/").includes("..") || !/^(three\/(build|examples\/jsm)|ext\/npm)\//.test(local) || !path.resolve(VENDOR, local).startsWith(VENDOR + path.sep)) {
+      console.log(`ERREUR : chemin refusé (${local}) : copie arrêtée.`); process.exit(1);
     }
-    done.add(rel);
+    done.add(local);
     let res;
-    try { res = await fetch(CDN + rel); } catch (e) { console.log(`ERREUR : pas de réseau pour copier three.js (${e.message}). Relancer sans --vendor, ou plus tard.`); process.exit(1); }
-    if (!res.ok) { console.log(`ERREUR : ${CDN + rel} → ${res.status}`); process.exit(1); }
-    const buf = Buffer.from(await res.arrayBuffer()), out = `${dir}/vendor/three/${rel}`;
+    try { res = await fetch(url); } catch (e) { console.log(`ERREUR : pas de réseau pour copier three.js (${e.message}). Relancer sans --vendor, ou plus tard.`); process.exit(1); }
+    if (!res.ok) { console.log(`ERREUR : ${url} → ${res.status}`); process.exit(1); }
+    let buf = Buffer.from(await res.arrayBuffer());
+    if (/\.m?js$/.test(local)) {
+      let src = buf.toString("utf8");
+      const here = path.posix.dirname(local);
+      src = src.replace(/((?:from|import)\s*\(?\s*)(["'])([^"']+)\2/g, (all, pre, q, spec) => {
+        if (/^\.{1,2}\//.test(spec)) { // relatif (../shaders/CopyShader.js) : le suivre tel quel
+          const abs = new URL(spec, url).href, target = path.posix.normalize(path.posix.join(here, spec));
+          queue.push({ url: abs, local: target }); return all;
+        }
+        /* URL absolue vers jsdelivr (« https://cdn.jsdelivr.net/npm/… » ou « /npm/… » dans un fichier jsdelivr) :
+           copiée dans ext/ et l'import réécrit en chemin local */
+        const abs = spec.startsWith(JSD + "/npm/") ? spec : spec.startsWith("/npm/") && url.startsWith(JSD) ? JSD + spec : null;
+        if (!abs) return all; // « three », « three/addons/… » : résolus par l'importmap
+        const target = extLocal(abs); extra.add(abs.replace(/^https:\/\/cdn\.jsdelivr\.net\/npm\/([^/]+).*/, "$1"));
+        queue.push({ url: abs, local: target });
+        let r = path.posix.relative(here, target); if (!r.startsWith(".")) r = "./" + r;
+        return `${pre}${q}${r}${q}`;
+      });
+      if (/(?:from|import)\s*\(?\s*["']https?:\/\//.test(src)) { console.log(`ERREUR : ${local} importe un autre site que jsdelivr : impossible de tout copier.`); process.exit(1); }
+      buf = Buffer.from(src, "utf8");
+    }
+    const out = path.join(VENDOR, local);
     fs.mkdirSync(path.dirname(out), { recursive: true }); fs.writeFileSync(out, buf);
-    /* un addon importe d'autres fichiers en relatif (../shaders/CopyShader.js) : les suivre */
-    if (rel.endsWith(".js")) for (const x of buf.toString("utf8").matchAll(/(?:from|import)\s*\(?\s*["'](\.{1,2}\/[^"']+)["']/g))
-      queue.push(path.posix.normalize(path.posix.join(path.posix.dirname(rel), x[1])));
   }
-  const kb = [...done].reduce((a, r) => a + fs.statSync(`${dir}/vendor/three/${r}`).size, 0) / 1024;
-  console.log(`three.js ${THREE_VERSION} copié dans vendor/three/ : ${done.size} fichiers, ${Math.round(kb)} Ko.`);
+  const kb = [...done].reduce((a, r) => a + fs.statSync(path.join(VENDOR, r)).size, 0) / 1024;
+  console.log(`three.js ${THREE_VERSION} copié dans vendor/ : ${done.size} fichiers, ${Math.round(kb)} Ko.`);
+  if (extra.size) console.log(`Dépendances copiées dans vendor/ext/ (garder leur licence avec le projet) : ${[...extra].join(", ")}.`);
 }
 
 const scene = hero

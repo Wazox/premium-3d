@@ -12,7 +12,9 @@ node tools/new.mjs mon-projet --hero                       # scène fixe en haut
 node tools/new.mjs mon-projet --vendor                     # three.js copié dans le projet
 ```
 `--vendor` : three.js dans `vendor/three/` au lieu du CDN jsdelivr, avec seulement les fichiers
-importés par les modules choisis (et les décodeurs Draco/KTX2 si `models`). À choisir quand le site
+importés par les modules choisis (et les décodeurs Draco/KTX2 si `models`). Une dépendance qu'un
+addon charge par URL (`text3d` → opentype.js) est copiée dans `vendor/ext/` et son import réécrit en
+local : garder sa licence avec le projet (opentype.js : MIT). À choisir quand le site
 doit marcher sans service tiers : intranet, hors ligne, politique de sécurité (CSP) stricte, client
 qui refuse les CDN (RGPD). Un module ajouté plus tard (avec ses addons) : relancer dans un dossier vide
 et recopier `vendor/`.
