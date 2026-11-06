@@ -35,3 +35,4 @@ jobs:
       - run: npm install --no-audit --no-fund
       - run: npx playwright install --with-deps chromium
       - run: node tests/browser.mjs
+      - run: node tests/vendor.mjs

@@ -173,6 +173,7 @@ if (stage) {
 }
 ```
 - La page utilise une **importmap** vers `three@0.186.1` (jsdelivr), ou `npm i three@0.186.1`.
+  Sans CDN (intranet, hors ligne, CSP stricte, RGPD) : `new.mjs --vendor`.
 - Lenis (scroll fluide) est optionnel : charge-le et appelle `smoothScroll()`.
 - Pour une scène en plusieurs temps : `acts()` pour nommer les actes, `steps()` pour des paliers
   lisibles, `captionSync()` pour les légendes HTML, `cameraPath()` pour la caméra.

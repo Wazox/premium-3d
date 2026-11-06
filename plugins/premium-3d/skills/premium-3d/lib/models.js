@@ -19,7 +19,13 @@ import { DRACOLoader } from "three/addons/loaders/DRACOLoader.js";
 import { KTX2Loader } from "three/addons/loaders/KTX2Loader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 
-const LIBS = "https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/libs/";
+/* décodeurs Draco / KTX2 : à côté des addons de l'importmap (CDN, ou vendor/three/ avec new.mjs --vendor) ;
+   CDN si le navigateur ne sait pas résoudre (import.meta.resolve) ou si three vient de npm (bundler) */
+const CDN_LIBS = "https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/libs/";
+const LIBS = (() => {
+  try { const u = import.meta.resolve("three/addons/libs/"); return /^(https?:|file:)/.test(u) && !/node_modules/.test(u) ? u : CDN_LIBS; }
+  catch (e) { return CDN_LIBS; }
+})();
 let loader = null, ktx2Ready = false;
 function getLoader(renderer) {
   if (!loader) {
