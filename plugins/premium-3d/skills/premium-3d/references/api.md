@@ -20,7 +20,7 @@ Les options entre `{ }` sont toutes facultatives (valeur par défaut indiquée).
 | `stage.paused`, `stage.ready`, `stage.dispose()` | Arrêt complet du rendu (rare), état, nettoyage (React/Vue). |
 | `?tier=high` dans l'URL | Force le niveau d'appareil (tests, captures). `?lite` : sans bloom. |
 | `createStage(…, { poster: "img/p.jpg" })` ou `{ poster: { desktop, mobile } }` | Image de secours sur un calque derrière le canvas (le fond du conteneur reste intact), retirée en fondu quand la 3D est prête. |
-| `scrollTrack(section)` | `.progress()` 0→1 dans une section haute (enfant `position: sticky`), `.goto(p)`. |
+| `scrollTrack(section)` | `.progress()` 0→1 dans une section haute (enfant `position: sticky`), `.goto(p)`, `.dispose()`. |
 | `fitZone(camera, w, h, { left, right, top, bottom, margin })` | **Cadrage à côté du texte** : renvoie la distance de caméra et place l'objet (resté à l'origine) dans cette zone de l'écran (fractions 0 → 1). La perspective reste de face, le sol reste sous la caméra. `fitZone(camera, w, h)` sans zone = plein écran. **`fitZone(camera, objet, zone)`** mesure l'objet (sphère englobante) : à préférer, il ne peut pas être coupé. Sauf pour des particules (`particleMorph`) : elles changent de forme, donner la largeur et la hauteur de la plus grande. Caméra en plongée : mesurer avec la caméra de face, puis la lever. |
 | `fitDistance(camera, w, h, margin \| { x, y, margin })` | Distance pour qu'un objet w × h tienne à l'écran ; `x`/`y` si on préfère déplacer l'objet soi-même. |
 | `cameraPath([[p, [x,y,z], [cible]], …])` | Trajet de caméra par plans clés : `path(P, outPos, outTarget)`. |
@@ -118,9 +118,9 @@ formes d'un même morphing ont le même `count`.
 | `liquify(material, { amp, freq, speed })` + `blobGeometry()` ou `discGeometry(r)` | Surface qui ondule (objet rond, ou liquide plat dans un bol, une tasse, un verre). Renvoie les uniforms : `u.uTime.value = t`. |
 | `dissolve(material, { edge, width })` | Apparition par combustion : `u.uProgress.value` 0 → 1. |
 | `addLensFx(stage, { grain, aberration, vignette })`, `addDepthOfField(stage, { focus })` | Effets d'objectif (profondeur de champ coupée sur machine modeste). |
-| `dragRotate(el, objet, { returnHome })` (`.update(dt)`) | Attraper pour tourner, avec inertie. |
-| `hoverPick(stage, objets, { onEnter, onLeave, onClick })` | Survol et clic sur des objets 3D. |
-| `pointerLight(stage, { color })` (`.update(dt)`), `tilt()` | Lumière qui suit le pointeur, gyroscope. |
+| `dragRotate(el, objet, { returnHome })` (`.update(dt)`) | Attraper pour tourner, avec inertie. `.dispose()` au démontage. |
+| `hoverPick(stage, objets, { onEnter, onLeave, onClick })` | Survol et clic sur des objets 3D. `.dispose()` au démontage. |
+| `pointerLight(stage, { color })` (`.update(dt)`), `tilt()` | Lumière qui suit le pointeur, gyroscope. `.dispose()` au démontage. |
 | `motionToggle(stage, bouton)` | Bouton pause obligatoire si l'animation tourne seule plus de 5 s. Fige le temps, jamais le scroll ; démarre figé avec « réduire les animations ». |
 
 ## react.js

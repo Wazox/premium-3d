@@ -65,7 +65,8 @@ export async function sampleText(text, { count = 20000, width = 6, font = "800 1
     if (!document.fonts.check(font, text)) console.warn(`premium-3d : la police « ${font} » n'est pas disponible, sampleText utilise la police de secours.`);
   }
   const [c0, g0] = canvasOf(10, 10); g0.font = font; const m = g0.measureText(text);
-  const size = parseFloat(font.match(/(\d+)px/)[1]);
+  /* "800 160px …" donne la taille ; sinon ("800 9.5rem", "bold 2em") on prend celle que le canvas a mesurée */
+  const px = font.match(/([\d.]+)px/), size = px ? parseFloat(px[1]) : (m.fontBoundingBoxAscent + m.fontBoundingBoxDescent) || 160;
   const w = Math.ceil(m.width + size * 0.2), h = Math.ceil(size * 1.3);
   const [, g] = canvasOf(w, h); g.font = font; g.fillStyle = "#fff"; g.textBaseline = "middle"; g.fillText(text, size * 0.1, h / 2);
   return fromPixels(g.getImageData(0, 0, w, h).data, w, h, count, width, { mode: "alpha", color, depth });
