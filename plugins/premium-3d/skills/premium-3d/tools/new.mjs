@@ -90,7 +90,10 @@ if (vendor) {
     if (/\.m?js$/.test(local)) {
       let src = buf.toString("utf8");
       const here = path.posix.dirname(local);
-      src = src.replace(/((?:from|import)\s*\(?\s*)(["'])([^"']+)\2/g, (all, pre, q, spec) => {
+      /* seulement les lignes de code : un commentaire (« … loaded from 'https://…' » dans GLTFLoader)
+         n'est ni suivi, ni réécrit, ni pris pour un import vers un autre site */
+      const isComment = (line) => /^\s*(\/\/|\/\*|\*)/.test(line);
+      const rewrite = (line) => isComment(line) ? line : line.replace(/((?:\bfrom|\bimport)\s*\(?\s*)(["'])([^"']+)\2/g, (all, pre, q, spec) => {
         if (/^\.{1,2}\//.test(spec)) { // relatif (../shaders/CopyShader.js) : le suivre tel quel
           const abs = new URL(spec, url).href, target = path.posix.normalize(path.posix.join(here, spec));
           queue.push({ url: abs, local: target }); return all;
@@ -104,7 +107,10 @@ if (vendor) {
         let r = path.posix.relative(here, target); if (!r.startsWith(".")) r = "./" + r;
         return `${pre}${q}${r}${q}`;
       });
-      if (/(?:from|import)\s*\(?\s*["']https?:\/\//.test(src)) { console.log(`ERREUR : ${local} importe un autre site que jsdelivr : impossible de tout copier.`); process.exit(1); }
+      const lines = src.split("\n").map(rewrite);
+      const other = lines.find((line) => !isComment(line) && /(?:\bfrom|\bimport)\s*\(?\s*["']https?:\/\//.test(line));
+      if (other) { console.log(`ERREUR : ${local} importe un autre site que jsdelivr (${other.trim().slice(0, 120)}) : impossible de tout copier.`); process.exit(1); }
+      src = lines.join("\n");
       buf = Buffer.from(src, "utf8");
     }
     const out = path.join(VENDOR, local);
