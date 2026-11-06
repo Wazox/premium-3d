@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.14.0
+
+**Des objets qui se reconnaissent** (le défaut n° 1 du banc d'essai)
+- `lib/props.js` : six objets du métier réglables, aux vraies proportions et avec leurs détails :
+  `serumBottle` (pipette, `fill()`), `wineBottle` (bordelaise / bourguignonne), `cup` (anse, crème),
+  `bread` (grigne courbe, farine, `bake()` cru → cuit), `wheel` (jante, écrous, étrier, `spin()`),
+  `flower` (`open()` bouton → épanouie). Des pièces à régler pour la marque, pas des scènes.
+- `demos/props.html` : `?only=bread` cadre un objet de près, `?t=0.5` fige l'animation.
+
+**Plus léger**
+- `tools/optimize.mjs` : un `.glb` du client allégé en une commande (Meshopt, textures WebP ou
+  KTX2, version mobile 1024 px, jamais de simplification sans `--simplify`). La commande de la
+  doc échouait chez la plupart des gens (KTX2 sans `toktx`, mauvais nom de paquet npm).
+
+**Sans CDN**
+- `new.mjs --vendor` : three.js copié dans le projet, seulement les fichiers utilisés, dépendances
+  chargées par URL comprises (opentype.js pour `text3d`) : intranet, hors ligne, CSP stricte, RGPD.
+- `models.js` : décodeurs Draco / KTX2 résolus par l'importmap (CDN en secours).
+
+**Tests**
+- CI : `tests/optimize.mjs` (modèle lourd allégé puis relu) et `tests/vendor.mjs` (chaque module
+  chargé dans Chromium avec le CDN coupé).
+
 ## 1.13.1
 
 **Corrections**
