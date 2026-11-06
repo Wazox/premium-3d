@@ -1,5 +1,31 @@
 # Changelog
 
+## 1.13.1
+
+**Corrections**
+- `new.mjs --modules r3f` : les modules importés par `r3f.js` (logo3d, text3d, particles, shaders)
+  sont copiés ; les dépendances sont lues dans les vrais imports de chaque module.
+- Contexte WebGL restauré : les reflets (PMREM) sont recalculés, métal et verre ne repartent plus ternes.
+- `usePremium3D` (React) : `update(dt, t, real)` comme ailleurs, et `false` endort la scène.
+- `stage.dispose()` libère tout : écouteurs, image de secours, `p3d-ready`, entrée de `__p3d`
+  (en React StrictMode, les images de secours ne s'empilent plus).
+- `tier()` rend son contexte WebGL jetable ; la boucle s'arrête quand plus aucune scène ne tourne.
+- `sampleText` accepte une police en `rem`, `em` ou `9.5px` (plantait sans « NNpx »).
+
+**Plus propre**
+- `.dispose()` sur `scrollTrack`, `dragRotate`, `hoverPick`, `pointerLight` et `tilt` (démontage
+  d'un composant React/Vue sans écouteur oublié).
+- `tools/serve.py` : plusieurs requêtes à la fois (contrôles plus rapides), port réutilisable tout
+  de suite, pas de cache, types `.glb`, `.wasm`, `.ktx2`, `.woff2`.
+
+**Plus léger**
+- `docs/` passe de 12 Mo à 1,6 Mo : la galerie en WebP (le GIF de 4,3 Mo devient un WebP animé de
+  644 Ko), aperçu de partage en JPG.
+
+**Tests**
+- CI GitHub Actions : syntaxe, squelettes `new.mjs` pour chaque module, et dans Chromium : cycle de
+  vie (contexte perdu, double montage, `dispose()`), chaque démo et exemple sans erreur.
+
 ## 1.13.0
 
 - `lib/daylight.js` : **l'heure qui passe** au scroll (jour → nuit, nuit → aube) : fond,
