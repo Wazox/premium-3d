@@ -1,0 +1,14 @@
+{
+  "name": "premium-3d-dev",
+  "private": true,
+  "type": "module",
+  "description": "Outils de développement du dépôt (tests). Le skill lui-même n'a aucune dépendance npm.",
+  "scripts": {
+    "test": "node tests/static.mjs && node tests/browser.mjs",
+    "test:static": "node tests/static.mjs",
+    "test:browser": "node tests/browser.mjs"
+  },
+  "devDependencies": {
+    "playwright": "1.65.0"
+  }
+}
