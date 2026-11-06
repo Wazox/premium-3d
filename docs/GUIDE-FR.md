@@ -93,7 +93,7 @@ réelle au défilement (images par seconde, « Performances » dans `report.html
 Dans la console, `stage.pixelRatio` doit valoir 1 ou plus sur un ordinateur correct.
 
 Modèles 3D du client : les compresser avant de les mettre en ligne (souvent 5 à 10 fois plus légers) :
-`npx gltf-transform optimize entree.glb sortie.glb --compress meshopt --texture-compress ktx2`.
+`node tools/optimize.mjs produit.glb` (version ordinateur et version mobile, textures WebP ou KTX2).
 
 ## 7. Licence et crédits
 

@@ -4,11 +4,15 @@
   "type": "module",
   "description": "Outils de développement du dépôt (tests). Le skill lui-même n'a aucune dépendance npm.",
   "scripts": {
-    "test": "node tests/static.mjs && node tests/browser.mjs",
+    "test": "node tests/static.mjs && node tests/optimize.mjs && node tests/browser.mjs",
     "test:static": "node tests/static.mjs",
-    "test:browser": "node tests/browser.mjs"
+    "test:browser": "node tests/browser.mjs",
+    "test:optimize": "node tests/optimize.mjs"
   },
   "devDependencies": {
+    "@gltf-transform/core": "4.5.1",
+    "@gltf-transform/extensions": "4.5.1",
+    "meshoptimizer": "1.3.0",
     "playwright": "1.65.0"
   }
 }
