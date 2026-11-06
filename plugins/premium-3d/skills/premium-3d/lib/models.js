@@ -3,8 +3,8 @@
  * Modèles 3D du client (.glb / .gltf, compressés Draco, Meshopt ou non, textures KTX2),
  * éclairage studio réaliste et ombres douces au sol.
  *
- * Le plus léger : géométrie Meshopt + textures KTX2, en une commande (voir references/performance.md) :
- *   npx gltf-transform optimize entree.glb sortie.glb --compress meshopt --texture-compress ktx2
+ * Le plus léger : géométrie Meshopt + textures compressées, en une commande (references/performance.md) :
+ *   node tools/optimize.mjs produit.glb      → produit.opt.glb + produit.mobile.glb
  * Passer `stage` à loadModel pour lire les textures KTX2 (il faut le renderer).
  *
  *   import { loadModel, studioLights, softGround } from "./lib/models.js";
