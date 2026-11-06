@@ -23,7 +23,7 @@ import { useEffect, useRef } from "react";
 import { createStage } from "./core.js";
 
 /**
- * @param setup  async (stage) => update(dt, t) | void : construit la scène, renvoie la fonction d'animation
+ * @param setup  async (stage) => update(dt, t, real) | void : construit la scène, renvoie la fonction d'animation
  * @param opts   options de createStage ; opts.warm(stage) optionnel pour préparer le préchauffage
  * @returns ref à poser sur un <canvas> (son parent doit avoir une taille)
  */
@@ -39,7 +39,9 @@ export function usePremium3D(setup, opts = {}) {
       if (!alive) return;
       await stage.warm(opts.prepare, opts.restore);
       if (!alive) return;
-      stage.start((dt, t) => update && update(dt, t));
+      /* les trois temps, comme stage.start ailleurs : real (temps réel) lisse le suivi du scroll
+         même quand la pause fige dt et t ; le retour (false = rien n'a bougé) endort la scène */
+      stage.start((dt, t, real) => (update ? update(dt, t, real) : false));
     })();
     return () => { alive = false; stage.dispose(); stage = null; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
