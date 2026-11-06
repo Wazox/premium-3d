@@ -47,6 +47,7 @@ tools/check.mjs    captures desktop + mobile, erreurs, 3D coupée, performances,
 tools/record.mjs   vidéo de la page filmée en direct (ordinateur avec écran et carte graphique)
 tools/render.mjs   vidéo calculée image par image, parfaitement fluide, de n'importe quelle page WebGL
 tools/browser.mjs  lanceur commun (carte graphique ou rendu logiciel, cookies) ; options : references/tools.md
+tools/optimize.mjs allège un modèle .glb du client (Meshopt, textures WebP/KTX2, version mobile)
 tools/serve.py     serveur local
 licenses/          licences tierces à livrer avec le projet
 ```

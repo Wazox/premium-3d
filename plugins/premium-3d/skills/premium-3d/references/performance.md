@@ -52,10 +52,11 @@ déjà l'essentiel ; ce fichier dit ce qu'il fait et ce qu'il ne faut pas casser
 - Ne modifie une classe CSS que si l'état change : `classToggle()` (lib/story.js) le fait pour toi.
 - Pas de `backdrop-filter` sur des éléments posés au-dessus du canvas.
 - Photos : 1600 px de large maximum, JPEG ou WebP.
-- Modèles 3D du client : toujours les passer dans gltf-transform avant de les mettre en ligne
-  (souvent 5 à 10 fois plus légers), puis `loadModel(url, { stage })` (stage : pour lire le KTX2) :
-  `npx gltf-transform optimize entree.glb sortie.glb --compress meshopt --texture-compress ktx2 --texture-size 2048`
-  Sans `stage` ou avec Draco, ça marche aussi ; Meshopt se décode plus vite que Draco.
+- Modèles 3D du client : toujours les alléger avant de les mettre en ligne (souvent 5 à 20 fois
+  plus légers) : `node tools/optimize.mjs produit.glb` → `produit.opt.glb` et `produit.mobile.glb`
+  (géométrie Meshopt, textures 2048 / 1024 px en KTX2 si `toktx` est installé, sinon WebP ; la
+  silhouette n'est jamais simplifiée sans `--simplify`). Puis
+  `loadModel(innerWidth < 860 ? "produit.mobile.glb" : "produit.opt.glb", { stage })` (stage : pour lire le KTX2).
 - Particules, ombres, subdivisions : dosées par `stage.tier` (`{ low: 6000, mid: 12000, high: 20000 }[stage.tier]`).
   `studioLights` le fait déjà pour la taille de l'ombre (512 / 1024 / 2048).
 - Une scène par page de préférence ; deux maximum, sur la même boucle.

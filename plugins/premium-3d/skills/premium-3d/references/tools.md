@@ -79,3 +79,14 @@ node tools/render.mjs <url> loop.mp4 --still 6                             # 6 s
 node tools/brand.mjs https://site-du-client.fr ./marque
 ```
 Couleurs (fond, texte, accents), polices, logo, textes → `brand.html` + `brand.json` + `site.png`.
+
+## optimize.mjs : alléger un modèle .glb du client
+```bash
+node tools/optimize.mjs produit.glb                     # → produit.opt.glb + produit.mobile.glb
+node tools/optimize.mjs scan.glb img/scan.glb --texture 1024 --simplify 0.5
+```
+Géométrie Meshopt (lue par `loadModel` sans rien ajouter), textures redimensionnées (2048 px, mobile
+1024 px) et compressées en KTX2 si `toktx` (KTX-Software) est installé, sinon en WebP. Rien à
+installer : gltf-transform est téléchargé par npx à la première utilisation. La géométrie n'est
+simplifiée qu'avec `--simplify` (sinon la silhouette d'un produit pourrait s'abîmer). Alerte au-delà
+de 2 Mo.
