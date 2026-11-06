@@ -39,6 +39,8 @@ export function tier() {
     const gl = document.createElement("canvas").getContext("webgl2");
     const ext = gl && gl.getExtension("WEBGL_debug_renderer_info");
     gpu = ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : "";
+    /* contexte jetable : le rendre tout de suite (le navigateur en limite le nombre) */
+    const lose = gl && gl.getExtension("WEBGL_lose_context"); if (lose) lose.loseContext();
   } catch (e) {}
   const weakGpu = /swiftshader|llvmpipe|software|mali-4|adreno \(tm\) [3-5]\d\d|intel.*hd graphics [2-5]\d\d\d/i.test(gpu);
   const strongGpu = /rtx|radeon rx|apple m\d|geforce gtx 1[0-9]|arc a\d/i.test(gpu);
@@ -78,7 +80,12 @@ const frameFns = new Set();
 let lenis = null, looping = false;
 export function onFrame(fn) {
   frameFns.add(fn);
-  if (!looping) { looping = true; const tick = (t) => { if (lenis) lenis.raf(t); frameFns.forEach((f) => f(t)); requestAnimationFrame(tick); }; requestAnimationFrame(tick); }
+  if (!looping) {
+    looping = true;
+    /* la boucle s'arrête quand plus personne n'y est inscrit (toutes les scènes libérées) */
+    const tick = (t) => { if (lenis) lenis.raf(t); frameFns.forEach((f) => f(t)); if (frameFns.size) requestAnimationFrame(tick); else looping = false; };
+    requestAnimationFrame(tick);
+  }
   return () => frameFns.delete(fn);
 }
 /** Scroll fluide (Lenis, si chargé sur la page). Désactivé si l'utilisateur réduit les animations. */
@@ -270,7 +277,8 @@ export function createStage(canvas, {
   if (background === null) renderer.setClearColor(0x000000, 0);
   const scene = new THREE.Scene();
   if (background !== null) scene.background = new THREE.Color(background);
-  scene.environment = env === "room" ? roomEnvironment(renderer) : studioEnvironment(renderer, { accent, accent2, front });
+  const makeEnv = () => (env === "room" ? roomEnvironment(renderer) : studioEnvironment(renderer, { accent, accent2, front }));
+  let envTex = (scene.environment = makeEnv());
   const camera = new THREE.PerspectiveCamera(fov, 1, 0.1, 200);
   let composer = null, bloomPass = null, outputPass = null;
   if (bloom && !LITE) {
@@ -296,10 +304,19 @@ export function createStage(canvas, {
   /* contexte WebGL perdu (onglet en arrière-plan sur mobile, pilote qui redémarre) : sans ça,
      le canvas reste noir. On réaffiche l'image de secours et on attend que le navigateur le rende. */
   let lost = false, dirty = true;
-  canvas.addEventListener("webglcontextlost", (e) => { e.preventDefault(); lost = true; if (posterEl) posterEl.style.opacity = "1"; });
-  canvas.addEventListener("webglcontextrestored", () => { lost = false; dirty = true; if (posterEl) posterEl.style.opacity = "0"; });
+  const onLost = (e) => { e.preventDefault(); lost = true; if (posterEl) posterEl.style.opacity = "1"; };
+  /* three.js réinitialise le renderer avant nous (son écouteur est posé en premier) et renvoie les
+     textures qui ont une image. Mais les reflets (PMREM) sont DESSINÉS dans une cible de rendu : leur
+     contenu est perdu avec le contexte. Sans les recalculer, métal et verre repartent sans reflets. */
+  const onRestored = () => {
+    if (scene.environment === envTex) { envTex.dispose(); envTex = scene.environment = makeEnv(); }
+    lost = false; dirty = true; if (posterEl) posterEl.style.opacity = "0";
+  };
+  canvas.addEventListener("webglcontextlost", onLost);
+  canvas.addEventListener("webglcontextrestored", onRestored);
   /* le pointeur réveille une scène endormie (lumière qui suit, survol, attraper) */
-  box.addEventListener("pointermove", () => { dirty = true; }, { passive: true });
+  const onPointer = () => { dirty = true; };
+  box.addEventListener("pointermove", onPointer, { passive: true });
   let visible = false;
   const io = new IntersectionObserver((es) => { visible = es[0].isIntersecting; }, { rootMargin: "100% 0px" }); io.observe(box);
   let stopFrame = null;
@@ -397,12 +414,22 @@ export function createStage(canvas, {
     /** Libère tout (applications React/Vue/Next au démontage du composant). */
     dispose() {
       if (stopFrame) stopFrame(); ro.disconnect(); io.disconnect();
+      canvas.removeEventListener("webglcontextlost", onLost);
+      canvas.removeEventListener("webglcontextrestored", onRestored);
+      box.removeEventListener("pointermove", onPointer);
+      /* sinon, en React StrictMode (double montage) les images de secours s'empilent derrière le canvas */
+      if (posterEl) posterEl.remove();
+      box.classList.remove("p3d-ready");
+      const list = window.__p3d && window.__p3d.stages, i = list ? list.indexOf(stage) : -1;
+      if (i >= 0) list.splice(i, 1);
       scene.traverse((o) => {
         if (o.geometry) o.geometry.dispose();
         const m = o.material; if (m) (Array.isArray(m) ? m : [m]).forEach((x) => { Object.values(x).forEach((v) => v && v.isTexture && v.dispose()); x.dispose(); });
       });
       if (scene.environment) scene.environment.dispose();
       if (composer) composer.dispose && composer.dispose();
+      /* pas de forceContextLoss() : React StrictMode remonte la scène sur le MÊME canvas, qui
+         deviendrait inutilisable. Le contexte est rendu quand le canvas quitte la page. */
       renderer.dispose();
     },
   };

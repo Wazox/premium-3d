@@ -17,7 +17,14 @@ import { fileURLToPath } from "node:url";
 
 const SKILL = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const THREE_VERSION = "0.186.1";
-const DEPS = { particles: ["shaders"], swarm: ["particles"], story: [], react: [] }; // core.js est toujours copié
+/* dépendances lues dans les vrais imports de chaque module (core.js est toujours copié) :
+   une table écrite à la main oubliait des modules (r3f.js → logo3d, text3d, particles) */
+/* modules que la PAGE doit importer pour se servir d'un autre (swarm prend ses formes dans particles) */
+const COMPANIONS = { swarm: ["particles"] };
+const depsOf = (m) => [
+  ...[...fs.readFileSync(`${SKILL}/lib/${m}.js`, "utf8").matchAll(/^\s*import\b[^;]*?from\s+["']\.\/([\w-]+)\.js["']/gm)].map((x) => x[1]),
+  ...(COMPANIONS[m] || []),
+];
 
 const args = process.argv.slice(2);
 const flag = (k) => { const i = args.indexOf(k); if (i < 0) return false; args.splice(i, 1); return true; };
@@ -31,7 +38,8 @@ if (fs.existsSync(dir) && fs.readdirSync(dir).length && !force) { console.log(`E
 const mods = new Set(["core"]);
 const add = (m) => {
   if (!fs.existsSync(`${SKILL}/lib/${m}.js`)) { console.log(`ERREUR : lib/${m}.js n'existe pas. Modules : ${fs.readdirSync(`${SKILL}/lib`).map((f) => f.replace(".js", "")).join(", ")}`); process.exit(1); }
-  mods.add(m); (DEPS[m] || []).forEach(add);
+  if (mods.has(m)) return; // déjà copié (et évite les boucles d'imports)
+  mods.add(m); depsOf(m).forEach(add);
 };
 wanted.forEach(add);
 
