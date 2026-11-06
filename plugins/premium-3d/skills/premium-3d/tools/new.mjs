@@ -11,6 +11,9 @@
 //   --modules  modules de lib/ en plus de core.js (dépendances ajoutées toutes seules)
 //   --hero     scène fixe en haut de page (sinon : scène épinglée qui suit le scroll)
 //   --force    écrire dans un dossier qui n'est pas vide
+//   --vendor   three.js copié dans le projet (vendor/three/) au lieu du CDN : marche hors ligne, sans
+//              service tiers, compatible avec une politique de sécurité (CSP) stricte. Seuls les
+//              fichiers vraiment importés par les modules choisis sont copiés.
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -29,10 +32,10 @@ const depsOf = (m) => [
 const args = process.argv.slice(2);
 const flag = (k) => { const i = args.indexOf(k); if (i < 0) return false; args.splice(i, 1); return true; };
 const opt = (k, d) => { const i = args.indexOf(k); if (i < 0) return d; const v = args[i + 1]; args.splice(i, 2); return v; };
-const hero = flag("--hero"), force = flag("--force");
+const hero = flag("--hero"), force = flag("--force"), vendor = flag("--vendor");
 const wanted = opt("--modules", "story").split(",").map((m) => m.trim().replace(/\.js$/, "")).filter(Boolean);
 const dir = args[0];
-if (!dir) { console.log("Usage : node tools/new.mjs <dossier> [--modules story,particles] [--hero] [--force]"); process.exit(1); }
+if (!dir) { console.log("Usage : node tools/new.mjs <dossier> [--modules story,particles] [--hero] [--vendor] [--force]"); process.exit(1); }
 if (fs.existsSync(dir) && fs.readdirSync(dir).length && !force) { console.log(`ERREUR : ${dir} n'est pas vide (--force pour écrire quand même).`); process.exit(1); }
 
 const mods = new Set(["core"]);
@@ -56,6 +59,67 @@ const imports = [`import { createStage, scrollTrack, fitZone, ss, THREE } from "
 if (story) imports.push(`import { acts, captionSync } from "./lib/story.js";`);
 imports.push(`import { motionToggle } from "./lib/interact.js";`);
 fs.copyFileSync(`${SKILL}/lib/interact.js`, `${dir}/lib/interact.js`); mods.add("interact");
+
+/* ---------- --vendor : three.js dans le projet ---------- */
+const CDN = `https://cdn.jsdelivr.net/npm/three@${THREE_VERSION}/`;
+const THREE_URL = vendor ? "vendor/three/" : CDN;
+if (vendor) {
+  const files = new Set(["build/three.module.min.js", "build/three.core.min.js"]);
+  /* les addons nommés par les modules copiés (import statique, import() ou chemin en texte) */
+  for (const m of mods) for (const x of fs.readFileSync(`${SKILL}/lib/${m}.js`, "utf8").matchAll(/["']three\/addons\/([\w/.-]+\.js)["']/g)) files.add(`examples/jsm/${x[1]}`);
+  /* décodeurs des modèles compressés (Draco, KTX2), chargés par models.js à côté des addons */
+  if (mods.has("models")) ["draco/gltf/draco_decoder.js", "draco/gltf/draco_wasm_wrapper.js", "draco/gltf/draco_decoder.wasm",
+    "basis/basis_transcoder.js", "basis/basis_transcoder.wasm"].forEach((x) => files.add(`examples/jsm/libs/${x}`));
+  /* file : { url, local } ; local = chemin sous vendor/ (three/… pour three.js, ext/npm/… pour une
+     dépendance d'un addon chargée par URL, ex. TTFLoader → opentype.js sur jsdelivr) */
+  const VENDOR = path.resolve(dir, "vendor"), JSD = "https://cdn.jsdelivr.net";
+  const extLocal = (url) => { const p = new URL(url).pathname.replace(/^\/+/, ""); return `ext/${p}${/\.(m?js|wasm)$/.test(p) ? "" : ".js"}`; }; // « +esm » → « +esm.js »
+  const done = new Set(), queue = [...files].map((r) => ({ url: CDN + r, local: `three/${r}` }));
+  const extra = new Set();
+  while (queue.length) {
+    const { url, local } = queue.shift(); if (done.has(local)) continue;
+    /* un fichier téléchargé ne décide jamais où l'on écrit : rien hors de vendor/three/ et vendor/ext/npm/ */
+    if (path.posix.isAbsolute(local) || local.split("/").includes("..") || !/^(three\/(build|examples\/jsm)|ext\/npm)\//.test(local) || !path.resolve(VENDOR, local).startsWith(VENDOR + path.sep)) {
+      console.log(`ERREUR : chemin refusé (${local}) : copie arrêtée.`); process.exit(1);
+    }
+    done.add(local);
+    let res;
+    try { res = await fetch(url); } catch (e) { console.log(`ERREUR : pas de réseau pour copier three.js (${e.message}). Relancer sans --vendor, ou plus tard.`); process.exit(1); }
+    if (!res.ok) { console.log(`ERREUR : ${url} → ${res.status}`); process.exit(1); }
+    let buf = Buffer.from(await res.arrayBuffer());
+    if (/\.m?js$/.test(local)) {
+      let src = buf.toString("utf8");
+      const here = path.posix.dirname(local);
+      /* seulement les lignes de code : un commentaire (« … loaded from 'https://…' » dans GLTFLoader)
+         n'est ni suivi, ni réécrit, ni pris pour un import vers un autre site */
+      const isComment = (line) => /^\s*(\/\/|\/\*|\*)/.test(line);
+      const rewrite = (line) => isComment(line) ? line : line.replace(/((?:\bfrom|\bimport)\s*\(?\s*)(["'])([^"']+)\2/g, (all, pre, q, spec) => {
+        if (/^\.{1,2}\//.test(spec)) { // relatif (../shaders/CopyShader.js) : le suivre tel quel
+          const abs = new URL(spec, url).href, target = path.posix.normalize(path.posix.join(here, spec));
+          queue.push({ url: abs, local: target }); return all;
+        }
+        /* URL absolue vers jsdelivr (« https://cdn.jsdelivr.net/npm/… » ou « /npm/… » dans un fichier jsdelivr) :
+           copiée dans ext/ et l'import réécrit en chemin local */
+        const abs = spec.startsWith(JSD + "/npm/") ? spec : spec.startsWith("/npm/") && url.startsWith(JSD) ? JSD + spec : null;
+        if (!abs) return all; // « three », « three/addons/… » : résolus par l'importmap
+        const target = extLocal(abs); extra.add(abs.replace(/^https:\/\/cdn\.jsdelivr\.net\/npm\/([^/]+).*/, "$1"));
+        queue.push({ url: abs, local: target });
+        let r = path.posix.relative(here, target); if (!r.startsWith(".")) r = "./" + r;
+        return `${pre}${q}${r}${q}`;
+      });
+      const lines = src.split("\n").map(rewrite);
+      const other = lines.find((line) => !isComment(line) && /(?:\bfrom|\bimport)\s*\(?\s*["']https?:\/\//.test(line));
+      if (other) { console.log(`ERREUR : ${local} importe un autre site que jsdelivr (${other.trim().slice(0, 120)}) : impossible de tout copier.`); process.exit(1); }
+      src = lines.join("\n");
+      buf = Buffer.from(src, "utf8");
+    }
+    const out = path.join(VENDOR, local);
+    fs.mkdirSync(path.dirname(out), { recursive: true }); fs.writeFileSync(out, buf);
+  }
+  const kb = [...done].reduce((a, r) => a + fs.statSync(path.join(VENDOR, r)).size, 0) / 1024;
+  console.log(`three.js ${THREE_VERSION} copié dans vendor/ : ${done.size} fichiers, ${Math.round(kb)} Ko.`);
+  if (extra.size) console.log(`Dépendances copiées dans vendor/ext/ (garder leur licence avec le projet) : ${[...extra].join(", ")}.`);
+}
 
 const scene = hero
   ? `<section id="scene" class="scene" aria-label="[À ÉCRIRE : ce que montre la scène]">
@@ -120,8 +184,8 @@ const html = `<!doctype html>
 <title>[À ÉCRIRE]</title>
 <meta name="description" content="[À ÉCRIRE]">
 <!-- three.js préchargé en parallèle (sinon : page → core.js → three → three.core, l'un après l'autre) -->
-<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@${THREE_VERSION}/build/three.module.min.js" crossorigin>
-<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@${THREE_VERSION}/build/three.core.min.js" crossorigin>
+<link rel="modulepreload" href="${THREE_URL}build/three.module.min.js"${vendor ? "" : " crossorigin"}>
+<link rel="modulepreload" href="${THREE_URL}build/three.core.min.js"${vendor ? "" : " crossorigin"}>
 <link rel="modulepreload" href="lib/core.js">
 <!-- polices : [À CHOISIR] (references/art-direction.md), avec display=swap -->
 <style>
@@ -133,7 +197,7 @@ ${css}
 ${scene}
 <!-- [À ÉCRIRE] le reste de la page, en HTML -->
 </main>
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@${THREE_VERSION}/build/three.module.min.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@${THREE_VERSION}/examples/jsm/"}}</script>
+<script type="importmap">{"imports":{"three":"${vendor ? "./" : ""}${THREE_URL}build/three.module.min.js","three/addons/":"${vendor ? "./" : ""}${THREE_URL}examples/jsm/"}}</script>
 <script type="module">
 ${imports.join("\n")}
 

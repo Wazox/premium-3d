@@ -9,7 +9,15 @@ navigateur déjà installé ailleurs). Serveur : `python3 tools/serve.py 5180 &`
 ```bash
 node tools/new.mjs mon-projet --modules story,particles    # scène épinglée qui suit le scroll
 node tools/new.mjs mon-projet --hero                       # scène fixe en haut de page
+node tools/new.mjs mon-projet --vendor                     # three.js copié dans le projet
 ```
+`--vendor` : three.js dans `vendor/three/` au lieu du CDN jsdelivr, avec seulement les fichiers
+importés par les modules choisis (et les décodeurs Draco/KTX2 si `models`). Une dépendance qu'un
+addon charge par URL (`text3d` → opentype.js) est copiée dans `vendor/ext/` et son import réécrit en
+local : garder sa licence avec le projet (opentype.js : MIT). À choisir quand le site
+doit marcher sans service tiers : intranet, hors ligne, politique de sécurité (CSP) stricte, client
+qui refuse les CDN (RGPD). Un module ajouté plus tard (avec ses addons) : relancer dans un dossier vide
+et recopier `vendor/`.
 Crée `index.html` (importmap, canvas, fondu, préchauffage, scroll lissé, bouton pause, `__demo`,
 cadrage `fitZone`), `lib/` (modules demandés et leurs dépendances), `tools/` (check, serve),
 `licenses/`. Aucun design : tout le visible est marqué `[À ÉCRIRE]` ou `[À CHOISIR]`.
