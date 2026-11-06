@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Démo technique : objets du métier réglables (props.js)</title>
+<!-- Démo de technique, volontairement sobre. Ce n'est PAS un modèle de page : elle montre les objets
+     de lib/props.js et leurs réglages. Dans un projet, couleurs, matières et mise en scène viennent
+     de la marque. ?t=0.5 fige l'animation (captures). -->
+<style>
+body{margin:0;background:#ece8e1;color:#2a2622;font:16px/1.5 system-ui,sans-serif}
+.wrap{height:100svh;position:relative}
+#gl{position:absolute;inset:0;width:100%;height:100%}
+p{position:absolute;left:24px;bottom:16px;margin:0;opacity:.75;font-size:14px;max-width:70ch}
+</style>
+</head>
+<body>
+<div class="wrap"><canvas id="gl" aria-hidden="true"></canvas><p>serumBottle, wineBottle, cup, bread (cuisson), wheel (rotation), flower (éclosion) : chaque objet a ses pièces nommées et ses réglages ; l'animation montre fill(), bake(), spin() et open().</p></div>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.min.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"}}</script>
+<script type="module">
+import { createStage, fitZone, THREE } from "../lib/core.js";
+import { studioLights, softGround } from "../lib/models.js";
+import { serumBottle, wineBottle, cup, bread, wheel, flower } from "../lib/props.js";
+
+const FIX = new URLSearchParams(location.search).get("t");
+const stage = createStage(document.getElementById("gl"), { background: "#ece8e1", env: "room", bloom: false, front: 1, tone: "neutral" });
+if (stage) {
+  const { scene, camera } = stage;
+  studioLights(stage, { shadows: true });
+  const all = new THREE.Group(); scene.add(all);
+  const place = (o, x, z, ry = 0) => { o.group.position.set(x, 0, z); o.group.rotation.y = ry; all.add(o.group); return o; };
+
+  const serum = place(serumBottle({ height: 1.1 }), -3.1, 0.4, 0.5);
+  const wine = place(wineBottle({ height: 1.75 }), -1.9, -0.5, -0.3);
+  const coffee = place(cup({ size: 0.85 }), -0.55, 0.55, -0.6);
+  const loaf = place(bread({ kind: "boule", size: 1.35, scores: 1 }), 0.95, 0.15, 0.4);
+  const rim = place(wheel({ diameter: 1.7, spokes: 5, split: true }), 2.75, -0.55, -0.35);
+  const rose = place(flower({ petals: 6, layers: 3, color: "#d93b6a", edge: "#ffc9d8", stem: 1.1, size: 1 }), 4.2, 0.45, 0.2);
+  all.position.x = -0.55;
+  scene.add(softGround({ y: 0, color: "#3a2f25", opacity: 0.3 }));
+
+  /* ?only=serum|wine|cup|bread|wheel|flower : un seul objet, cadré de près (vérifier les détails) */
+  const ONLY = { serum, wine, cup: coffee, bread: loaf, wheel: rim, flower: rose }[new URLSearchParams(location.search).get("only")];
+  if (ONLY) for (const o of [serum, wine, coffee, loaf, rim, rose]) o.group.visible = o === ONLY;
+  stage.onResize((w, h) => {
+    if (ONLY) {
+      all.updateMatrixWorld(true);
+      const box = new THREE.Box3().setFromObject(ONLY.group), c = box.getCenter(new THREE.Vector3()), r = box.getBoundingSphere(new THREE.Sphere()).radius;
+      const d = (r * 0.95) / Math.sin(THREE.MathUtils.degToRad(Math.min(camera.fov, camera.fov * camera.aspect) / 2));
+      camera.position.set(c.x, c.y + d * 0.5, c.z + d * 0.87); camera.lookAt(c); return; // vu de trois quarts haut
+    }
+    /* toute la rangée dans l'image, quelle que soit la largeur */
+    const d = Math.max(9, 4.9 / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) / camera.aspect);
+    camera.position.set(0, d * 0.27, d);
+    camera.lookAt(0, 0.7, 0);
+  });
+
+  await stage.warm();
+  const ping = (t) => 0.5 - 0.5 * Math.cos(t);
+  stage.start((dt, t) => {
+    const k = FIX !== null ? Number(FIX) : ping(t * 0.6);
+    serum.fill(0.15 + 0.75 * k);
+    serum.parts.dropper.position.y = 1.1 * 0.94 + 0.35 * Math.max(0, k - 0.6) / 0.4;
+    loaf.bake(k);
+    rim.spin(FIX !== null ? 0.3 : t * 0.8);
+    rose.open(k);
+    if (FIX !== null) return false;
+  });
+}
+window.__demo = { get ready() { return !stage || stage.ready; } };
+</script>
+</body>
+</html>

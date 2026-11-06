@@ -28,6 +28,8 @@ lib/fx.js          grain, aberration chromatique, vignette, profondeur de champ
 lib/textures.js    matières procédurales sans image : bois, marbre, béton, papier
 lib/forms.js       modéliser les objets du métier : profil lissé (flacon, verre, bol), paroi épaisse,
                    liquide qui se remplit, formes organiques (pain, pierre, fruit), couleurs peintes
+lib/props.js       objets réglables aux vraies proportions : flacon à pipette, bouteille de vin, tasse,
+                   pain qui cuit, roue, fleur qui éclot (à adapter à la marque, jamais tels quels)
 lib/swarm.js       nuée de vrais petits objets 3D (grains, pétales, pièces) qui écrivent un nom ou un logo
 lib/ribbon.js      ruban ou fil qui se dessine au scroll (trajet GPS, signature, mèche) ; un objet le suit
 lib/ink.js         style illustré : aplats de couleur et contour encré
@@ -141,8 +143,9 @@ rapide et plus sûr que de parcourir les sources de `lib/`.
 La scène peut (et souvent doit) contenir des objets construits pour le projet (une jante, un flacon,
 un pain, un comptoir) : `lib/` fournit le rendu, les matières, le scroll et les effets, pas les objets
 du métier. **Lis `references/modeling.md` avant de modéliser** : c'est le défaut n° 1 relevé par le
-juge du banc d'essai (pain en « galet », flacon « en plastique », bois « en sable »). Outils :
-`lib/forms.js` (`lathe` creux, `liquid`, `deform`, `organic`, `tint`, `roundedBox`). Un objet doit se
+juge du banc d'essai (pain en « galet », flacon « en plastique », bois « en sable »). Si l'objet
+existe dans `lib/props.js` (flacon à pipette, bouteille, tasse, pain, roue, fleur), pars de lui et
+règle-le pour la marque. Sinon : `lib/forms.js` (`lathe` creux, `liquid`, `deform`, `organic`, `tint`, `roundedBox`). Un objet doit se
 reconnaître à sa silhouette seule, avec au moins trois détails vrais (bords arrondis, épaisseur,
 irrégularité, variation de couleur, pièce secondaire, ombre au sol).
 Pour des particules qui dessinent une forme qui n'est ni une image, ni un SVG, ni un texte (une
