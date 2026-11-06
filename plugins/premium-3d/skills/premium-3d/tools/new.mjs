@@ -72,7 +72,13 @@ if (vendor) {
     "basis/basis_transcoder.js", "basis/basis_transcoder.wasm"].forEach((x) => files.add(`examples/jsm/libs/${x}`));
   const done = new Set(), queue = [...files];
   while (queue.length) {
-    const rel = queue.shift(); if (done.has(rel)) continue; done.add(rel);
+    const rel = queue.shift(); if (done.has(rel)) continue;
+    /* un fichier téléchargé ne décide jamais où l'on écrit : rien hors de vendor/three/, ni du paquet three */
+    const VENDOR = path.resolve(dir, "vendor/three");
+    if (path.posix.isAbsolute(rel) || rel.split("/").includes("..") || !/^(build|examples\/jsm)\//.test(rel) || !path.resolve(VENDOR, rel).startsWith(VENDOR + path.sep)) {
+      console.log(`ERREUR : chemin refusé dans three.js (${rel}) : copie arrêtée.`); process.exit(1);
+    }
+    done.add(rel);
     let res;
     try { res = await fetch(CDN + rel); } catch (e) { console.log(`ERREUR : pas de réseau pour copier three.js (${e.message}). Relancer sans --vendor, ou plus tard.`); process.exit(1); }
     if (!res.ok) { console.log(`ERREUR : ${CDN + rel} → ${res.status}`); process.exit(1); }
