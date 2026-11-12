@@ -95,10 +95,10 @@ proportions) : pas une scène. Chaque appel renvoie `{ group, parts, … }`, `gr
 `group.userData.size = { w, h, d }`.
 | Appel | Rôle |
 |---|---|
-| `serumBottle({ height, tint, dist, liquid, level, collar, collarMetal, bulb, label })` | Flacon de sérum à pipette : verre teinté épais, liquide, bague, poire nervurée, tube. `.fill(0 → 1)` ; `parts.dropper` se soulève. |
+| `serumBottle({ height, tint, dist, liquid, level, collar, collarMetal, bulb, label })` | Flacon de sérum à pipette : verre ambré à paroi fine, huile sombre dont on voit le niveau, bague, poire nervurée, tube. `.fill(0 → 1)` ; `parts.dropper` se soulève. Garder un liquide sombre et opaque : clair, il fait « plastique orange » ; transparent, il disparaît derrière le verre. |
 | `wineBottle({ height, shoulder: "bordeaux" \| "bourgogne", tint, dist, label, capsule, wine })` | Bouteille de 75 cl aux vraies proportions, piqûre, bague, étiquette, capsule. `.fill(0 → 1)`. |
 | `cup({ size, color, coffee, crema, saucer, handmade })` | Tasse émaillée, anse en D, café avec crème au bord, soucoupe. `parts.handle`, `parts.saucer`. |
-| `bread({ kind: "boule" \| "batard", size, scores, ear, crust, crumb, flour })` | Pain au levain : grignes courbes dont la mie ressort, bord caramélisé, farine en nappes. `.bake(0 → 1)` : pâte crue → cuit (couleur et levée), sans rien recréer. |
+| `bread({ kind: "boule" \| "batard", size, scores, ear, crust, crumb, flour })` | Pain au levain : grignes ouvertes au fond blond et ombré, lèvre soulevée, croûte mate bosselée, farine en voile. `.bake(0 → 1)` : pâte crue (grigne fermée) → blond doré → cuit (grigne ouverte, pain levé), sans rien recréer. `ear` plafonné à 0,12 (au-delà, aileron). Ne pas lui donner de matériau brillant. |
 | `wheel({ diameter, spokes, split, nuts, rim, rimRough, tire, caliper, disc })` | Roue vue de face (plan XY) : pneu sculpté, jante à branches creusées, écrous six pans (`parts.nuts`, serrage en étoile), disque, étrier. `.spin(angle)`. Scène en `front: 1`. |
 | `flower({ petals, layers, color, edge, heart, shape: "round" \| "pointed", size, stem, tilt })` | Fleur : pétales incurvés (bord plus clair), couronnes, cœur, tige et feuille. `.open(0 → 1)` : bouton → épanouie, couronne extérieure d'abord. |
 

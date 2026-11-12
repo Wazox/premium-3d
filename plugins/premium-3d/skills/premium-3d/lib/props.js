@@ -36,22 +36,24 @@ const scaleProfile = (p, h) => p.map(([r, y]) => [r * h, y * h]);
  * Flacon de sérum à pipette (30 ml) : verre teinté épais, liquide, bague, poire en caoutchouc,
  * tube de verre qui plonge dans le liquide.
  *   height  hauteur du verre (la pipette dépasse d'environ 35 %) · tint : teinte du verre (claire !)
- *   dist    distance d'atténuation : plus court = verre plus foncé (0,8 à 1,5)
+ *   dist    distance d'atténuation : plus court = verre plus foncé (0,15 à 0,6)
  *   liquid  couleur du liquide (null : flacon vide) · level : niveau de départ
  *   collar, bulb  couleurs de la bague et de la poire · collarMetal : bague métallique (or, argent)
  * parts : glass, liquid, dropper (groupe : collar + bulb + tube, à soulever), label (null).
  */
-export function serumBottle({ height = 1, tint: glassTint = "#d68a2e", dist = 0.7, liquid: liquidColor = "#b8701c", level = 0.7,
+export function serumBottle({ height = 1, tint: glassTint = "#b9692a", dist = 0.25, liquid: liquidColor = "#7d3f0e", level = 0.7,
   collar = "#d8b46a", collarMetal = true, bulb = "#1c1a19", label = null } = {}) {
   const h = height, T = 0.03 * h;
   /* 30 ml : diamètre ≈ 0,55 × la hauteur du verre ; avec la pipette, rapport hauteur / diamètre ≈ 2,5 */
   const prof = scaleProfile([[0, 0], [0.245, 0], [0.27, 0.035], [0.27, 0.74], [0.24, 0.86], [0.13, 0.93], [0.11, 0.96], [0.11, 1]], h);
   const group = new THREE.Group(), parts = {};
-  parts.glass = new THREE.Mesh(lathe(prof, { thickness: T }), materials.glass({ tint: glassTint, dist: dist * h, irid: 0.08, thick: 0.4 * h }));
+  parts.glass = new THREE.Mesh(lathe(prof, { thickness: T }), materials.glass({ tint: glassTint, dist: dist * h, irid: 0.08, thick: 0.1 * h }) /* paroi fine : avec une épaisseur de flacon plein, le verre devient un bloc teinté opaque et on ne voit plus le niveau */);
   group.add(parts.glass);
   let fill = () => {};
   if (liquidColor) {
-    const l = liquid(prof, { thickness: T, to: 0.84 * h, material: new THREE.MeshPhysicalMaterial({ color: liquidColor, roughness: 0.06, clearcoat: 1 }) });
+    /* huile sombre et opaque (un liquide transparent sort de la passe de transmission : on ne le verrait plus à travers le verre) ;
+       claire, elle ferait « plastique orange » derrière le verre ambré (banc d'essai) */
+    const l = liquid(prof, { thickness: T, to: 0.84 * h, material: new THREE.MeshPhysicalMaterial({ color: liquidColor, roughness: 0.12, clearcoat: 1 }) });
     parts.glass.add(l.mesh); parts.liquid = l.mesh; l.set(level); fill = l.set;
   }
   if (label) {
@@ -151,64 +153,78 @@ export function cup({ size = 0.8, color = "#f4efe6", coffee = "#2b170c", crema =
  * relief dont la mie claire ressort, farine sur le dessus. Le défaut n° 1 du banc (« galet d'argile »).
  *   kind  "boule" | "batard" · scores : nombre de grignes (1 à 4) · ear : hauteur des lèvres de grigne
  *   crust, crumb : croûte et mie · flour : farine (0 → 1) · size : diamètre (boule) ou longueur (bâtard)
- * bake(k) : 0 = pâte crue (pâle, grignes fermées) → 1 = cuit, dans la boucle sans rien recréer.
+ * bake(k) : 0 = pâte crue (pâle, grignes fermées) → 0,5 = blond doré → 1 = cuit, grignes ouvertes et pain
+ * levé, dans la boucle sans rien recréer. ear est plafonné à 0,12 (au-delà, la lèvre fait un aileron).
  */
 export function bread({ kind = "boule", size = 1.4, scores = kind === "batard" ? 3 : 1, ear = 0.07, crust = "#6f3a16", crumb = "#ecd3a2", flour = 0.3, seed = 4 } = {}) {
   const long = kind === "batard", R = size / 2, group = new THREE.Group(), parts = {};
+  ear = Math.min(0.12, Math.max(0, ear)); // au-delà, la lèvre devient un aileron planté dans le pain (banc d'essai)
   /* lignes de grigne sur le dessus, en coordonnées (x, z) de la sphère unité étirée */
   const lines = [];
-  if (long) for (let i = 0; i < scores; i++) { const c = (i - (scores - 1) / 2) * (1.5 / Math.max(1, scores)); lines.push([[c - 0.3, -0.16], [c + 0.3, 0.16]]); }
+  if (long) for (let i = 0; i < scores; i++) { const c = (i - (scores - 1) / 2) * (1.5 / Math.max(1, scores)); lines.push([[c - 0.22, -0.14], [c + 0.22, 0.14]]); } // grignes en écailles, sans se toucher
   else if (scores === 1) lines.push([[-0.55, -0.12], [0.55, 0.12]]);
   else for (let i = 0; i < scores; i++) { const a = (i / scores) * Math.PI; lines.push([[Math.cos(a) * -0.6, Math.sin(a) * -0.6], [Math.cos(a) * 0.6, Math.sin(a) * 0.6]]); }
   const segDist = (x, z, [[ax, az], [bx, bz]]) => { const dx = bx - ax, dz = bz - az, t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz))); const px = ax + t * dx - x, pz = az + t * dz - z; return [Math.hypot(px, pz), t, Math.sign(-(dz * (x - ax)) + dx * (z - az))]; };
-  const W = 0.13; // demi-largeur d'une grigne (sphère unité)
+  const W = long ? 0.11 : 0.17; // demi-largeur d'une grigne ouverte (sphère unité) : assez large pour montrer la mie
   /* grigne légèrement courbe (un coup de lame n'est jamais droit) */
   const scoreAt = (x, z) => { x /= long ? 1.6 : 1; z -= 0.09 * Math.cos(x * 1.6); let best = [9, 0, 0]; for (const l of lines) { const d = segDist(x, z, l); if (d[0] < best[0]) best = d; } return best; };
-  /* bruit de valeur 2D (farine en nappes, pas en grille) */
+  const sm = (x) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
+  /* bruit de valeur 2D (farine en nappes, cuisson inégale) */
   const hash = (x, z) => { let n = (x * 374761393 + z * 668265263 + seed * 144269) | 0; n = (n ^ (n >>> 13)) * 1274126177; return ((n ^ (n >>> 16)) >>> 0) / 4294967295; };
   const vn = (x, z) => { const xi = Math.floor(x), zi = Math.floor(z), u = x - xi, v = z - zi, su = u * u * (3 - 2 * u), sv = v * v * (3 - 2 * v);
     const a = hash(xi, zi), b = hash(xi + 1, zi), c0 = hash(xi, zi + 1), d0 = hash(xi + 1, zi + 1); return a + (b - a) * su + (c0 - a) * sv + (a - b - c0 + d0) * su * sv; };
   const fbm = (x, z) => 0.55 * vn(x, z) + 0.3 * vn(x * 2.3 + 7, z * 2.3 - 3) + 0.15 * vn(x * 5.1 - 11, z * 5.1 + 5);
-  const geo0 = new THREE.SphereGeometry(1, long ? 192 : 160, 112);
-  const base = deform(geo0, (p) => {
+  /* même sphère, deux formes : pâte crue (dôme bas, grigne fermée) et pain cuit (levée au four,
+     grigne ouverte en V adouci, une lèvre large soulevée d'un côté). bake(k) passe de l'une à l'autre. */
+  const shape = (open) => (p) => {
     const top = Math.max(0, p.y);
     const [d, t, side] = scoreAt(p.x * (long ? 1.6 : 1), p.z);
-    /* entaille : creux net au centre, une lèvre (l'« oreille ») soulevée d'un seul côté, fondue vers les bouts */
-    const along = Math.pow(Math.sin(Math.PI * t), 0.6), k = top > 0.3 ? Math.max(0, 1 - d / W) * along : 0;
-    p.y -= k * k * 0.3 * top;
-    if (side > 0 && top > 0.3) p.y += Math.max(0, 1 - Math.abs(d - W) / (W * 0.7)) * along * ear * 2.2 * top;
+    const along = Math.pow(Math.sin(Math.PI * t), 0.9), on = sm((top - 0.25) / 0.15);
+    p.y -= open * sm(1 - d / W) * along * on * 0.34 * top;                                           // le creux
+    if (side > 0) p.y += open * sm(1 - Math.abs(d - W * 1.15) / (W * 1.15)) * along * on * ear * 1.5 * top; // la lèvre, en pente douce
     if (long) p.x *= 1.6;
-    p.y = p.y > 0 ? p.y * 0.6 : Math.max(p.y * 0.35, -0.16); // dôme bas, base plate et un peu évasée
-  });
-  const g = organic(base, { amp: 0.025, freq: 2.4, octaves: 3, seed });
-  g.scale(R, R, R); g.translate(0, 0.16 * R, 0);
-  const cr = new THREE.Color(crust), cm = new THREE.Color(crumb), pale = new THREE.Color("#c99556"), dark = new THREE.Color(crust).multiplyScalar(0.55), white = new THREE.Color("#f4efe4");
-  /* deux jeux de couleurs (cru / cuit) : bake(k) mélange dans le shader, sans recalcul */
+    p.y = p.y > 0 ? p.y * (0.47 + 0.13 * open) : Math.max(p.y * 0.35, -0.16); // la pâte lève au four ; base plate
+  };
+  const sphere = () => new THREE.SphereGeometry(1, long ? 256 : 224, 160);
+  const g = organic(organic(deform(sphere(), shape(1)), { amp: 0.025, freq: 2.4, octaves: 3, seed }), { amp: 0.006, freq: 14, octaves: 2, seed: seed + 1 }); // croûte bosselée, pas lisse
+  const gRaw = organic(deform(sphere(), shape(0)), { amp: 0.018, freq: 2.4, octaves: 3, seed });
+  for (const geo of [g, gRaw]) { geo.scale(R, R, R); geo.translate(0, 0.16 * R, 0); }
+  gRaw.computeVertexNormals();
+  g.setAttribute("positionRaw", gRaw.getAttribute("position"));
+  g.setAttribute("normalRaw", gRaw.getAttribute("normal"));
+  const cr = new THREE.Color(crust), cm = new THREE.Color(crumb), pale = new THREE.Color("#a77c50"), blond = new THREE.Color("#c9965d"), blond2 = new THREE.Color("#e2bd86"), cave = new THREE.Color("#8a5a2c"), dark = new THREE.Color(crust).multiplyScalar(0.55), white = new THREE.Color("#f2ece0");
+  /* deux jeux de couleurs (cru / cuit) : bake(k) les mélange dans le shader en passant par une dorure */
   const rawCols = [];
   const c = new THREE.Color(), c2 = new THREE.Color();
   tint(g, (p) => {
     const u = p.x / R / (long ? 1.6 : 1), w = p.z / R, hgt = (p.y / R - 0.16) / 0.6;
-    const [d] = scoreAt(u * (long ? 1.6 : 1), w), up = hgt > 0.4;
-    const inScore = up ? Math.max(0, 1 - d / (W * 0.65)) : 0;                       // mie claire au fond de la grigne
-    const lip = up ? Math.max(0, 1 - Math.abs(d - W * 0.85) / (W * 0.35)) : 0;       // bord caramélisé
-    c.copy(pale).lerp(cr, Math.min(1, Math.max(0, hgt * 1.4 + (fbm(u * 9 + 3, w * 9) - 0.5) * 0.5))); // plus cuit en haut, cuisson inégale
+    const [d] = scoreAt(u * (long ? 1.6 : 1), w), up = sm((hgt - 0.3) / 0.15);
+    const inScore = up * sm(1 - d / (W * 0.85)), core = up * sm(1 - d / (W * 0.4)); // ouverture blonde, fond plus sombre (le creux se lit)
+    const lip = up * sm(1 - Math.abs(d - W) / (W * 0.4));                            // bord caramélisé
+    c.copy(pale).lerp(cr, Math.min(1, Math.max(0, hgt * 1.3 + (fbm(u * 7 + 3, w * 7) - 0.5) * 0.45))); // plus cuit en haut, cuisson inégale mais sans taches
     if (hgt < 0.08) c.lerp(pale, 0.45);                                               // dessous moins cuit
-    c.lerp(dark, lip * 0.6).lerp(cm, Math.pow(inScore, 0.7));
-    const f = flour * Math.max(0, Math.min(1, (fbm(u * 4, w * 4) - 0.52) * 4)) * Math.min(1, Math.max(0, (hgt - 0.35) * 3)) * (1 - inScore) * (1 - lip);
-    c.lerp(white, f * 0.9);
-    c2.set("#e8d6b2").lerp(white, f * 0.7); rawCols.push(c2.r, c2.g, c2.b);
+    c.lerp(dark, lip * 0.55).lerp(c2.copy(blond).lerp(blond2, fbm(u * 18, w * 18)), inScore).lerp(cave, core * 0.7);
+    c.multiplyScalar(1 - 0.38 * up * sm(1 - d / W) * sm(1 - d / W));                // ombre du creux : la grigne se lit en entaille, pas en boudin
+    const f = flour * sm((fbm(u * 2.2, w * 2.2) - 0.42) * 2.2) * sm((hgt - 0.35) * 3) * (1 - inScore) * (1 - lip);
+    c.lerp(white, f * 0.45);
+    c2.set("#e6d3ad").lerp(white, f * 0.6); rawCols.push(c2.r, c2.g, c2.b);
     return c;
   });
   g.setAttribute("colorRaw", new THREE.Float32BufferAttribute(rawCols, 3));
-  const mat = new THREE.MeshPhysicalMaterial({ vertexColors: true, roughness: 0.85, specularIntensity: 0.35, sheen: 0.18, sheenColor: new THREE.Color("#fff1d8"), sheenRoughness: 0.7 });
+  /* croûte mate : aucun reflet net, sinon le pain devient une brioche vernie */
+  const mat = new THREE.MeshPhysicalMaterial({ vertexColors: true, roughness: 0.93, specularIntensity: 0.12, envMapIntensity: 0.55, sheen: 0.1, sheenColor: new THREE.Color("#fff1d8"), sheenRoughness: 0.8 });
   const uBake = { value: 1 };
   mat.onBeforeCompile = (sh) => {
     sh.uniforms.uBake = uBake;
-    sh.vertexShader = sh.vertexShader.replace("#include <color_vertex>", "#include <color_vertex>\n vColor.rgb = mix(colorRaw, vColor.rgb, uBake);") // vColor : vec3 ou vec4 selon la version
-      .replace("void main() {", "attribute vec3 colorRaw;\nuniform float uBake;\nvoid main() {");
+    sh.vertexShader = sh.vertexShader
+      .replace("void main() {", "attribute vec3 colorRaw;\nattribute vec3 positionRaw;\nattribute vec3 normalRaw;\nuniform float uBake;\nvoid main() {")
+      .replace("#include <beginnormal_vertex>", "vec3 objectNormal = normalize(mix(normalRaw, normal, uBake));\n#ifdef USE_TANGENT\n vec3 objectTangent = vec3(tangent.xyz);\n#endif")
+      .replace("#include <begin_vertex>", "vec3 transformed = mix(positionRaw, position, uBake);")
+      /* cru → doré → cuit : la croûte passe par une dorure blond-or au lieu de virer d'un coup */
+      .replace("#include <color_vertex>", "#include <color_vertex>\n vec3 gold = mix(colorRaw, vColor.rgb, 0.5) * vec3(1.06, 0.92, 0.7);\n vColor.rgb = uBake < 0.5 ? mix(colorRaw, gold, uBake * 2.0) : mix(gold, vColor.rgb, uBake * 2.0 - 1.0);");
   };
   parts.loaf = new THREE.Mesh(g, mat); group.add(parts.loaf);
-  return done(group, parts, { bake(k) { uBake.value = Math.min(1, Math.max(0, k)); parts.loaf.scale.set(1, 0.82 + 0.18 * uBake.value, 1); } });
+  return done(group, parts, { bake(k) { uBake.value = Math.min(1, Math.max(0, k)); } });
 }
 
 /* ---------------------------------------------------------------------------------------------- */
