@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.16.0
+
+**Objets prêts corrigés au rendu** (défauts relevés par le jury sur deux landings de test)
+- `bread()` : la grigne est une vraie entaille ouverte (fond blond, ombre du creux, lèvre en pente
+  douce) au lieu d'un « bâton planté » ; `ear` plafonné à 0,12. `bake(k)` passe la forme de la pâte crue
+  (grigne fermée, dôme bas) au pain cuit (grigne ouverte, levée au four) et la couleur par une dorure
+  blonde, au lieu d'un saut beige → brun. Croûte mate et bosselée, farine en voile au lieu de taches.
+- `serumBottle()` : verre ambré à paroi fine et huile sombre ; le niveau se voit à travers le verre au
+  lieu d'un bloc « plastique orange ».
+- Vérifiés au rendu sans changement : `wineBottle`, `cup`, `wheel`, `flower`.
+
 ## 1.15.0
 
 **Le skill s'adapte à la demande** (retour d'un utilisateur sur Agensi)
