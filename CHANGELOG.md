@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.15.0
+
+**Le skill s'adapte à la demande** (retour d'un utilisateur sur Agensi)
+- Nouvelle Étape 0 : trois modes. **Conseil** (direction et dosage des effets, sans code),
+  **Léger** (un effet ou une petite section, une passe de vérification, sans jury),
+  **Complet** (le parcours habituel). Une demande floue part sur le mode le plus léger.
+
 ## 1.14.0
 
 **Des objets qui se reconnaissent** (le défaut n° 1 du banc d'essai)

@@ -60,6 +60,21 @@ Tout ce qui se voit vient de la demande : le concept 3D, la mise en page, les co
 polices, les textes, le rythme. Les démos montrent comment utiliser le code, pas à quoi doit
 ressembler le résultat : **ne reprends jamais leur mise en page, leurs couleurs ou leurs textes.**
 
+## Étape 0 : doser le travail
+
+Avant tout, classe la demande. Le parcours complet (étapes 1 à 8) n'est utile que pour une vraie
+scène 3D à livrer. Ne l'impose pas quand la personne veut autre chose.
+
+| Mode | Quand | Ce que tu fais |
+|---|---|---|
+| **Conseil** | Avis, idées, « quel effet mettre », « est-ce trop », critique d'un site, pas de code demandé | Étapes 2 et 3 seulement : signature, direction en 6 lignes, dosage des effets (ce qu'on garde, ce qu'on enlève, pourquoi). Aucun fichier, aucun outil. |
+| **Léger** | Un effet ou une petite section sur un site existant (hover, apparition au scroll, logo qui tourne, fond animé) | Étape 1 réduite (pas de `brand.mjs` si la marque est connue), un seul module de `lib/`, pas de squelette `new.mjs`. Étape 6 : une passe `check.mjs` desktop + mobile. Pas de jury chiffré ni d'agent. |
+| **Complet** | Page, landing, hero ou scène 3D à livrer | Étapes 1 à 8, comme décrites ci-dessous. |
+
+Si la demande est floue, pars sur le mode le plus léger qui y répond et propose de monter d'un cran
+à la fin. Si un effet 3D n'apporte rien au message, dis-le : un site sobre bien dosé vaut mieux
+qu'une 3D gratuite.
+
 ## Étape 1 : comprendre la demande
 
 Lis tout ce que la personne a fourni (texte, logo, photos, site existant, captures). Si elle a déjà
@@ -299,5 +314,6 @@ polices embarquées).
 - Inventer des chiffres, des clients ou des avis présentés comme réels.
 - Mettre de la 3D partout : une ou deux zones fortes, le reste reste léger et lisible.
 - Faire suivre la souris de façon appuyée sans que la personne l'ait demandé.
-- Livrer sans avoir regardé les captures ni passé le jury.
+- En mode complet, livrer sans avoir regardé les captures ni passé le jury.
+- Imposer le parcours complet à quelqu'un qui demande un avis ou un petit effet (Étape 0).
 - Utiliser une brique juste parce qu'elle existe : chaque effet doit servir la signature ou le message.
